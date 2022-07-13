@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(AnchorSerialize, AnchorDeserialize, Serialize, Deserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct BotTax {
     pub lamports: u64,
 }
@@ -24,7 +24,6 @@ impl Condition for BotTax {
     ) -> Result<()> {
         // the purpuse of this guard is to indicate whether the bot tax is anebled or not
         // and to store the lamports fee
-        msg!("bot_tax evaluated");
         Ok(())
     }
 }

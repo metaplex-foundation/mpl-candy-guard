@@ -379,8 +379,6 @@ name = "candy-guard"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "bincode",
- "serde",
  "solana-program",
  "spl-token",
 ]

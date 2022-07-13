@@ -1,5 +1,4 @@
 pub use anchor_lang::prelude::*;
-pub use serde::{Deserialize, Serialize};
 pub use solana_program::{program_memory::sol_memcmp, pubkey::PUBKEY_BYTES};
 
 pub use crate::errors::CandyGuardError;
@@ -25,7 +24,7 @@ pub trait Condition {
     ) -> Result<()>;
 }
 
-pub trait Guard: Condition + Serialize {
+pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
     /// Return the number of bytes used by the guard configuration.
     fn size() -> usize;
 
@@ -48,11 +47,26 @@ pub trait Guard: Condition + Serialize {
     }
 
     /// Serialize the guard into the specified data array.
-    fn save(&self, data: &mut [u8], offset: usize) {
-        let encoded = bincode::serialize(self).unwrap();
+    fn save(&self, data: &mut [u8], offset: usize) -> Result<()> {
+        let mut result = Vec::with_capacity(Self::size());
+        self.serialize(&mut result)?;
 
-        for i in 0..encoded.len() {
-            data[offset + i] = encoded[i];
+        for i in 0..result.len() {
+            data[offset + i] = result[i];
+        }
+
+        Ok(())
+    }
+
+    /// Deserializes the guard from a slice of data. Only attempts the deserialization
+    /// if the data slice is large enough and the guard is enabled.
+    fn load(features: u64, data: &mut [u8], offset: usize) -> Result<Option<Self>> {
+        if offset <= data.len() && Self::is_enabled(features) {
+            let mut slice = &data[offset - Self::size()..offset];
+            let guard = Self::deserialize(&mut slice)?;
+            Ok(Some(guard))
+        } else {
+            Ok(None)
         }
     }
 }

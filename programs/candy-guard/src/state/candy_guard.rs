@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 use anchor_lang::AnchorDeserialize;
 use std::cell::RefMut;
 
-use crate::errors::CandyGuardError;
 use crate::guards::*;
 
 // Bytes offset for the start of the data section:
@@ -36,38 +35,17 @@ pub struct CandyGuardData {
 
 impl CandyGuardData {
     pub fn from_data(features: u64, data: &mut RefMut<&mut [u8]>) -> Result<Self> {
-        // limit to stop trying to deserialize guards
-        let length = data.len();
-
         // bot tax
         let mut current = DATA_OFFSET + BotTax::size();
-
-        let bot_tax = if current <= length && BotTax::is_enabled(features) {
-            let bot_tax: BotTax = deserialize(current - BotTax::size(), current, data)?;
-            Some(bot_tax)
-        } else {
-            None
-        };
+        let bot_tax = BotTax::load(features, data, current)?;
 
         // live date
         current += LiveDate::size();
-
-        let live_date = if current <= length && LiveDate::is_enabled(features) {
-            let live_date: LiveDate = deserialize(current - LiveDate::size(), current, data)?;
-            Some(live_date)
-        } else {
-            None
-        };
+        let live_date = LiveDate::load(features, data, current)?;
 
         // whitelist
         current += Whitelist::size();
-
-        let whitelist = if current <= length && Whitelist::is_enabled(features) {
-            let whitelist: Whitelist = deserialize(current - Whitelist::size(), current, data)?;
-            Some(whitelist)
-        } else {
-            None
-        };
+        let whitelist = Whitelist::load(features, data, current)?;
 
         Ok(Self {
             bot_tax,
@@ -97,28 +75,5 @@ impl CandyGuardData {
 
     pub fn data_length() -> usize {
         DATA_OFFSET + BotTax::size() + LiveDate::size() + Whitelist::size()
-    }
-}
-
-/// Deserializes a [`guard`](crate::guards::Guard) struct from the data.
-///
-/// # Arguments
-///
-/// * `from` - start offset on the data array
-/// * `to` - end offset on the data array
-/// * `data` - data array
-///
-/// # Errors
-///
-/// - [`DeserializationError`](crate::errors::CandyGuardError::DeserializationError) when
-///    the guard cannot be read from the data.
-fn deserialize<'a, T>(from: usize, to: usize, data: &'a [u8]) -> Result<T>
-where
-    T: Guard + Deserialize<'a>,
-{
-    if let Ok(decoded) = bincode::deserialize::<T>(&data[from..to]) {
-        Ok(decoded)
-    } else {
-        err!(CandyGuardError::DeserializationError)
     }
 }

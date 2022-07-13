@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(AnchorSerialize, AnchorDeserialize, Serialize, Deserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct LiveDate {
     pub date: Option<i64>,
 }
