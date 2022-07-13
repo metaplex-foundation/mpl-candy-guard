@@ -20,9 +20,8 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
 
     if let Some(bot_tax) = data.bot_tax {
         if offset <= length {
-            bot_tax.save(&mut account_data, offset - BotTax::size());
+            bot_tax.save(&mut account_data, offset - BotTax::size())?;
             features = BotTax::enable(features);
-            msg!("bot_tax guard enabled");
         }
     }
 
@@ -31,9 +30,8 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
 
     if let Some(live_date) = data.live_date {
         if offset <= length {
-            live_date.save(&mut account_data, offset - LiveDate::size());
+            live_date.save(&mut account_data, offset - LiveDate::size())?;
             features = LiveDate::enable(features);
-            msg!("live_date guard enabled");
         }
     }
 
