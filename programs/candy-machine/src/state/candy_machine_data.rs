@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::{constants::HIDDEN_SECTION, errors::CandyError};
+
 /// Candy machine configuration data.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Debug)]
 pub struct CandyMachineData {
@@ -13,14 +15,14 @@ pub struct CandyMachineData {
     pub seller_fee_basis_points: u16,
     /// Max supply of each individual asset (default 0)
     pub max_supply: u64,
-    /// Indicates if the asset is mutable or not
+    /// Indicates if the asset is mutable or not (default yes)
     pub is_mutable: bool,
     /// Indicates whether to retain the update authority or not
     pub retain_authority: bool,
     /// List of creators
     pub creators: Vec<Creator>,
     /// Config line settings
-    pub config_lines_settings: ConfigListSettings,
+    pub config_line_settings: ConfigLineSettings,
     /// Hidden setttings
     pub hidden_settings: Option<HiddenSettings>,
 }
@@ -49,7 +51,7 @@ pub struct HiddenSettings {
 
 /// Config line settings to allocate space for individual name + URI.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Debug)]
-pub struct ConfigListSettings {
+pub struct ConfigLineSettings {
     /// Common name prefix
     pub prefix_name: String,
     /// Length of the remaining part of the name
@@ -58,4 +60,28 @@ pub struct ConfigListSettings {
     pub prefix_uri: String,
     /// Length of the remaining part of the URI
     pub uri_length: u32,
+}
+
+impl CandyMachineData {
+    pub fn get_space_for_candy(&self) -> Result<usize> {
+        Ok(if self.hidden_settings.is_some() {
+            HIDDEN_SECTION
+        } else {
+            HIDDEN_SECTION
+                + 4
+                + (self.items_available as usize) * self.get_config_line_size()
+                + 4
+                + ((self
+                    .items_available
+                    .checked_div(8)
+                    .ok_or(CandyError::NumericalOverflowError)?
+                    + 1) as usize)
+                + 4
+                + (self.items_available as usize) * 4
+        })
+    }
+
+    pub fn get_config_line_size(&self) -> usize {
+        (self.config_line_settings.name_length + self.config_line_settings.uri_length) as usize
+    }
 }

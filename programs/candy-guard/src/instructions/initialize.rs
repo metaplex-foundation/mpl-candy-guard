@@ -7,20 +7,7 @@ pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     ctx.accounts.candy_guard.authority = ctx.accounts.authority.key();
     // all feature are disabled
     ctx.accounts.candy_guard.features = 0;
-    /*    
-    // allocates space for the features available
-    let go_live = LiveDate {
-        date: 7,
-    };
-    let encoded = bincode::serialize(&go_live).unwrap();
 
-    let info = &mut ctx.accounts.candy_guard.to_account_info();
-    let mut data = info.data.borrow_mut();
-
-    for i in 48..48 + LiveDate::size() {
-        data[i] = encoded[i - 48];
-    }
-    */
     Ok(())
 }
 

@@ -33,24 +33,16 @@ describe("candy-guard", () => {
     let candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
     expect(candy_guard.features.toNumber()).to.equal(0);
 
-    const settings = JSON.parse("{\
-      \"botTax\": {\
-        \"lamports\": 100000000\
+    const settings = JSON.parse('{\
+      "botTax": {\
+        "lamports": 100000000\
       },\
-      \"liveDate\": {\
-        \"date\": 1657669708\
+      "liveDate": {\
+        "date": 1657669708\
       },\
-      \"whitelist\": null\
-    }");
-    /*
-    const settings = JSON.parse("{\
-      \"botTax\": {\
-        \"lamports\": 100000000\
-      },\
-      \"liveDate\": null,\
-      \"whitelist\": null\
-    }");
-    */
+      "whitelist": null\
+    }');
+
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate.date = null;
 
@@ -63,15 +55,13 @@ describe("candy-guard", () => {
     expect(candy_guard.features.toNumber()).to.equal(3);
   });
 
-  it("Mint!", async () => {
+  it("mint", async () => {
     let candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
     expect(candy_guard.features.toNumber()).to.equal(3);
 
-    const signature = await program.methods.mint().accounts({
+    await program.methods.mint().accounts({
       candyGuard: keypair.publicKey,
       payer: payer.publicKey,
     }).rpc();
-
-    console.log(signature);
   });
 });

@@ -1,28 +1,27 @@
 use anchor_lang::{prelude::*, Discriminator};
-use mpl_token_metadata::state::{MAX_CREATOR_LIMIT, MAX_SYMBOL_LENGTH};
+use mpl_token_metadata::state::{
+    MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_SYMBOL_LENGTH, MAX_URI_LENGTH,
+};
 use spl_token::state::Mint;
 
 use crate::{
     assert_initialized, assert_owned_by, cmp_pubkeys,
-    constants::{CONFIG_ARRAY_START, CONFIG_LINE_SIZE},
-    CandyError, CandyMachine, CandyMachineData,
+    constants::HIDDEN_SECTION,
+    errors::CandyError,
+    state::{CandyMachine, CandyMachineData},
+    utils::fixed_length_string,
 };
 
-pub fn initialize(
-    ctx: Context<InitializeCandyMachine>,
-    data: CandyMachineData,
-) -> Result<()> {
+pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()> {
     let candy_machine_account = &mut ctx.accounts.candy_machine;
 
     let mut candy_machine = CandyMachine {
+        data,
         authority: ctx.accounts.authority.key(),
         wallet: ctx.accounts.wallet.key(),
         token_mint: None,
         items_redeemed: 0,
-        data,
     };
-
-    // check if the initialization instruction included a token mint
 
     if !ctx.remaining_accounts.is_empty() {
         let token_mint_info = &ctx.remaining_accounts[0];
@@ -39,69 +38,49 @@ pub fn initialize(
         candy_machine.token_mint = Some(*token_mint_info.key);
     }
 
-    // validate symbol size
+    candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
+    // validates config line settings
+    if MAX_NAME_LENGTH
+        < (candy_machine.data.config_line_settings.prefix_name.len()
+            + candy_machine.data.config_line_settings.name_length as usize)
+    {
+        return err!(CandyError::ExceededLengthError);
+    }
+    if MAX_URI_LENGTH
+        < (candy_machine.data.config_line_settings.prefix_uri.len()
+            + candy_machine.data.config_line_settings.uri_length as usize)
+    {
+        return err!(CandyError::ExceededLengthError);
+    }
 
-    // -1 because the candy machine will be a creator
+    // creators - 1 because the candy machine is going to be a creator
     if candy_machine.data.creators.len() > MAX_CREATOR_LIMIT - 1 {
         return err!(CandyError::TooManyCreators);
     }
 
-    let mut new_data = CandyMachine::discriminator().try_to_vec().unwrap();
-    new_data.append(&mut candy_machine.try_to_vec().unwrap());
+    let mut struct_data = CandyMachine::discriminator().try_to_vec().unwrap();
+    struct_data.append(&mut candy_machine.try_to_vec().unwrap());
 
-    let mut data = candy_machine_account.data.borrow_mut();
-    // god forgive me couldnt think of better way to deal with this
-    for i in 0..new_data.len() {
-        data[i] = new_data[i];
-    }
+    let mut account_data = candy_machine_account.data.borrow_mut();
+    account_data[0..struct_data.len()].copy_from_slice(&struct_data);
 
-    // only if we are not using hidden settings we will have space for
-    // the config lines
     if candy_machine.data.hidden_settings.is_none() {
-        let vec_start = CONFIG_ARRAY_START
-            + 4
-            + (candy_machine.data.items_available as usize) * CONFIG_LINE_SIZE;
-        let as_bytes = (candy_machine
-            .data
-            .items_available
-            .checked_div(8)
-            .ok_or(CandyError::NumericalOverflowError)? as u32)
-            .to_le_bytes();
-        for i in 0..4 {
-            data[vec_start + i] = as_bytes[i]
-        }
+        // set the initial number of config lines
+        account_data[HIDDEN_SECTION..HIDDEN_SECTION + 4].copy_from_slice(&u32::MIN.to_le_bytes());
     }
 
     Ok(())
 }
 
-fn get_space_for_candy(data: CandyMachineData) -> Result<usize> {
-    let num = if data.hidden_settings.is_some() {
-        CONFIG_ARRAY_START
-    } else {
-        CONFIG_ARRAY_START
-            + 4
-            + (data.items_available as usize) * CONFIG_LINE_SIZE
-            + 8
-            + 2 * ((data
-                .items_available
-                .checked_div(8)
-                .ok_or(CandyError::NumericalOverflowError)?
-                + 1) as usize)
-    };
-
-    Ok(num)
-}
-
 /// Create a new candy machine.
 #[derive(Accounts)]
 #[instruction(data: CandyMachineData)]
-pub struct InitializeCandyMachine<'info> {
+pub struct Initialize<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(
         zero,
         rent_exempt = skip,
-        constraint = candy_machine.to_account_info().owner == program_id && candy_machine.to_account_info().data_len() >= get_space_for_candy(data)?
+        constraint = candy_machine.to_account_info().owner == program_id && candy_machine.to_account_info().data_len() >= data.get_space_for_candy()?
     )]
     candy_machine: UncheckedAccount<'info>,
     /// CHECK: wallet can be any account and is not written to or read
