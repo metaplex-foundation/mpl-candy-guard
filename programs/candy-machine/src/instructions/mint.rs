@@ -24,7 +24,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         return err!(CandyError::MetadataAccountMustBeEmpty);
     }
 
-    // the candy machine authority has "super-powers", so no need to validate the instructions
+    // the candy machine authority has "super-powers", so no need to validate instructions
     if !cmp_pubkeys(
         &ctx.accounts.mint_authority.key(),
         &ctx.accounts.candy_machine.authority,
@@ -59,6 +59,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
                 }
             }
             Err(_) => {
+                // TODO: collection support missing
                 return err!(CandyError::MissingSetCollectionDuringMint);
             }
         }

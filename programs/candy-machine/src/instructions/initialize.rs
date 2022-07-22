@@ -53,8 +53,8 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
         return err!(CandyError::ExceededLengthError);
     }
 
-    // creators - 1 because the candy machine is going to be a creator
-    if candy_machine.data.creators.len() > MAX_CREATOR_LIMIT - 1 {
+    // (MAX_CREATOR_LIMIT - 1) because the candy machine is going to be a creator
+    if candy_machine.data.creators.len() > (MAX_CREATOR_LIMIT - 1) {
         return err!(CandyError::TooManyCreators);
     }
 
