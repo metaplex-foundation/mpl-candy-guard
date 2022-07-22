@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::guards::*;
-use crate::state::{DATA_OFFSET, CandyGuard, CandyGuardData};
+use crate::state::{CandyGuard, CandyGuardData, DATA_OFFSET};
 
 pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
     let info = ctx.accounts.candy_guard.to_account_info();

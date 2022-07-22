@@ -1,7 +1,6 @@
-use std::cell::RefMut;
-
 use anchor_lang::prelude::*;
 use arrayref::array_ref;
+use std::cell::RefMut;
 
 use crate::{
     constants::HIDDEN_SECTION,
@@ -94,12 +93,7 @@ pub fn add_config_lines(
         data[byte_position] |= mask;
 
         msg!(
-            "Config line processed: \
-                byte position={}, \
-                mask={}, \
-                current value={}, \
-                new value={}, \
-                bit position={}",
+            "Config line processed: byte position={}, mask={}, current value={}, new value={}, bit position={}",
             byte_position - bit_mask_start,
             mask,
             current_value,
