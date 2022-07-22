@@ -7,6 +7,7 @@ pub mod errors;
 pub mod guards;
 pub mod instructions;
 pub mod state;
+pub mod utils;
 
 declare_id!("FEf9mMa22GxyxVKjXDUwdiYtH8isuhAsSqBSjQg9CTzu");
 
@@ -18,8 +19,11 @@ pub mod candy_guard {
         instructions::initialize(ctx)
     }
 
-    pub fn mint(ctx: Context<Mint>) -> Result<()> {
-        instructions::mint(ctx)
+    pub fn mint<'info>(
+        ctx: Context<'_, '_, '_, 'info, Mint<'info>>,
+        creator_bump: u8,
+    ) -> Result<()> {
+        instructions::mint(ctx, creator_bump)
     }
 
     pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {

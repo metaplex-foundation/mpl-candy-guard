@@ -17,6 +17,9 @@ default = []
 
 [dependencies]
 anchor-lang = "0.25.0"
+anchor-spl = "0.25.0"
+candy-machine = { path = "../candy-machine", features = ["cpi"] }
+mpl-token-metadata = { version = "1.2.5", features = ["no-entrypoint"] }
 solana-program = "1.9.13"
+spl-associated-token-account = { version = "1.0.5", features = ["no-entrypoint"] }
 spl-token = "3.3.0"
-

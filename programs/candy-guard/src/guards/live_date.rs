@@ -17,14 +17,14 @@ impl Guard for LiveDate {
 }
 
 impl Condition for LiveDate {
-    fn evaluate(
+    fn evaluate<'info>(
         &self,
-        _ctx: &Context<Mint>,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         // the decision on whether or not the user is part of the whitelist
-		// is done by the whitelist guard
+        // is done by the whitelist guard
         let whitelist_presale = if let Some(whitelist) = &candy_guard_data.whitelist {
             whitelist.presale
         } else {
@@ -44,8 +44,8 @@ impl Condition for LiveDate {
                 }
             }
             None => {
-                // when the live date is null, only the authority can mint
-                if !evaluation_context.is_authority {
+                // when the live date is null, only the authority or whilelist users can mint
+                if !(whitelist_presale || evaluation_context.is_authority) {
                     return err!(CandyGuardError::MintNotLive);
                 }
             }

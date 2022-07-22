@@ -1,5 +1,4 @@
 pub use anchor_lang::prelude::*;
-pub use solana_program::{program_memory::sol_memcmp, pubkey::PUBKEY_BYTES};
 
 pub use crate::errors::CandyGuardError;
 pub use crate::instructions::mint::*;
@@ -16,9 +15,9 @@ mod whitelist;
 pub trait Condition {
     /// Validate the condition of the guard. When the guard condition
     /// is not satisfied, it will return an error.
-    fn evaluate(
+    fn evaluate<'info>(
         &self,
-        ctx: &Context<Mint>,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()>;
@@ -51,9 +50,7 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
         let mut result = Vec::with_capacity(Self::size());
         self.serialize(&mut result)?;
 
-        for i in 0..result.len() {
-            data[offset + i] = result[i];
-        }
+        data[offset..(result.len() + offset)].copy_from_slice(&result[..]);
 
         Ok(())
     }
@@ -82,8 +79,4 @@ pub struct EvaluationContext {
     /// The counter for the remaining account list. When a guard "consumes" one of the
     /// remaining accounts, it should increment the counter.
     pub remaining_account_counter: usize,
-}
-
-pub fn cmp_pubkeys(a: &Pubkey, b: &Pubkey) -> bool {
-    sol_memcmp(a.as_ref(), b.as_ref(), PUBKEY_BYTES) == 0
 }
