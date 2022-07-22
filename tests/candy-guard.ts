@@ -3,7 +3,7 @@ import { BN, Program } from "@project-serum/anchor";
 import { expect } from 'chai';
 import { CandyGuard } from "../target/types/candy_guard";
 
-describe("candy-guard", () => {
+describe("Candy Guard", () => {
   // configure the client to use the local cluster
   anchor.setProvider(anchor.AnchorProvider.env());
   // candy guard for the tests
@@ -53,15 +53,5 @@ describe("candy-guard", () => {
 
     candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
     expect(candy_guard.features.toNumber()).to.equal(3);
-  });
-
-  it("mint", async () => {
-    let candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
-    expect(candy_guard.features.toNumber()).to.equal(3);
-
-    await program.methods.mint().accounts({
-      candyGuard: keypair.publicKey,
-      payer: payer.publicKey,
-    }).rpc();
   });
 });
