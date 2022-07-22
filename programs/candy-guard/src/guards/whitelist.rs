@@ -36,25 +36,30 @@ impl Condition for Whitelist {
         _candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
+        // retrieves the (potential) whitelist token account
         let whitelist_token_account =
             &ctx.remaining_accounts[evaluation_context.remaining_account_counter];
-        // consumes the remaning account
+        // consumes the whitelist token account
         evaluation_context.remaining_account_counter += 1;
 
-        // if the user has not actually made this account, this explodes and we just check normal dates.
-        // If they have, we check amount, if it's > 0 we let them use the logic
-        // if 0, check normal dates.
+        // if the user has not actually made this account, this explodes and we just
+        // check normal dates. if they have, we check amount: if it's > 0 we let them
+        // use the logic; if 0, check normal dates.
         match assert_is_ata(
             whitelist_token_account,
             &ctx.accounts.payer.key(),
             &self.mint,
         ) {
             Ok(wta) => {
+                // if the amount is greater than 0, the user is allowed to mint
+                // we only need to check whether there is a discount price or not
+                // and burn the token if needed
                 if wta.amount > 0 {
                     if let Some(price) = self.discount_price {
+                        // user will pay the discount price
                         evaluation_context.discount_price = price;
                     }
-
+                    // should we burn the token?
                     if self.mode == WhitelistTokenMode::BurnEveryTime {
                         let whitelist_token_mint =
                             &ctx.remaining_accounts[evaluation_context.remaining_account_counter];
@@ -78,24 +83,35 @@ impl Condition for Whitelist {
                         })?;
                     }
                 } else {
-                    if wta.amount == 0 && self.discount_price.is_none() && !self.presale {
-                        // a non-presale whitelist with no discount price is a forced whitelist
-                        // (only whitelist users can mint)
+                    // if the user does not have balance, we need to check whether the mint
+                    // is in presale period or limited to only whitelist users
+                    if wta.amount == 0
+                        && ((self.discount_price.is_none() && !self.presale)
+                            || evaluation_context.is_presale)
+                        && !evaluation_context.is_authority
+                    {
+                        // (only whitelist users can mint) a non-presale whitelist with no discount
+                        // price is a forced whitelist or we are in presale period
                         return err!(CandyGuardError::NoWhitelistToken);
                     }
-                    // consumes the remaning accounts if needed
+                    // no presale period, consumes the remaning accounts if needed
                     if self.mode == WhitelistTokenMode::BurnEveryTime {
                         evaluation_context.remaining_account_counter += 2;
                     }
                 }
             }
             Err(_) => {
-                if self.discount_price.is_none() && !self.presale {
-                    // a non-presale whitelist with no discount price is a forced whitelist
-                    // (only whitelist users can mint)
+                // no token, we need to check whether the mint is in presale period or limited to
+                // only whitelist users
+                if ((self.discount_price.is_none() && !self.presale)
+                    || evaluation_context.is_presale)
+                    && !evaluation_context.is_authority
+                {
+                    // (only whitelist users can mint) a non-presale whitelist with no discount
+                    // price is a forced whitelist or if we are in presale period
                     return err!(CandyGuardError::NoWhitelistToken);
                 }
-                // consumes the remaning accounts if needed
+                // no presale period, consumes the remaning accounts if needed
                 if self.mode == WhitelistTokenMode::BurnEveryTime {
                     evaluation_context.remaining_account_counter += 2;
                 }
