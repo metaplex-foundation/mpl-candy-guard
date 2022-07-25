@@ -35,6 +35,16 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
         }
     }
 
+    offset += Whitelist::size();
+    features = Whitelist::disable(features);
+
+    if let Some(whitelist) = data.whitelist {
+        if offset <= length {
+            whitelist.save(&mut account_data, offset - Whitelist::size())?;
+            features = Whitelist::enable(features);
+        }
+    }
+
     ctx.accounts.candy_guard.features = features;
 
     Ok(())
