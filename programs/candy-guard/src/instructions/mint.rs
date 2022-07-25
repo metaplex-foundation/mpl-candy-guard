@@ -69,11 +69,15 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
         instruction_sysvar_account: ctx.accounts.instruction_sysvar_account.to_account_info(),
     };
+    // prepares the remaining accounts
+    let mut remaining_accounts = Vec::new();
+    for account in ctx.remaining_accounts[evaluation_context.remaining_account_counter..].iter() {
+        remaining_accounts.push(account.to_account_info());
+    }
     // candy machine mint CPI
-    if let Err(error) = candy_machine::cpi::mint(
-        CpiContext::new(candy_machine_program, mint_ix),
-        creator_bump,
-    ) {
+    let cpi_ctx =
+        CpiContext::new(candy_machine_program, mint_ix).with_remaining_accounts(remaining_accounts);
+    if let Err(error) = candy_machine::cpi::mint(cpi_ctx, creator_bump) {
         return if let Some(bot_tax) = candy_guard_data.bot_tax {
             // apply bot tax using bot_tax.lamports as fee
             bot_tax.punish_bots(
@@ -138,14 +142,9 @@ pub struct Mint<'info> {
     #[account(address = sysvar::instructions::id())]
     pub instruction_sysvar_account: UncheckedAccount<'info>,
     // remaining accounts:
-    // > only needed if candy machine has a gatekeeper
-    // gateway_token
-    // > only needed if candy machine has a gatekeeper and it has expire_on_use set to true:
-    // gateway program
-    // network_expire_feature
-    // > only needed if candy machine has whitelist_mint_settings
+    // > only needed if whitelist guard enabled
     // whitelist_token_account
-    // > only needed if candy machine has whitelist_mint_settings and mode is BurnEveryTime
+    // > only needed if whitelist guard enabled and mode is "BurnEveryTime"
     // whitelist_token_mint
     // whitelist_burn_authority
     // > only needed if candy machine has token mint
