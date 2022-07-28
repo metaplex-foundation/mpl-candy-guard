@@ -26,7 +26,14 @@ impl Condition for LamportsCharge {
         _candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
+        evaluation_context.amount = self.amount;
+
         if ctx.accounts.payer.lamports() < evaluation_context.amount {
+            msg!(
+                "Require {} lamports, accounts has {} lamports",
+                evaluation_context.amount,
+                ctx.accounts.payer.lamports(),
+            );    
             return err!(CandyGuardError::NotEnoughSOL);
         }
 
