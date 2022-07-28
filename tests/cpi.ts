@@ -142,15 +142,23 @@ describe("Mint CPI", () => {
         expect(candy_guard.features.toNumber()).to.equal(0);
 
         const settings = JSON.parse('{\
-            "botTax": null,\
+            "botTax": {\
+                "lamports": 1000000000\
+            },\
             "liveDate": {\
               "date": 0\
             },\
+            "lamportsCharge": {\
+                "amount": 1000000000\
+            },\
+            "spltokenCharge": null,\
             "whitelist": null\
           }');
 
+        settings.botTax.lamports = new anchor.BN(1000000000);
         const date = new Date('12/25/2022 00:00:00');
         settings.liveDate.date = new BN(date.getTime());
+        settings.lamportsCharge.amount = new anchor.BN(1000000000);
 
         await candyGuardProgram.methods.update(settings).accounts({
             candyGuard: candyGuardKeypair.publicKey,
@@ -158,7 +166,8 @@ describe("Mint CPI", () => {
         }).rpc();
 
         candy_guard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKeypair.publicKey);
-        expect(candy_guard.features.toNumber()).to.equal(2);
+        // bot_tax (1) + live_date (2) + lamports_charge (8)
+        expect(candy_guard.features.toNumber()).to.equal(11);
     });
 
     it("add-config-lines", async () => {
