@@ -80,27 +80,22 @@ impl CandyGuardData {
         let mut conditions: Vec<&dyn Condition> = vec![];
 
         if let Some(bot_tax) = &self.bot_tax {
-            msg!("bot_tax loaded");
             conditions.push(bot_tax);
         }
 
         if let Some(live_date) = &self.live_date {
-            msg!("live_date loaded");
             conditions.push(live_date);
         }
 
         if let Some(lamports_charge) = &self.lamports_charge {
-            msg!("lamports_charge loaded");
             conditions.push(lamports_charge);
         }
 
         if let Some(spltoken_charge) = &self.spltoken_charge {
-            msg!("spltoken charge loaded");
             conditions.push(spltoken_charge);
         }
 
         if let Some(whitelist) = &self.whitelist {
-            msg!("whitelist loaded");
             conditions.push(whitelist);
         }
 
