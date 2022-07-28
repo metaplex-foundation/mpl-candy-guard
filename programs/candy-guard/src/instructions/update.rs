@@ -35,6 +35,26 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
         }
     }
 
+    offset += LamportsCharge::size();
+    features = LamportsCharge::disable(features);
+
+    if let Some(lamports_charge) = data.lamports_charge {
+        if offset <= length {
+            lamports_charge.save(&mut account_data, offset - LamportsCharge::size())?;
+            features = LamportsCharge::enable(features);
+        }
+    }
+
+    offset += SPLTokenCharge::size();
+    features = SPLTokenCharge::disable(features);
+
+    if let Some(spltoken_charge) = data.spltoken_charge {
+        if offset <= length {
+            spltoken_charge.save(&mut account_data, offset - SPLTokenCharge::size())?;
+            features = SPLTokenCharge::enable(features);
+        }
+    }
+
     offset += Whitelist::size();
     features = Whitelist::disable(features);
 

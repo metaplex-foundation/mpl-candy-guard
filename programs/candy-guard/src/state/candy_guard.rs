@@ -21,6 +21,13 @@ pub struct CandyGuard {
     // data (struct) of the available guards; the size of the data
     // is adjustable as new guards are implemented (the account is
     // resized using realloc)
+    //
+    // available guards:
+    // 1) bot tax
+    // 2) live data
+    // 3) lamports charge
+    // 4) spltoken charge
+    // 5) whitelist
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -29,6 +36,10 @@ pub struct CandyGuardData {
     pub bot_tax: Option<BotTax>,
     /// Live data guard (controls when minting is allowed).
     pub live_date: Option<LiveDate>,
+    /// Lamports charge guard (set the price for the mint in lamports).
+    pub lamports_charge: Option<LamportsCharge>,
+    /// Spl-token charge guard (set the price for the mint in spl-token amount).
+    pub spltoken_charge: Option<SPLTokenCharge>,
     /// Whitelist guard (whitelist mint settings).
     pub whitelist: Option<Whitelist>,
 }
@@ -43,6 +54,14 @@ impl CandyGuardData {
         current += LiveDate::size();
         let live_date = LiveDate::load(features, data, current)?;
 
+        // lamports charge
+        current += LamportsCharge::size();
+        let lamports_charge = LamportsCharge::load(features, data, current)?;
+
+        // spltoken charge
+        current += SPLTokenCharge::size();
+        let spltoken_charge = SPLTokenCharge::load(features, data, current)?;
+
         // whitelist
         current += Whitelist::size();
         let whitelist = Whitelist::load(features, data, current)?;
@@ -50,6 +69,8 @@ impl CandyGuardData {
         Ok(Self {
             bot_tax,
             live_date,
+            lamports_charge,
+            spltoken_charge,
             whitelist,
         })
     }
@@ -59,14 +80,27 @@ impl CandyGuardData {
         let mut conditions: Vec<&dyn Condition> = vec![];
 
         if let Some(bot_tax) = &self.bot_tax {
+            msg!("bot_tax loaded");
             conditions.push(bot_tax);
         }
 
         if let Some(live_date) = &self.live_date {
+            msg!("live_date loaded");
             conditions.push(live_date);
         }
 
+        if let Some(lamports_charge) = &self.lamports_charge {
+            msg!("lamports_charge loaded");
+            conditions.push(lamports_charge);
+        }
+
+        if let Some(spltoken_charge) = &self.spltoken_charge {
+            msg!("spltoken charge loaded");
+            conditions.push(spltoken_charge);
+        }
+
         if let Some(whitelist) = &self.whitelist {
+            msg!("whitelist loaded");
             conditions.push(whitelist);
         }
 
@@ -74,6 +108,11 @@ impl CandyGuardData {
     }
 
     pub fn data_length() -> usize {
-        DATA_OFFSET + BotTax::size() + LiveDate::size() + Whitelist::size()
+        DATA_OFFSET
+            + BotTax::size()
+            + LiveDate::size()
+            + LamportsCharge::size()
+            + SPLTokenCharge::size()
+            + Whitelist::size()
     }
 }

@@ -57,7 +57,7 @@ impl Condition for Whitelist {
                 if wta.amount > 0 {
                     if let Some(price) = self.discount_price {
                         // user will pay the discount price
-                        evaluation_context.discount_price = price;
+                        evaluation_context.amount = price;
                     }
                     // should we burn the token?
                     if self.mode == WhitelistTokenMode::BurnEveryTime {

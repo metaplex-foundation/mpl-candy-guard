@@ -40,11 +40,16 @@ describe("Candy Guard", () => {
       "liveDate": {\
         "date": 1657669708\
       },\
+      "lamportsCharge": {\
+        "amount": 1000000000\
+      },\
+      "spltokenCharge": null,\
       "whitelist": null\
     }');
 
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate.date = null;
+    settings.lamportsCharge.amount = new anchor.BN(1000000000);
 
     await program.methods.update(settings).accounts({
       candyGuard: keypair.publicKey,
@@ -52,6 +57,7 @@ describe("Candy Guard", () => {
     }).rpc();
 
     candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
-    expect(candy_guard.features.toNumber()).to.equal(3);
+    // bot_tax (1) + live_date (2) + lamports_charge (8)
+    expect(candy_guard.features.toNumber()).to.equal(11);
   });
 });

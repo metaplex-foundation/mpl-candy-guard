@@ -14,7 +14,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     let conditions = candy_guard_data.enabled_conditions();
     // context for this transaction
     let mut evaluation_context = EvaluationContext {
-        discount_price: 0,
+        amount: ctx.accounts.candy_machine.data.price,
         is_authority: cmp_pubkeys(
             &ctx.accounts.candy_guard.authority,
             &ctx.accounts.payer.key(),
@@ -44,10 +44,10 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     // TODO: all guards are successful, forward the transaction to Candy Machine using the
     // price from the evaluation_context
     msg!(
-        "EvaluationContext: is_presale={}, is_authority={}, discount_price={}",
+        "EvaluationContext: is_presale={}, is_authority={}, amount={}",
         evaluation_context.is_presale,
         evaluation_context.is_authority,
-        evaluation_context.discount_price
+        evaluation_context.amount
     );
 
     let candy_machine_program = ctx.accounts.candy_machine_program.to_account_info();

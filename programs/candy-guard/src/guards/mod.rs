@@ -5,11 +5,15 @@ pub use crate::instructions::mint::*;
 pub use crate::state::CandyGuardData;
 
 pub use bot_tax::BotTax;
+pub use lamports_charge::LamportsCharge;
 pub use live_date::LiveDate;
+pub use spltoken_charge::SPLTokenCharge;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
+mod lamports_charge;
 mod live_date;
+mod spltoken_charge;
 mod whitelist;
 
 pub trait Condition {
@@ -69,12 +73,12 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
 }
 
 pub struct EvaluationContext {
-    /// The price of the asset after evaluating all guards
-    pub discount_price: u64,
+    /// The amount to be charged after evaluating all guards.
+    pub amount: u64,
     /// Indicate whether the transaction was sent by the candy guard authority or not.
     pub is_authority: bool,
     /// Indicates whether the transaction started before the live date (only relevant
-    /// when the [`LiveDate`](live_date::LiveDate) guard is active)
+    /// when the [`LiveDate`](live_date::LiveDate) guard is active).
     pub is_presale: bool,
     /// The counter for the remaining account list. When a guard "consumes" one of the
     /// remaining accounts, it should increment the counter.

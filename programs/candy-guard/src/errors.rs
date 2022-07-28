@@ -6,16 +6,24 @@ pub enum CandyGuardError {
     DeserializationError,
     #[msg("Public key mismatch")]
     PublicKeyMismatch,
-    #[msg("Account does not have correct owner!")]
+    #[msg("Account does not have correct owner")]
     IncorrectOwner,
-    #[msg("Account is not initialized!")]
+    #[msg("Account is not initialized")]
     Uninitialized,
     // live date
     #[msg("Mint is not live")]
     MintNotLive,
-    // Whitelist
+    // whitelist
     #[msg("Token burn failed")]
     TokenBurnFailed,
     #[msg("No whitelist token present")]
     NoWhitelistToken,
+    // native price
+    #[msg("Not enough SOL to pay for the mint")]
+    NotEnoughSOL,
+    // spl-token price
+    #[msg("Token transfer failed")]
+    TokenTransferFailed,
+    #[msg("Not enough tokens to pay for this minting")]
+    NotEnoughTokens,
 }
