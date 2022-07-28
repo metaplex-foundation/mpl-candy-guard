@@ -56,7 +56,6 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         candy_machine: ctx.accounts.candy_machine.to_account_info(),
         candy_machine_creator: ctx.accounts.candy_machine_creator.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
-        wallet: ctx.accounts.wallet.to_account_info(),
         metadata: ctx.accounts.metadata.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         mint_authority: ctx.accounts.mint_authority.to_account_info(),
@@ -142,12 +141,12 @@ pub struct Mint<'info> {
     #[account(address = sysvar::instructions::id())]
     pub instruction_sysvar_account: UncheckedAccount<'info>,
     // remaining accounts:
+    // > only needed if spltoken guard enabled
+    // token_account_info
+    // transfer_authority_info
     // > only needed if whitelist guard enabled
     // whitelist_token_account
     // > only needed if whitelist guard enabled and mode is "BurnEveryTime"
     // whitelist_token_mint
     // whitelist_burn_authority
-    // > only needed if candy machine has token mint
-    // token_account_info
-    // transfer_authority_info
 }

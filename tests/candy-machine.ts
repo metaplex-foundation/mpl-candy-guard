@@ -174,7 +174,6 @@ describe("Candy Machine", () => {
                 candyMachine: keypair.publicKey,
                 candyMachineCreator: candyMachineCreator,
                 payer: payer.publicKey,
-                wallet: candyMachine.wallet,
                 metadata: metadataAddress,
                 mint: mint.publicKey,
                 mintAuthority: payer.publicKey,

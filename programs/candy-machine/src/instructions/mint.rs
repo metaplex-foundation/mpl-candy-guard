@@ -5,9 +5,9 @@ use mpl_token_metadata::instruction::{
     create_master_edition_v3, create_metadata_accounts_v2, update_metadata_accounts_v2,
 };
 use solana_program::{
-    program::{invoke, invoke_signed},
+    program::invoke_signed,
     serialize_utils::{read_pubkey, read_u16},
-    system_instruction, sysvar,
+    sysvar,
     sysvar::instructions::get_instruction_relative,
 };
 
@@ -93,53 +93,10 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 
     let candy_machine = &mut ctx.accounts.candy_machine;
     let candy_machine_creator = &ctx.accounts.candy_machine_creator;
-    let token_program = &ctx.accounts.token_program;
-    // wallet paying for the transaction
-    let payer = &ctx.accounts.payer;
-    // wallet of the candy machine
-    let wallet = &ctx.accounts.wallet;
 
     // are there items to be minted?
     if candy_machine.items_redeemed >= candy_machine.data.items_available {
         return err!(CandyError::CandyMachineEmpty);
-    }
-
-    // is the payment with an spl-token or sol?
-    if let Some(mint) = candy_machine.token_mint {
-        let token_account_info = &ctx.remaining_accounts[0];
-        let transfer_authority_info = &ctx.remaining_accounts[1];
-
-        let token_account = assert_is_ata(token_account_info, &payer.key(), &mint)?;
-
-        if token_account.amount < candy_machine.data.price {
-            return err!(CandyError::NotEnoughTokens);
-        }
-
-        spl_token_transfer(TokenTransferParams {
-            source: token_account_info.clone(),
-            destination: wallet.to_account_info(),
-            authority: transfer_authority_info.clone(),
-            authority_signer_seeds: &[],
-            token_program: token_program.to_account_info(),
-            amount: candy_machine.data.price,
-        })?;
-    } else {
-        if ctx.accounts.payer.lamports() < candy_machine.data.price {
-            return err!(CandyError::NotEnoughSOL);
-        }
-
-        invoke(
-            &system_instruction::transfer(
-                &ctx.accounts.payer.key(),
-                &wallet.key(),
-                candy_machine.data.price,
-            ),
-            &[
-                ctx.accounts.payer.to_account_info(),
-                wallet.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            ],
-        )?;
     }
 
     // (2) selecting an item to mint
@@ -334,15 +291,13 @@ pub fn get_config_line(
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct Mint<'info> {
-    #[account(mut, has_one = wallet)]
+    #[account(mut)]
     candy_machine: Box<Account<'info, CandyMachine>>,
     /// CHECK: account constraints checked in account trait
     #[account(seeds=[PREFIX.as_bytes(), candy_machine.key().as_ref()], bump=creator_bump)]
     candy_machine_creator: UncheckedAccount<'info>,
-    payer: Signer<'info>,
-    /// CHECK: wallet can be any account and is not written to or read
     #[account(mut)]
-    wallet: UncheckedAccount<'info>,
+    payer: Signer<'info>,
     // With the following accounts we aren't using anchor macros because they are CPI'd
     // through to token-metadata which will do all the validations we need on them.
     /// CHECK: account checked in CPI
