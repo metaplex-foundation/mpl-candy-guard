@@ -14,42 +14,54 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     let conditions = candy_guard_data.enabled_conditions();
     // context for this transaction
     let mut evaluation_context = EvaluationContext {
-        amount: ctx.accounts.candy_machine.data.price,
         is_authority: cmp_pubkeys(
             &ctx.accounts.candy_guard.authority,
             &ctx.accounts.payer.key(),
         ),
-        is_presale: false,
         remaining_account_counter: 0,
+        is_presale: false,
+        lamports: 0,
+        amount: 0,
+        spltoken_index: 0,
+        whitelist: false,
+        whitelist_index: 0,
     };
 
-    for condition in conditions {
-        if let Err(error) = condition.evaluate(&ctx, &candy_guard_data, &mut evaluation_context) {
-            return if let Some(bot_tax) = candy_guard_data.bot_tax {
-                // apply bot tax using bot_tax.lamports as fee
-                bot_tax.punish_bots(
-                    error,
-                    ctx.accounts.payer.to_account_info(),
-                    ctx.accounts.candy_machine.to_account_info(),
-                    ctx.accounts.system_program.to_account_info(),
-                )?;
+    let process_error = |error: Error| -> Result<()> {
+        if let Some(bot_tax) = &candy_guard_data.bot_tax {
+            bot_tax.punish_bots(error, &ctx)?;
+            Ok(())
+        } else {
+            Err(error)
+        }
+    };
 
-                Ok(())
-            } else {
-                Err(error)
-            };
+    // validates enabled guards
+
+    for condition in &conditions {
+        if let Err(error) = condition.validate(&ctx, &candy_guard_data, &mut evaluation_context) {
+            return process_error(error);
         }
     }
 
-    // TODO: all guards are successful, forward the transaction to Candy Machine using the
-    // price from the evaluation_context
-    msg!(
-        "EvaluationContext: is_presale={}, is_authority={}, amount={}",
-        evaluation_context.is_presale,
-        evaluation_context.is_authority,
-        evaluation_context.amount
-    );
+    // performs guard actions (errors might occur)
 
+    for condition in &conditions {
+        if let Err(error) = condition.actions(&ctx, &candy_guard_data, &evaluation_context) {
+            return process_error(error);
+        }
+    }
+
+    // we are good to go, forward the transaction to the candy machine
+
+    if let Err(error) = cpi_mint(&ctx, creator_bump) {
+        return process_error(error);
+    }
+
+    Ok(())
+}
+
+fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u8) -> Result<()> {
     let candy_machine_program = ctx.accounts.candy_machine_program.to_account_info();
     // candy machine mint instruction accounts
     let mint_ix = candy_machine::cpi::accounts::Mint {
@@ -68,31 +80,9 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
         instruction_sysvar_account: ctx.accounts.instruction_sysvar_account.to_account_info(),
     };
-    // prepares the remaining accounts
-    let mut remaining_accounts = Vec::new();
-    for account in ctx.remaining_accounts[evaluation_context.remaining_account_counter..].iter() {
-        remaining_accounts.push(account.to_account_info());
-    }
+    let cpi_ctx = CpiContext::new(candy_machine_program, mint_ix);
     // candy machine mint CPI
-    let cpi_ctx =
-        CpiContext::new(candy_machine_program, mint_ix).with_remaining_accounts(remaining_accounts);
-    if let Err(error) = candy_machine::cpi::mint(cpi_ctx, creator_bump) {
-        return if let Some(bot_tax) = candy_guard_data.bot_tax {
-            // apply bot tax using bot_tax.lamports as fee
-            bot_tax.punish_bots(
-                error,
-                ctx.accounts.payer.to_account_info(),
-                ctx.accounts.candy_machine.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            )?;
-
-            Ok(())
-        } else {
-            Err(error)
-        };
-    }
-
-    Ok(())
+    candy_machine::cpi::mint(cpi_ctx, creator_bump)
 }
 
 #[derive(Accounts)]

@@ -1,6 +1,6 @@
 use super::*;
 
-use solana_program::{account_info::AccountInfo, program::invoke, system_instruction};
+use solana_program::{program::invoke, system_instruction};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct BotTax {
@@ -18,7 +18,7 @@ impl Guard for BotTax {
 }
 
 impl Condition for BotTax {
-    fn evaluate<'info>(
+    fn validate<'info>(
         &self,
         _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
@@ -28,16 +28,29 @@ impl Condition for BotTax {
         // and to store the lamports fee
         Ok(())
     }
+
+    fn actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &EvaluationContext,
+    ) -> Result<()> {
+        // the purpuse of this guard is to indicate whether the bot tax is enbled or not
+        // and to store the lamports fee
+        Ok(())
+    }
 }
 
 impl BotTax {
-    pub fn punish_bots<'a>(
+    pub fn punish_bots<'info>(
         &self,
         error: Error,
-        bot_account: AccountInfo<'a>,
-        payment_account: AccountInfo<'a>,
-        system_program: AccountInfo<'a>,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
     ) -> Result<()> {
+        let bot_account = ctx.accounts.payer.to_account_info();
+        let payment_account = ctx.accounts.candy_machine.to_account_info();
+        let system_program = ctx.accounts.system_program.to_account_info();
+
         msg!(
             "{}, Candy Guard Botting is taxed at {:?} lamports",
             error.to_string(),
