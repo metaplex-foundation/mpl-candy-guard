@@ -17,7 +17,7 @@ impl Guard for LiveDate {
 }
 
 impl Condition for LiveDate {
-    fn evaluate<'info>(
+    fn validate<'info>(
         &self,
         _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         candy_guard_data: &CandyGuardData,
@@ -51,6 +51,16 @@ impl Condition for LiveDate {
             }
         }
 
+        Ok(())
+    }
+
+    fn actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &EvaluationContext,
+    ) -> Result<()> {
+        // no actions required
         Ok(())
     }
 }

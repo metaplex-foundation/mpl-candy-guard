@@ -21,24 +21,16 @@ impl Guard for SPLTokenCharge {
 }
 
 impl Condition for SPLTokenCharge {
-    fn evaluate<'info>(
+    fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let amount = if evaluation_context.amount > 0 {
-            evaluation_context.amount
-        } else {
-            self.amount
-        };
-
-        let token_account_info =
-            &ctx.remaining_accounts[evaluation_context.remaining_account_counter];
-        evaluation_context.remaining_account_counter += 1;
-        let transfer_authority_info =
-            &ctx.remaining_accounts[evaluation_context.remaining_account_counter];
-        evaluation_context.remaining_account_counter += 1;
+        // token
+        let token_account_index = evaluation_context.remaining_account_counter;
+        let token_account_info = &ctx.remaining_accounts[token_account_index];
+        evaluation_context.remaining_account_counter += 2;
 
         let token_account = assert_is_ata(
             token_account_info,
@@ -46,9 +38,26 @@ impl Condition for SPLTokenCharge {
             &self.token_mint,
         )?;
 
-        if token_account.amount < amount {
+        if token_account.amount < self.amount {
             return err!(CandyGuardError::NotEnoughTokens);
         }
+
+        evaluation_context.amount = self.amount;
+        evaluation_context.spltoken_index = token_account_index;
+
+        Ok(())
+    }
+
+    fn actions<'info>(
+        &self,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        evaluation_context: &EvaluationContext,
+    ) -> Result<()> {
+        let index = evaluation_context.spltoken_index;
+        // the accounts have already been validated
+        let token_account_info = &ctx.remaining_accounts[index];
+        let transfer_authority_info = &ctx.remaining_accounts[index + 1];
 
         spl_token_transfer(TokenTransferParams {
             source: token_account_info.clone(),
@@ -56,7 +65,7 @@ impl Condition for SPLTokenCharge {
             authority: transfer_authority_info.clone(),
             authority_signer_seeds: &[],
             token_program: ctx.accounts.token_program.to_account_info(),
-            amount,
+            amount: evaluation_context.amount,
         })?;
 
         Ok(())

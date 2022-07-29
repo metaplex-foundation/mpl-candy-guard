@@ -17,13 +17,30 @@ mod spltoken_charge;
 mod whitelist;
 
 pub trait Condition {
-    /// Validate the condition of the guard. When the guard condition
-    /// is not satisfied, it will return an error.
-    fn evaluate<'info>(
+    /// Validate the condition of the guard. When the guard condition is
+    /// not satisfied, it will return an error.
+    ///
+    /// This function should not perform any modification to accounts, since
+    /// other guards might fail, causing the transaction to be aborted.
+    ///
+    /// Intermediary evaluation data can be stored in the `evaluation_context`,
+    /// which will be shared with other guards and reused in the `actions` step
+    /// of the process.
+    ///
+    fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
+    ) -> Result<()>;
+
+    /// Perform the action associated with the guard. This function only
+    /// gets called when all guards have been successfuly validated.
+    fn actions<'info>(
+        &self,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        candy_guard_data: &CandyGuardData,
+        evaluation_context: &EvaluationContext,
     ) -> Result<()>;
 }
 
@@ -73,14 +90,28 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
 }
 
 pub struct EvaluationContext {
-    /// The amount to be charged after evaluating all guards.
-    pub amount: u64,
     /// Indicate whether the transaction was sent by the candy guard authority or not.
     pub is_authority: bool,
-    /// Indicates whether the transaction started before the live date (only relevant
-    /// when the [`LiveDate`](live_date::LiveDate) guard is active).
-    pub is_presale: bool,
     /// The counter for the remaining account list. When a guard "consumes" one of the
     /// remaining accounts, it should increment the counter.
     pub remaining_account_counter: usize,
+    // > live_date
+    /// Indicates whether the transaction started before the live date.
+    pub is_presale: bool,
+    // > lamports_charge
+    /// The amount to charge for the mint (this can be updated by the whitelist guard).
+    pub lamports: u64,
+    // > spltoken_charge
+    /// The amount to charge for the mint (this can be updated by the whitelist guard
+    /// when the `lamports_charge` is not in use).
+    pub amount: u64,
+    /// The index from the remaining accounts to find the token_account and
+    /// transfer_authority_account
+    pub spltoken_index: usize,
+    // > whitelist
+    /// Indicates whether the user is whitelisted or not.
+    pub whitelist: bool,
+    /// The index from the remaining accounts to find the whitelist_token_account,
+    /// whitelist_token_mint and whitelist_burn_authority
+    pub whitelist_index: usize,
 }
