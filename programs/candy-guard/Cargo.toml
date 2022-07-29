@@ -18,6 +18,7 @@ default = []
 [dependencies]
 anchor-lang = "0.25.0"
 anchor-spl = "0.25.0"
+candy-guard-derive = { path = "../../macros/candy-guard-derive" }
 candy-machine = { path = "../candy-machine", features = ["cpi"] }
 mpl-token-metadata = { version = "1.2.5", features = ["no-entrypoint"] }
 solana-program = "1.9.13"

@@ -392,11 +392,20 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "candy-guard-derive",
  "candy-machine",
  "mpl-token-metadata",
  "solana-program",
  "spl-associated-token-account",
  "spl-token",
+]
+
+[[package]]
+name = "candy-guard-derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
