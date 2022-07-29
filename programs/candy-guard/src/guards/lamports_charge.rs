@@ -33,7 +33,7 @@ impl Condition for LamportsCharge {
                 "Require {} lamports, accounts has {} lamports",
                 evaluation_context.amount,
                 ctx.accounts.payer.lamports(),
-            );    
+            );
             return err!(CandyGuardError::NotEnoughSOL);
         }
 
