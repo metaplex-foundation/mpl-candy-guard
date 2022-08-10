@@ -40,11 +40,11 @@ impl Condition for LamportsCharge {
         Ok(())
     }
 
-    fn actions<'info>(
+    fn pre_actions<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
-        evaluation_context: &EvaluationContext,
+        evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         // sanity check: other guards might have updated the price on the
         // evaluation context. While it would be usually to decrease the
@@ -71,6 +71,16 @@ impl Condition for LamportsCharge {
             ],
         )?;
 
+        Ok(())
+    }
+
+    fn post_actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        // no post actions needed
         Ok(())
     }
 }

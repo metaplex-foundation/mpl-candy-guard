@@ -42,12 +42,12 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         }
     }
 
-    // performs guard actions (errors might occur, which will cause the transaction to fail)
-    // no box tax at this point since the actions must be reverted in case of an error – invalid
+    // performs guard pre-actions (errors might occur, which will cause the transaction to fail)
+    // no bot tax at this point since the actions must be reverted in case of an error – invalid
     // transaction will charged in the validate step.
 
     for condition in &conditions {
-        condition.actions(&ctx, &candy_guard_data, &evaluation_context)?;
+        condition.pre_actions(&ctx, &candy_guard_data, &mut evaluation_context)?;
     }
 
     // we are good to go, forward the transaction to the candy machine (if errors occur, the
@@ -55,11 +55,20 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 
     cpi_mint(&ctx, creator_bump)?;
 
+    // performs guard post-actions (errors might occur, which will cause the transaction to fail)
+    // no bot tax at this point since the actions must be reverted in case of an error – invalid
+    // transaction will charged in the validate step.
+
+    for condition in &conditions {
+        condition.post_actions(&ctx, &candy_guard_data, &mut evaluation_context)?;
+    }
+
     Ok(())
 }
 
 fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u8) -> Result<()> {
     let candy_guard = &ctx.accounts.candy_guard;
+    // PDA signer for the transaction
     let seeds = [
         b"candy_guard".as_ref(),
         &candy_guard.base.to_bytes(),

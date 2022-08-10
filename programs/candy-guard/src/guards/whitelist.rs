@@ -116,11 +116,11 @@ impl Condition for Whitelist {
         Ok(())
     }
 
-    fn actions<'info>(
+    fn pre_actions<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
-        evaluation_context: &EvaluationContext,
+        evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         if evaluation_context.whitelist && self.mode == WhitelistTokenMode::BurnEveryTime {
             let index = evaluation_context.whitelist_index;
@@ -137,6 +137,16 @@ impl Condition for Whitelist {
                 token_program: ctx.accounts.token_program.to_account_info(),
             })?;
         }
+        Ok(())
+    }
+
+    fn post_actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        // no post actions needed
         Ok(())
     }
 }

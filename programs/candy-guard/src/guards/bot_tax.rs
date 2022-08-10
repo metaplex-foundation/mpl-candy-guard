@@ -29,11 +29,22 @@ impl Condition for BotTax {
         Ok(())
     }
 
-    fn actions<'info>(
+    fn pre_actions<'info>(
         &self,
         _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
-        _evaluation_context: &EvaluationContext,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        // the purpuse of this guard is to indicate whether the bot tax is enbled or not
+        // and to store the lamports fee
+        Ok(())
+    }
+
+    fn post_actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         // the purpuse of this guard is to indicate whether the bot tax is enbled or not
         // and to store the lamports fee
@@ -56,11 +67,13 @@ impl BotTax {
             error.to_string(),
             self.lamports
         );
+
         let final_fee = self.lamports.min(bot_account.lamports());
         invoke(
             &system_instruction::transfer(bot_account.key, payment_account.key, final_fee),
             &[bot_account, payment_account, system_program],
         )?;
+
         Ok(())
     }
 }

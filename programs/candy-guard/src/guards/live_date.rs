@@ -54,13 +54,23 @@ impl Condition for LiveDate {
         Ok(())
     }
 
-    fn actions<'info>(
+    fn pre_actions<'info>(
         &self,
         _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
-        _evaluation_context: &EvaluationContext,
+        _evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         // no actions required
+        Ok(())
+    }
+
+    fn post_actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        // no post actions needed
         Ok(())
     }
 }
