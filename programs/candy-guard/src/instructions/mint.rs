@@ -36,7 +36,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         }
     };
 
-    // validates enabled guards
+    // validates enabled guards (any error at this point is subject to bot tax)
 
     for condition in &conditions {
         if let Err(error) = condition.validate(&ctx, &candy_guard_data, &mut evaluation_context) {
@@ -44,19 +44,18 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         }
     }
 
-    // performs guard actions (errors might occur)
+    // performs guard actions (errors might occur, which will cause the transaction to fail)
+    // no box tax at this point since the actions must be reverted in case of an error – invalid
+    // transaction will charged in the validate step.
 
     for condition in &conditions {
-        if let Err(error) = condition.actions(&ctx, &candy_guard_data, &evaluation_context) {
-            return process_error(error);
-        }
+        condition.actions(&ctx, &candy_guard_data, &evaluation_context)?;
     }
 
-    // we are good to go, forward the transaction to the candy machine
+    // we are good to go, forward the transaction to the candy machine (if errors occur, the
+    // actions are reverted and the trasaction fails)
 
-    if let Err(error) = cpi_mint(&ctx, creator_bump) {
-        return process_error(error);
-    }
+    cpi_mint(&ctx, creator_bump)?;
 
     Ok(())
 }
