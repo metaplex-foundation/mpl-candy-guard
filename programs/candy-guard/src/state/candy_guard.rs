@@ -6,14 +6,20 @@ use candy_guard_derive::CandyGuard;
 
 // Bytes offset for the start of the data section:
 //     8 (discriminator)
+//  + 32 (base)
+//  +  1 (bump)
 //  + 32 (authority)
 //  +  8 (u64)
-pub const DATA_OFFSET: usize = 8 + 32 + 8;
+pub const DATA_OFFSET: usize = 8 + 32 + 1 + 32 + 8;
 
 #[account]
 #[derive(Default)]
 pub struct CandyGuard {
-    // Owner of the guard
+    // Base key used to generate the PDA
+    pub base: Pubkey,
+    // Bump seed
+    pub bump: u8,
+    // Authority of the guard
     pub authority: Pubkey,
     // Guard features flag (up to 64)
     pub features: u64,

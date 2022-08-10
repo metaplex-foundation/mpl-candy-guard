@@ -26,7 +26,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 
     // the candy machine authority has "super-powers", so no need to validate instructions
     if !cmp_pubkeys(
-        &ctx.accounts.mint_authority.key(),
+        &ctx.accounts.authority.key(),
         &ctx.accounts.candy_machine.authority,
     ) {
         let instruction_sysvar_account = &ctx.accounts.instruction_sysvar_account;
@@ -291,11 +291,14 @@ pub fn get_config_line(
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct Mint<'info> {
-    #[account(mut)]
+    #[account(mut, has_one = authority)]
     candy_machine: Box<Account<'info, CandyMachine>>,
     /// CHECK: account constraints checked in account trait
     #[account(seeds=[PREFIX.as_bytes(), candy_machine.key().as_ref()], bump=creator_bump)]
     candy_machine_creator: UncheckedAccount<'info>,
+    // candy machine authority
+    #[account(mut)]
+    authority: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     // With the following accounts we aren't using anchor macros because they are CPI'd

@@ -1,5 +1,6 @@
 import * as anchor from "@project-serum/anchor";
 import { BN, Program } from "@project-serum/anchor";
+import { SystemProgram } from '@solana/web3.js';
 import { expect } from 'chai';
 import { CandyGuard } from "../target/types/candy_guard";
 
@@ -14,23 +15,37 @@ describe("Candy Guard", () => {
   const payer = (program.provider as anchor.AnchorProvider).wallet;
 
   it("initialize", async () => {
+    // candy guard pda
+    const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from('candy_guard'), keypair.publicKey.toBuffer()],
+      program.programId,
+    );
+
     await program.methods
       .initialize()
       .accounts({
-        candyGuard: keypair.publicKey,
+        candyGuard: pda,
+        base: keypair.publicKey,
         authority: payer.publicKey,
         payer: payer.publicKey,
+        systemProgram: SystemProgram.programId,
       })
       .signers([keypair])
       .rpc();
 
-    let candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
+    let candy_guard = await program.account.candyGuard.fetch(pda);
 
     expect(candy_guard.features.toNumber()).to.equal(0);
   });
 
   it("update", async () => {
-    let candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
+    // candy guard pda
+    const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from('candy_guard'), keypair.publicKey.toBuffer()],
+      program.programId,
+    );
+
+    let candy_guard = await program.account.candyGuard.fetch(pda);
     expect(candy_guard.features.toNumber()).to.equal(0);
 
     const settings = JSON.parse('{\
@@ -52,11 +67,11 @@ describe("Candy Guard", () => {
     settings.lamportsCharge.amount = new anchor.BN(1000000000);
 
     await program.methods.update(settings).accounts({
-      candyGuard: keypair.publicKey,
+      candyGuard: pda,
       authority: payer.publicKey,
     }).rpc();
 
-    candy_guard = await program.account.candyGuard.fetch(keypair.publicKey);
+    candy_guard = await program.account.candyGuard.fetch(pda);
     // bot_tax (1) + live_date (2) + lamports_charge (8)
     expect(candy_guard.features.toNumber()).to.equal(11);
   });
