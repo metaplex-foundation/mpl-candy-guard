@@ -34,13 +34,26 @@ pub trait Condition {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()>;
 
-    /// Perform the action associated with the guard. This function only
-    /// gets called when all guards have been successfuly validated.
-    fn actions<'info>(
+    /// Perform the action associated with the guard before the CPI `mint` instruction.
+    /// 
+    /// This function only gets called when all guards have been successfuly validated.
+    /// Any error generated will make the transaction to fail.
+    fn pre_actions<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         candy_guard_data: &CandyGuardData,
-        evaluation_context: &EvaluationContext,
+        evaluation_context: &mut EvaluationContext,
+    ) -> Result<()>;
+
+    /// Perform the action associated with the guard after the CPI `mint` instruction.
+    /// 
+    /// This function only gets called when all guards have been successfuly validated.
+    /// Any error generated will make the transaction to fail.
+    fn post_actions<'info>(
+        &self,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        candy_guard_data: &CandyGuardData,
+        evaluation_context: &mut EvaluationContext,
     ) -> Result<()>;
 }
 

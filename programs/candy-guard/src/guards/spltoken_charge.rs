@@ -48,11 +48,11 @@ impl Condition for SPLTokenCharge {
         Ok(())
     }
 
-    fn actions<'info>(
+    fn pre_actions<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
-        evaluation_context: &EvaluationContext,
+        evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let index = evaluation_context.spltoken_index;
         // the accounts have already been validated
@@ -68,6 +68,16 @@ impl Condition for SPLTokenCharge {
             amount: evaluation_context.amount,
         })?;
 
+        Ok(())
+    }
+
+    fn post_actions<'info>(
+        &self,
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        // no post actions needed
         Ok(())
     }
 }
