@@ -135,7 +135,6 @@ describe("Candy Machine", () => {
     });
 
     it("mint", async () => {
-        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
         // mint address
         const mint = anchor.web3.Keypair.generate();
         // creator PDA
@@ -173,6 +172,7 @@ describe("Candy Machine", () => {
             .accounts({
                 candyMachine: keypair.publicKey,
                 candyMachineCreator: candyMachineCreator,
+                authority: payer.publicKey,
                 payer: payer.publicKey,
                 metadata: metadataAddress,
                 mint: mint.publicKey,

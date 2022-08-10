@@ -38,4 +38,8 @@ pub mod candy_machine {
     ) -> Result<()> {
         instructions::mint(ctx, creator_bump)
     }
+
+    pub fn set_authority(ctx: Context<SetAuthority>, new_authority: Pubkey) -> Result<()> {
+        instructions::set_authority(ctx, new_authority)
+    }
 }

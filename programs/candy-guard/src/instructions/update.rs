@@ -16,7 +16,12 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
 #[derive(Accounts)]
 #[instruction(data: CandyGuardData)]
 pub struct Update<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(
+        mut,
+        has_one = authority,
+        seeds = [b"candy_guard", candy_guard.base.key().as_ref()],
+        bump = candy_guard.bump
+    )]
     pub candy_guard: Account<'info, CandyGuard>,
     pub authority: Signer<'info>,
 }

@@ -7,17 +7,15 @@ use crate::state::{CandyGuard, CandyGuardData};
 use crate::utils::cmp_pubkeys;
 
 pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u8) -> Result<()> {
-    let info = ctx.accounts.candy_guard.to_account_info();
-    let mut data = info.data.borrow_mut();
+    let candy_guard = &ctx.accounts.candy_guard;
+    let account_info = &candy_guard.to_account_info();
 
-    let candy_guard_data = CandyGuardData::from_data(ctx.accounts.candy_guard.features, &mut data)?;
+    let candy_guard_data =
+        CandyGuardData::from_data(candy_guard.features, &mut account_info.data.borrow_mut())?;
     let conditions = candy_guard_data.enabled_conditions();
     // context for this transaction
     let mut evaluation_context = EvaluationContext {
-        is_authority: cmp_pubkeys(
-            &ctx.accounts.candy_guard.authority,
-            &ctx.accounts.payer.key(),
-        ),
+        is_authority: cmp_pubkeys(&candy_guard.authority, &ctx.accounts.payer.key()),
         remaining_account_counter: 0,
         is_presale: false,
         lamports: 0,
@@ -61,11 +59,20 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 }
 
 fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u8) -> Result<()> {
+    let candy_guard = &ctx.accounts.candy_guard;
+    let seeds = [
+        b"candy_guard".as_ref(),
+        &candy_guard.base.to_bytes(),
+        &[candy_guard.bump],
+    ];
+    let signer = [&seeds[..]];
     let candy_machine_program = ctx.accounts.candy_machine_program.to_account_info();
+
     // candy machine mint instruction accounts
     let mint_ix = candy_machine::cpi::accounts::Mint {
         candy_machine: ctx.accounts.candy_machine.to_account_info(),
         candy_machine_creator: ctx.accounts.candy_machine_creator.to_account_info(),
+        authority: ctx.accounts.candy_guard.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         metadata: ctx.accounts.metadata.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
@@ -79,7 +86,7 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
         instruction_sysvar_account: ctx.accounts.instruction_sysvar_account.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(candy_machine_program, mint_ix);
+    let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
     // candy machine mint CPI
     candy_machine::cpi::mint(cpi_ctx, creator_bump)
 }
@@ -87,12 +94,12 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct Mint<'info> {
-    #[account(mut, constraint = candy_guard.authority == candy_machine.authority)]
+    #[account(mut)]
     pub candy_guard: Account<'info, CandyGuard>,
     /// CHECK: account constraints checked in account trait
     #[account(address = candy_machine::id())]
     pub candy_machine_program: AccountInfo<'info>,
-    #[account(mut, has_one = wallet)]
+    #[account(mut, has_one = wallet, constraint = candy_guard.key() == candy_machine.authority)]
     pub candy_machine: Box<Account<'info, CandyMachine>>,
     // seeds and bump are not validated by the candy guard, they will be validated
     // by the CPI'd candy machine mint call

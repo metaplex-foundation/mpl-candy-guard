@@ -22,8 +22,8 @@ export const MAX_CREATOR_LIMIT = 5;
 describe("Mint CPI", () => {
     // configure the client to use the local cluster
     anchor.setProvider(anchor.AnchorProvider.env());
-    // candy guard for the tests
-    const candyGuardKeypair = anchor.web3.Keypair.generate();
+    // candy guard base for generating the PDA address
+    const candyGuardBaseKeypair = anchor.web3.Keypair.generate();
     // candy machine for the tests
     const candyMachineKeypair = anchor.web3.Keypair.generate();
     // candy guard program
@@ -127,18 +127,115 @@ describe("Mint CPI", () => {
         expect(candyMachine.data.itemsAvailable.toNumber()).to.equal(items);
     });
 
+    it("add_config_lines", async () => {
+        let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
+        const lines = [];
+
+        for (let i = 0; i < candyMachine.data.itemsAvailable.toNumber(); i++) {
+            const line = JSON.parse(`{\
+                "name": "NFT #${i + 1}",\
+                "uri": "uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ"\
+            }`);
+
+            lines[i] = line;
+        }
+
+        await candyMachineProgram.methods.addConfigLines(0, lines).accounts({
+            candyMachine: candyMachineKeypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
+    });
+
+    it("mint (without-guard)", async () => {
+        // mint address
+        const mint = anchor.web3.Keypair.generate();
+        // creator PDA
+        const [candyMachineCreator, bump] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_machine'), candyMachineKeypair.publicKey.toBuffer()],
+            candyMachineProgram.programId,
+        );
+        // associated token address
+        const [associatedToken,] = await anchor.web3.PublicKey.findProgramAddress(
+            [payer.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.publicKey.toBuffer()],
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+        );
+        // metadata address
+        const [metadataAddress,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+        // master edition address
+        const [masterEdition,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+                Buffer.from('edition'),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        const signature = await candyMachineProgram.methods
+            .mint(bump)
+            .accounts({
+                candyMachine: candyMachineKeypair.publicKey,
+                candyMachineCreator: candyMachineCreator,
+                authority: payer.publicKey,
+                payer: payer.publicKey,
+                metadata: metadataAddress,
+                mint: mint.publicKey,
+                mintAuthority: payer.publicKey,
+                updateAuthority: payer.publicKey,
+                masterEdition: masterEdition,
+                tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
+                instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
+            })
+            .preInstructions([anchor.web3.SystemProgram.createAccount({
+                fromPubkey: payer.publicKey,
+                newAccountPubkey: mint.publicKey,
+                lamports: await candyMachineProgram.provider.connection.getMinimumBalanceForRentExemption(
+                    MintLayout.span,
+                ),
+                space: MintLayout.span,
+                programId: TOKEN_PROGRAM_ID,
+            }),
+            createInitializeMintInstruction(mint.publicKey, 0, payer.publicKey, payer.publicKey),
+            createAssociatedTokenAccountInstruction(payer.publicKey, associatedToken, payer.publicKey, mint.publicKey),
+            createMintToInstruction(mint.publicKey, associatedToken, payer.publicKey, 1, [])])
+            .signers([mint])
+            .rpc();
+
+        console.log(signature);
+    });
+
     it("initialize (candy guard)", async () => {
+        // candy guard PDA
+        const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
+            candyGuardProgram.programId,
+        );
+
         await candyGuardProgram.methods
             .initialize()
             .accounts({
-                candyGuard: candyGuardKeypair.publicKey,
+                candyGuard: pda,
+                base: candyGuardBaseKeypair.publicKey,
                 authority: payer.publicKey,
                 payer: payer.publicKey,
+                systemProgram: SystemProgram.programId,
             })
-            .signers([candyGuardKeypair])
+            .signers([candyGuardBaseKeypair])
             .rpc();
 
-        let candy_guard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKeypair.publicKey);
+        let candy_guard = await candyGuardProgram.account.candyGuard.fetch(pda);
         expect(candy_guard.features.toNumber()).to.equal(0);
 
         const settings = JSON.parse('{\
@@ -161,37 +258,113 @@ describe("Mint CPI", () => {
         settings.lamportsCharge.amount = new anchor.BN(1000000000);
 
         await candyGuardProgram.methods.update(settings).accounts({
-            candyGuard: candyGuardKeypair.publicKey,
+            candyGuard: pda,
             authority: payer.publicKey,
         }).rpc();
 
-        candy_guard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKeypair.publicKey);
+        candy_guard = await candyGuardProgram.account.candyGuard.fetch(pda);
         // bot_tax (1) + live_date (2) + lamports_charge (8)
         expect(candy_guard.features.toNumber()).to.equal(11);
     });
 
-    it("add-config-lines", async () => {
-        let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
-        const lines = [];
+    it("wrap_candy_machine", async () => {
+        // candy guard PDA
+        const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
+            candyGuardProgram.programId,
+        );
 
-        for (let i = 0; i < candyMachine.data.itemsAvailable.toNumber(); i++) {
-            const line = JSON.parse(`{\
-                "name": "NFT #${i + 1}",\
-                "uri": "uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ"\
-            }`);
-
-            lines[i] = line;
-        }
-
-        await candyMachineProgram.methods.addConfigLines(0, lines).accounts({
+        await candyGuardProgram.methods.wrap().accounts({
+            candyGuard: pda,
             candyMachine: candyMachineKeypair.publicKey,
+            candyMachineProgram: candyMachineProgram.programId,
             authority: payer.publicKey,
         }).rpc();
     });
 
-    it("mint", async () => {
-        // candy guard
-        let candyGuard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKeypair.publicKey);
+    it("mint (candy machine)", async () => {
+        // mint address
+        const mint = anchor.web3.Keypair.generate();
+        // creator PDA
+        const [candyMachineCreator, bump] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_machine'), candyMachineKeypair.publicKey.toBuffer()],
+            candyMachineProgram.programId,
+        );
+        // associated token address
+        const [associatedToken,] = await anchor.web3.PublicKey.findProgramAddress(
+            [payer.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.publicKey.toBuffer()],
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+        );
+        // metadata address
+        const [metadataAddress,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+        // master edition address
+        const [masterEdition,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+                Buffer.from('edition'),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        var failed = false;
+
+        try {
+            await candyMachineProgram.methods
+                .mint(bump)
+                .accounts({
+                    candyMachine: candyMachineKeypair.publicKey,
+                    candyMachineCreator: candyMachineCreator,
+                    authority: payer.publicKey,
+                    payer: payer.publicKey,
+                    metadata: metadataAddress,
+                    mint: mint.publicKey,
+                    mintAuthority: payer.publicKey,
+                    updateAuthority: payer.publicKey,
+                    masterEdition: masterEdition,
+                    tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                    recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
+                    instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
+                })
+                .preInstructions([anchor.web3.SystemProgram.createAccount({
+                    fromPubkey: payer.publicKey,
+                    newAccountPubkey: mint.publicKey,
+                    lamports: await candyMachineProgram.provider.connection.getMinimumBalanceForRentExemption(
+                        MintLayout.span,
+                    ),
+                    space: MintLayout.span,
+                    programId: TOKEN_PROGRAM_ID,
+                }),
+                createInitializeMintInstruction(mint.publicKey, 0, payer.publicKey, payer.publicKey),
+                createAssociatedTokenAccountInstruction(payer.publicKey, associatedToken, payer.publicKey, mint.publicKey),
+                createMintToInstruction(mint.publicKey, associatedToken, payer.publicKey, 1, [])])
+                .signers([mint])
+                .rpc();
+        } catch {
+            // ok, we are expecting to fail
+            failed = true;
+        }
+
+        expect(failed).to.equal(true);
+    });
+
+    it("mint (candy guard)", async () => {
+        // candy guard PDA
+        const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
+            candyGuardProgram.programId,
+        );
         // candy machine
         let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
         // mint address
@@ -229,7 +402,7 @@ describe("Mint CPI", () => {
         const signature = await candyGuardProgram.methods
             .mint(bump)
             .accounts({
-                candyGuard: candyGuardKeypair.publicKey,
+                candyGuard: pda,
                 candyMachineProgram: candyMachineProgram.programId,
                 candyMachine: candyMachineKeypair.publicKey,
                 candyMachineCreator: candyMachineCreator,
@@ -251,6 +424,94 @@ describe("Mint CPI", () => {
                 fromPubkey: payer.publicKey,
                 newAccountPubkey: mint.publicKey,
                 lamports: await candyGuardProgram.provider.connection.getMinimumBalanceForRentExemption(
+                    MintLayout.span,
+                ),
+                space: MintLayout.span,
+                programId: TOKEN_PROGRAM_ID,
+            }),
+            createInitializeMintInstruction(mint.publicKey, 0, payer.publicKey, payer.publicKey),
+            createAssociatedTokenAccountInstruction(payer.publicKey, associatedToken, payer.publicKey, mint.publicKey),
+            createMintToInstruction(mint.publicKey, associatedToken, payer.publicKey, 1, [])])
+            .signers([mint])
+            .rpc();
+
+        console.log(signature);
+    });
+
+    it("unwrap_candy_machine", async () => {
+        // candy guard PDA
+        const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
+            candyGuardProgram.programId,
+        );
+
+        await candyGuardProgram.methods.unwrap().accounts({
+            candyGuard: pda,
+            candyMachine: candyMachineKeypair.publicKey,
+            candyMachineProgram: candyMachineProgram.programId,
+            authority: payer.publicKey,
+        }).rpc();
+    });
+
+    it("mint (candy machine)", async () => {
+        // mint address
+        const mint = anchor.web3.Keypair.generate();
+        // creator PDA
+        const [candyMachineCreator, bump] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('candy_machine'), candyMachineKeypair.publicKey.toBuffer()],
+            candyMachineProgram.programId,
+        );
+        // associated token address
+        const [associatedToken,] = await anchor.web3.PublicKey.findProgramAddress(
+            [payer.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.publicKey.toBuffer()],
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+        );
+        // metadata address
+        const [metadataAddress,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+        // master edition address
+        const [masterEdition,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                mint.publicKey.toBuffer(),
+                Buffer.from('edition'),
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        var failed = false;
+
+
+        const signature = await candyMachineProgram.methods
+            .mint(bump)
+            .accounts({
+                candyMachine: candyMachineKeypair.publicKey,
+                candyMachineCreator: candyMachineCreator,
+                authority: payer.publicKey,
+                payer: payer.publicKey,
+                metadata: metadataAddress,
+                mint: mint.publicKey,
+                mintAuthority: payer.publicKey,
+                updateAuthority: payer.publicKey,
+                masterEdition: masterEdition,
+                tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
+                instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
+            })
+            .preInstructions([anchor.web3.SystemProgram.createAccount({
+                fromPubkey: payer.publicKey,
+                newAccountPubkey: mint.publicKey,
+                lamports: await candyMachineProgram.provider.connection.getMinimumBalanceForRentExemption(
                     MintLayout.span,
                 ),
                 space: MintLayout.span,
