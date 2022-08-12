@@ -25,26 +25,21 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         whitelist_index: 0,
     };
 
-    let process_error = |error: Error| -> Result<()> {
-        if let Some(bot_tax) = &candy_guard_data.bot_tax {
-            bot_tax.punish_bots(error, &ctx)?;
-            Ok(())
-        } else {
-            Err(error)
-        }
-    };
-
     // validates enabled guards (any error at this point is subject to bot tax)
 
     for condition in &conditions {
         if let Err(error) = condition.validate(&ctx, &candy_guard_data, &mut evaluation_context) {
-            return process_error(error);
+            return if let Some(bot_tax) = &candy_guard_data.bot_tax {
+                bot_tax.punish_bots(error, &ctx)?;
+                Ok(())
+            } else {
+                Err(error)
+            };
         }
     }
 
     // performs guard pre-actions (errors might occur, which will cause the transaction to fail)
-    // no bot tax at this point since the actions must be reverted in case of an error – invalid
-    // transaction will charged in the validate step.
+    // no bot tax at this point since the actions must be reverted in case of an error
 
     for condition in &conditions {
         condition.pre_actions(&ctx, &candy_guard_data, &mut evaluation_context)?;
@@ -56,8 +51,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     cpi_mint(&ctx, creator_bump)?;
 
     // performs guard post-actions (errors might occur, which will cause the transaction to fail)
-    // no bot tax at this point since the actions must be reverted in case of an error – invalid
-    // transaction will charged in the validate step.
+    // no bot tax at this point since the actions must be reverted in case of an error
 
     for condition in &conditions {
         condition.post_actions(&ctx, &candy_guard_data, &mut evaluation_context)?;
@@ -111,7 +105,7 @@ pub struct Mint<'info> {
     #[account(mut, has_one = wallet, constraint = candy_guard.key() == candy_machine.authority)]
     pub candy_machine: Box<Account<'info, CandyMachine>>,
     // seeds and bump are not validated by the candy guard, they will be validated
-    // by the CPI'd candy machine mint call
+    // by the CPI'd candy machine mint instruction
     /// CHECK: account constraints checked in account trait
     #[account(mut)]
     pub candy_machine_creator: UncheckedAccount<'info>,
