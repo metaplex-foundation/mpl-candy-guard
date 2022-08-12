@@ -14,8 +14,6 @@ pub enum CandyError {
     NumericalOverflowError,
     #[msg("Can only provide up to 4 creators to candy machine (because candy machine is one)!")]
     TooManyCreators,
-    #[msg("Uuid must be exactly of 6 length")]
-    UuidMustBeExactly6Length,
     #[msg("Not enough tokens to pay for this minting")]
     NotEnoughTokens,
     #[msg("Not enough SOL to pay for this minting")]
@@ -76,4 +74,6 @@ pub enum CandyError {
     GatewayProgramError,
     #[msg("Value longer than expected maximum value")]
     ExceededLengthError,
+    #[msg("Missing config lines settings")]
+    MissingConfigLinesSettings,
 }

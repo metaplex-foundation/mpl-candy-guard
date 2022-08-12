@@ -37,11 +37,11 @@ describe("Mint CPI", () => {
 
     it("initialize (candy machine)", async () => {
         const HIDDEN_SECTION = 8                      // discriminator
+            + 8                                       // features
             + 32                                      // authority
             + 32                                      // wallet
             + 33                                      // (optional) token mint
             + 8                                       // items redeemed
-            + 8                                       // price
             + 8                                       // items available
             + 4 + MAX_SYMBOL_LENGTH                   // u32 len + symbol
             + 2                                       // seller fee basis points
@@ -63,14 +63,13 @@ describe("Mint CPI", () => {
 
         const CANDY_SPACE = HIDDEN_SECTION
             + 4
-            + items * (10 + 43)
+            + items * (11 + 43)
             + 4
             + (Math.floor(items / 8) + 1)
             + 4
             + items * 4
 
         const data = JSON.parse('{\
-            "price": 1,\
             "itemsAvailable": 10,\
             "symbol": "CANDYGUARD",\
             "sellerFeeBasisPoints": 500,\
@@ -83,18 +82,17 @@ describe("Mint CPI", () => {
             }],\
             "configLineSettings": {\
                 "prefixName": "CandyGuard ",\
-                "nameLength": 10,\
+                "nameLength": 11,\
                 "prefixUri": \"https://arweave.net/\",\
                 "uriLength": 43\
             },\
             "hiddenSettings": null\
         }');
 
-        data.price = new BN(1);
         data.itemsAvailable = new BN(items);
         data.sellerFeeBasisPoints = new BN(500);
         data.maxSupply = new BN(0);
-        data.configLineSettings.nameLength = new BN(10);
+        data.configLineSettings.nameLength = new BN(11);
         data.configLineSettings.uriLength = new BN(43);
         data.creators[0].address = payer.publicKey;
 
@@ -123,7 +121,6 @@ describe("Mint CPI", () => {
         let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
 
         expect(candyMachine.itemsRedeemed.toNumber()).to.equal(0);
-        expect(candyMachine.data.price.toNumber()).to.equal(1);
         expect(candyMachine.data.itemsAvailable.toNumber()).to.equal(items);
     });
 
@@ -133,7 +130,7 @@ describe("Mint CPI", () => {
 
         for (let i = 0; i < candyMachine.data.itemsAvailable.toNumber(); i++) {
             const line = JSON.parse(`{\
-                "name": "NFT #${i + 1}",\
+                "name": "NFT #$ID+1$",\
                 "uri": "uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ"\
             }`);
 
@@ -267,7 +264,7 @@ describe("Mint CPI", () => {
         expect(candy_guard.features.toNumber()).to.equal(11);
     });
 
-    it("wrap_candy_machine", async () => {
+    it("wrap", async () => {
         // candy guard PDA
         const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
             [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
@@ -438,7 +435,7 @@ describe("Mint CPI", () => {
         console.log(signature);
     });
 
-    it("unwrap_candy_machine", async () => {
+    it("unwrap", async () => {
         // candy guard PDA
         const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
             [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
