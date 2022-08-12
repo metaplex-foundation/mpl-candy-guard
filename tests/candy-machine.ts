@@ -25,11 +25,11 @@ describe("Candy Machine", () => {
 
     it("initialize", async () => {
         const HIDDEN_SECTION = 8                      // discriminator
+            + 8                                       // features
             + 32                                      // authority
             + 32                                      // wallet
             + 33                                      // (optional) token mint
             + 8                                       // items redeemed
-            + 8                                       // price
             + 8                                       // items available
             + 4 + MAX_SYMBOL_LENGTH                   // u32 len + symbol
             + 2                                       // seller fee basis points
@@ -58,7 +58,6 @@ describe("Candy Machine", () => {
             + items * 4
 
         const data = JSON.parse('{\
-            "price": 1,\
             "itemsAvailable": 10,\
             "symbol": "CANDYGUARD",\
             "sellerFeeBasisPoints": 500,\
@@ -78,7 +77,6 @@ describe("Candy Machine", () => {
             "hiddenSettings": null\
         }');
 
-        data.price = new BN(1);
         data.itemsAvailable = new BN(items);
         data.sellerFeeBasisPoints = new BN(500);
         data.maxSupply = new BN(0);
@@ -111,7 +109,6 @@ describe("Candy Machine", () => {
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
 
         expect(candyMachine.itemsRedeemed.toNumber()).to.equal(0);
-        expect(candyMachine.data.price.toNumber()).to.equal(1);
         expect(candyMachine.data.itemsAvailable.toNumber()).to.equal(items);
     });
 

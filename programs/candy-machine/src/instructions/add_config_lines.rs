@@ -30,32 +30,45 @@ pub fn add_config_lines(
         return err!(CandyError::HiddenSettingsConfigsDoNotHaveConfigLines);
     }
 
-    let name_length = candy_machine.data.config_line_settings.name_length as usize;
-    let uri_length = candy_machine.data.config_line_settings.uri_length as usize;
-    let config_line_length = candy_machine.data.get_config_line_size();
+    let config_line = if let Some(config_line) = &candy_machine.data.config_line_settings {
+        config_line
+    } else {
+        return err!(CandyError::MissingConfigLinesSettings);
+    };
 
-    let mut position = HIDDEN_SECTION + 4 + (index as usize) * config_line_length;
+    let name_length = config_line.name_length as usize;
+    let uri_length = config_line.uri_length as usize;
+    let config_line_length = name_length + uri_length;
 
-    for line in &config_lines {
-        let name = fixed_length_string(line.name.clone(), name_length)?;
-        let name_bytes = name.as_bytes();
+    // name and uri can be empty empty when both are using a replacement variable
+    if config_line_length > 0 {
+        let mut position = HIDDEN_SECTION + 4 + (index as usize) * config_line_length;
 
-        let name_slice: &mut [u8] = &mut data[position..position + name_length];
-        name_slice.copy_from_slice(name_bytes);
+        for line in &config_lines {
+            if name_length > 0 {
+                let name = fixed_length_string(line.name.clone(), name_length)?;
+                let name_bytes = name.as_bytes();
 
-        position += name_length;
+                let name_slice: &mut [u8] = &mut data[position..position + name_length];
+                name_slice.copy_from_slice(name_bytes);
 
-        let uri = fixed_length_string(line.uri.clone(), uri_length)?;
-        let uri_bytes = uri.as_bytes();
+                position += name_length;
+            }
 
-        let uri_slice: &mut [u8] = &mut data[position..position + uri_length];
-        uri_slice.copy_from_slice(uri_bytes);
+            if uri_length > 0 {
+                let uri = fixed_length_string(line.uri.clone(), uri_length)?;
+                let uri_bytes = uri.as_bytes();
 
-        position += uri_length;
+                let uri_slice: &mut [u8] = &mut data[position..position + uri_length];
+                uri_slice.copy_from_slice(uri_bytes);
+
+                position += uri_length;
+            }
+        }
     }
 
-    // after adding the config lines, we need to update the mint index array - there are two arrays
-    // controlling this process: (1) a bit-mask array to keep track which config lines were already
+    // after adding the config lines, we need to update the mint indices - there are two arrays
+    // controlling this process: (1) a bit-mask array to keep track which config lines are already
     // present on the data; (2) an array with mint indices, where indices are added when the config
     // line is added for the first time (when updating a config line, the index is not added again)
 
@@ -134,5 +147,6 @@ pub fn get_config_count(data: &RefMut<&mut [u8]>) -> Result<usize> {
 pub struct AddConfigLines<'info> {
     #[account(mut, has_one = authority)]
     candy_machine: Account<'info, CandyMachine>,
+    // autority of the candy machine
     authority: Signer<'info>,
 }

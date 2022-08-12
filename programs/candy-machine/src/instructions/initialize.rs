@@ -8,6 +8,7 @@ use crate::{
     assert_initialized, assert_owned_by, cmp_pubkeys,
     constants::HIDDEN_SECTION,
     errors::CandyError,
+    replace_patterns,
     state::{CandyMachine, CandyMachineData},
     utils::fixed_length_string,
 };
@@ -21,6 +22,7 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
         wallet: ctx.accounts.wallet.key(),
         token_mint: None,
         items_redeemed: 0,
+        features: 0,
     };
 
     if !ctx.remaining_accounts.is_empty() {
@@ -39,18 +41,43 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
     }
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
-    // validates config line settings
-    if MAX_NAME_LENGTH
-        < (candy_machine.data.config_line_settings.prefix_name.len()
-            + candy_machine.data.config_line_settings.name_length as usize)
-    {
-        return err!(CandyError::ExceededLengthError);
-    }
-    if MAX_URI_LENGTH
-        < (candy_machine.data.config_line_settings.prefix_uri.len()
-            + candy_machine.data.config_line_settings.uri_length as usize)
-    {
-        return err!(CandyError::ExceededLengthError);
+
+    if let Some(config_line) = &candy_machine.data.config_line_settings {
+        // name settings
+        let expected = replace_patterns(
+            config_line.prefix_name.clone(),
+            (candy_machine.data.items_available - 1) as usize,
+        );
+        if MAX_NAME_LENGTH < (expected.len() + config_line.name_length as usize) {
+            return err!(CandyError::ExceededLengthError);
+        }
+        // uri validation
+        let expected = replace_patterns(
+            config_line.prefix_uri.clone(),
+            (candy_machine.data.items_available - 1) as usize,
+        );
+        if MAX_URI_LENGTH < (expected.len() + config_line.uri_length as usize) {
+            return err!(CandyError::ExceededLengthError);
+        }
+    } else if let Some(hidden) = &candy_machine.data.hidden_settings {
+        // name settings
+        let expected = replace_patterns(
+            hidden.name.clone(),
+            (candy_machine.data.items_available - 1) as usize,
+        );
+        if MAX_NAME_LENGTH < expected.len() {
+            return err!(CandyError::ExceededLengthError);
+        }
+        // uri validation
+        let expected = replace_patterns(
+            hidden.uri.clone(),
+            (candy_machine.data.items_available - 1) as usize,
+        );
+        if MAX_URI_LENGTH < expected.len() {
+            return err!(CandyError::ExceededLengthError);
+        }
+    } else {
+        return err!(CandyError::MissingConfigLinesSettings);
     }
 
     // (MAX_CREATOR_LIMIT - 1) because the candy machine is going to be a creator
@@ -87,6 +114,7 @@ pub struct Initialize<'info> {
     wallet: UncheckedAccount<'info>,
     /// CHECK: authority can be any account and is not written to or read
     authority: UncheckedAccount<'info>,
+    // payer of the transaction
     payer: Signer<'info>,
     system_program: Program<'info, System>,
     rent: Sysvar<'info, Rent>,

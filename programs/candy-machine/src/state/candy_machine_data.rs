@@ -5,8 +5,6 @@ use crate::{constants::HIDDEN_SECTION, errors::CandyError};
 /// Candy machine configuration data.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Debug)]
 pub struct CandyMachineData {
-    /// Price of an asset
-    pub price: u64,
     /// Number of assets available
     pub items_available: u64,
     /// Symbol for the asset
@@ -22,7 +20,7 @@ pub struct CandyMachineData {
     /// List of creators
     pub creators: Vec<Creator>,
     /// Config line settings
-    pub config_line_settings: ConfigLineSettings,
+    pub config_line_settings: Option<ConfigLineSettings>,
     /// Hidden setttings
     pub hidden_settings: Option<HiddenSettings>,
 }
@@ -82,6 +80,10 @@ impl CandyMachineData {
     }
 
     pub fn get_config_line_size(&self) -> usize {
-        (self.config_line_settings.name_length + self.config_line_settings.uri_length) as usize
+        if let Some(config_line) = &self.config_line_settings {
+            (config_line.name_length + config_line.uri_length) as usize
+        } else {
+            0
+        }
     }
 }

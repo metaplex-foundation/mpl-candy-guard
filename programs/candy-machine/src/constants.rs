@@ -3,14 +3,25 @@ pub use mpl_token_metadata::state::{
 };
 use solana_program::pubkey::Pubkey;
 
+// Empty value used for string padding.
 pub const NULL_STRING: &str = "\0";
 
+// Constant to define the replacement index string.
+pub const REPLACEMENT_INDEX: &str = "$ID$";
+
+// Constant to define the replacement index increment string.
+pub const REPLACEMENT_INDEX_INCREMENT: &str = "$ID+1$";
+
+// Empty string constant.
+pub const EMPTY_STR: &str = "";
+
+// Determine the start of the account hidden section.
 pub const HIDDEN_SECTION: usize = 8           // discriminator
+    + 8                                       // features
     + 32                                      // authority
     + 32                                      // wallet
     + 33                                      // (optional) token mint
     + 8                                       // items redeemed
-    + 8                                       // price
     + 8                                       // items available
     + 4 + MAX_SYMBOL_LENGTH                   // u32 len + symbol
     + 2                                       // seller fee basis points

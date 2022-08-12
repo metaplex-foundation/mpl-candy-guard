@@ -11,16 +11,36 @@ use solana_program::{
 };
 use spl_associated_token_account::get_associated_token_address;
 
-use crate::{constants::NULL_STRING, CandyError};
+use crate::{
+    constants::{NULL_STRING, REPLACEMENT_INDEX, REPLACEMENT_INDEX_INCREMENT},
+    CandyError,
+};
 
+/// Return a padded string up to the specified length. If the specified
+/// string `value` is longer than the allowed `length`, return an error.
 pub fn fixed_length_string(value: String, length: usize) -> Result<String> {
     if length < value.len() {
-        // the value is larger than the expected length
+        // the value is larger than the allowed length
         return err!(CandyError::ExceededLengthError);
     }
 
     let padding = NULL_STRING.repeat(length - value.len());
     Ok(value + &padding)
+}
+
+/// Replace the index pattern variables on the specified string.
+pub fn replace_patterns(value: String, index: usize) -> String {
+    let mut mutable = value;
+    // check for pattern $id+1$
+    if mutable.contains(REPLACEMENT_INDEX_INCREMENT) {
+        mutable = mutable.replace(REPLACEMENT_INDEX_INCREMENT, &(index + 1).to_string());
+    }
+    // check for pattern $id$
+    if mutable.contains(REPLACEMENT_INDEX) {
+        mutable = mutable.replace(REPLACEMENT_INDEX, &index.to_string());
+    }
+
+    mutable
 }
 
 pub fn assert_initialized<T: Pack + IsInitialized>(account_info: &AccountInfo) -> Result<T> {
