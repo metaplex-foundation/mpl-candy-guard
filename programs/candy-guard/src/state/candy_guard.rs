@@ -48,4 +48,7 @@ pub struct CandyGuardData {
     pub spltoken_charge: Option<SPLTokenCharge>,
     /// Whitelist guard (whitelist mint settings).
     pub whitelist: Option<Whitelist>,
+    /// Last instruction guard (ensure that the mint instructions is the last
+    /// instruction of the transaction).
+    pub last_instruction: Option<LastInstruction>,
 }
