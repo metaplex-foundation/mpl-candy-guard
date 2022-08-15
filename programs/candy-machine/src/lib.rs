@@ -20,6 +20,10 @@ pub mod candy_machine {
 
     use super::*;
 
+    pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
+        instructions::add_collection(ctx)
+    }
+
     pub fn add_config_lines(
         ctx: Context<AddConfigLines>,
         index: u32,
@@ -37,6 +41,10 @@ pub mod candy_machine {
         creator_bump: u8,
     ) -> Result<()> {
         instructions::mint(ctx, creator_bump)
+    }
+
+    pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
+        instructions::remove_collection(ctx)
     }
 
     pub fn set_authority(ctx: Context<SetAuthority>, new_authority: Pubkey) -> Result<()> {

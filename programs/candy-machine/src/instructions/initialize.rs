@@ -1,16 +1,13 @@
-use anchor_lang::{prelude::*, Discriminator};
-use mpl_token_metadata::state::{
-    MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_SYMBOL_LENGTH, MAX_URI_LENGTH,
-};
-use spl_token::state::Mint;
-
 use crate::{
-    assert_initialized, assert_owned_by, cmp_pubkeys,
     constants::HIDDEN_SECTION,
     errors::CandyError,
     replace_patterns,
     state::{CandyMachine, CandyMachineData},
     utils::fixed_length_string,
+};
+use anchor_lang::{prelude::*, Discriminator};
+use mpl_token_metadata::state::{
+    MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_SYMBOL_LENGTH, MAX_URI_LENGTH,
 };
 
 pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()> {
@@ -20,25 +17,10 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
         data,
         authority: ctx.accounts.authority.key(),
         wallet: ctx.accounts.wallet.key(),
-        token_mint: None,
+        collection: None,
         items_redeemed: 0,
         features: 0,
     };
-
-    if !ctx.remaining_accounts.is_empty() {
-        let token_mint_info = &ctx.remaining_accounts[0];
-        let _token_mint: Mint = assert_initialized(token_mint_info)?;
-        let token_account: spl_token::state::Account = assert_initialized(&ctx.accounts.wallet)?;
-
-        assert_owned_by(token_mint_info, &spl_token::id())?;
-        assert_owned_by(&ctx.accounts.wallet, &spl_token::id())?;
-
-        if !cmp_pubkeys(&token_account.mint, &token_mint_info.key()) {
-            return err!(CandyError::MintMismatch);
-        }
-
-        candy_machine.token_mint = Some(*token_mint_info.key);
-    }
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
 
