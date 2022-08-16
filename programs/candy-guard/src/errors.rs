@@ -26,4 +26,8 @@ pub enum CandyGuardError {
     TokenTransferFailed,
     #[msg("Not enough tokens to pay for this minting")]
     NotEnoughTokens,
+    #[msg("Mint must be the last instructions of the transaction")]
+    MintNotLastTransaction,
+    #[msg("Missing set collection during mint IX")]
+    MissingCollectionInstruction,
 }

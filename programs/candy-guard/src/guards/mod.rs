@@ -6,12 +6,14 @@ pub use crate::state::CandyGuardData;
 
 pub use bot_tax::BotTax;
 pub use lamports_charge::LamportsCharge;
+pub use last_instruction::LastInstruction;
 pub use live_date::LiveDate;
 pub use spltoken_charge::SPLTokenCharge;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
 mod lamports_charge;
+mod last_instruction;
 mod live_date;
 mod spltoken_charge;
 mod whitelist;
@@ -26,7 +28,6 @@ pub trait Condition {
     /// Intermediary evaluation data can be stored in the `evaluation_context`,
     /// which will be shared with other guards and reused in the `actions` step
     /// of the process.
-    ///
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
