@@ -51,11 +51,10 @@ impl Condition for LastInstruction {
                 }
             }
             Err(_) => {
-                // TODO: remove these comments after collection support is merged
-                //if ctx.accounts.candy_machine.collection.is_some() {
-                // set_collection instruction expected
-                return err!(CandyGuardError::MissingCollectionInstruction);
-                //}
+                if ctx.accounts.candy_machine.collection.is_some() {
+                    // set_collection instruction expected
+                    return err!(CandyGuardError::MissingCollectionInstruction);
+                }
             }
         }
 
