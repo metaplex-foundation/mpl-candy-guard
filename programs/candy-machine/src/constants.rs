@@ -18,11 +18,13 @@ pub const EMPTY_STR: &str = "";
 // Determine the start of the account hidden section.
 pub const HIDDEN_SECTION: usize = 8           // discriminator
     + 8                                       // features
-    + 32                                      // authority
+    + 32                                      // base
     + 32                                      // wallet
+    + 32                                      // authority
     + 33                                      // (optional) token mint
     + 8                                       // items redeemed
     + 8                                       // items available
+    + 1                                       // bump
     + 4 + MAX_SYMBOL_LENGTH                   // u32 len + symbol
     + 2                                       // seller fee basis points
     + 8                                       // max supply
