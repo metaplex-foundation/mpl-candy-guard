@@ -10,22 +10,29 @@ use crate::{cmp_pubkeys, CandyError, CandyMachine};
 pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
     let mint = ctx.accounts.mint.to_account_info();
     let metadata: Metadata = Metadata::from_account_info(&ctx.accounts.metadata.to_account_info())?;
+
     if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.authority.key()) {
         return err!(CandyError::IncorrectCollectionAuthority);
-    };
+    }
+
     if !cmp_pubkeys(&metadata.mint, &mint.key()) {
         return err!(CandyError::MintMismatch);
     }
+
     let edition = ctx.accounts.edition.to_account_info();
     let authority_record = ctx.accounts.collection_authority_record.to_account_info();
     let candy_machine = &mut ctx.accounts.candy_machine;
+
     if candy_machine.items_redeemed > 0 {
         return err!(CandyError::NoChangingCollectionDuringMint);
     }
+
     if !candy_machine.data.retain_authority {
         return err!(CandyError::CandyCollectionRequiresRetainAuthority);
     }
+
     assert_master_edition(&metadata, &edition)?;
+
     if authority_record.data_is_empty() {
         let approve_collection_infos = vec![
             authority_record.clone(),
@@ -37,11 +44,13 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
         ];
+
         msg!(
             "Approving collection authority for {} with new authority {}.",
             ctx.accounts.metadata.key(),
-            candy_machine.key()
+            ctx.accounts.collection.key()
         );
+
         invoke(
             &approve_collection_authority(
                 ctx.accounts.token_metadata_program.key(),
@@ -54,6 +63,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
             ),
             approve_collection_infos.as_slice(),
         )?;
+
         msg!(
             "Successfully approved collection authority for collection mint {}.",
             mint.key()
@@ -78,6 +88,7 @@ pub struct AddCollection<'info> {
         seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
         bump
     )]
+    /// CHECK: account checked in CPI
     collection: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     metadata: UncheckedAccount<'info>,

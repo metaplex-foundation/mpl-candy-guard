@@ -8,13 +8,14 @@ import {
     createMintToInstruction,
     TOKEN_PROGRAM_ID,
     ASSOCIATED_TOKEN_PROGRAM_ID,
-    mintTo
 } from '@solana/spl-token';
 import { CandyGuard } from "../target/types/candy_guard";
 import { CandyMachine } from "../target/types/candy_machine";
 
 // token metadata program
 export const METAPLEX_PROGRAM_ID = new anchor.web3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+
+export const COLLECTION_MINT_ID = new anchor.web3.PublicKey("4iVwPGo2gjxmS4CvtQPmhAfVtj1PDeK6ZKtcsMDNQkyi");
 
 /*
  * --- Candy Guard helper functions
@@ -359,4 +360,89 @@ export async function addConfigLines(program: Program<CandyMachine>, lines: any,
 
         start = start + limit;
     }
+}
+
+export async function addCollection(
+    program: Program<CandyMachine>,
+    base: Keypair,
+    mint: PublicKey,
+    payer: Wallet): Promise<string> {
+
+    let [collectionPDA,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('collection'), base.publicKey.toBuffer()],
+        program.programId,
+    );
+
+    let [collectionAuthorityRecord,] = await anchor.web3.PublicKey.findProgramAddress(
+        [
+            Buffer.from('metadata'),
+            METAPLEX_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+            Buffer.from('collection_authority'),
+            collectionPDA.toBuffer()
+        ],
+        METAPLEX_PROGRAM_ID,
+    );
+
+    let [metadata,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+        METAPLEX_PROGRAM_ID,
+    );
+
+    let [edition,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), mint.toBuffer(), Buffer.from('edition')],
+        METAPLEX_PROGRAM_ID,
+    );
+
+    return await program.methods.addCollection().accounts({
+        candyMachine: base.publicKey,
+        authority: payer.publicKey,
+        payer: payer.publicKey,
+        collection: collectionPDA,
+        mint: mint,
+        metadata: metadata,
+        edition: edition,
+        collectionAuthorityRecord: collectionAuthorityRecord,
+        tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY
+    }).rpc();
+}
+
+export async function removeCollection(
+    program: Program<CandyMachine>,
+    base: Keypair,
+    mint: PublicKey,
+    payer: Wallet): Promise<string> {
+
+    let [collectionPDA,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('collection'), base.publicKey.toBuffer()],
+        program.programId,
+    );
+
+    let [collectionAuthorityRecord,] = await anchor.web3.PublicKey.findProgramAddress(
+        [
+            Buffer.from('metadata'),
+            METAPLEX_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+            Buffer.from('collection_authority'),
+            collectionPDA.toBuffer()
+        ],
+        METAPLEX_PROGRAM_ID,
+    );
+
+    let [metadata,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+        METAPLEX_PROGRAM_ID,
+    );
+
+    return await program.methods.removeCollection().accounts({
+        candyMachine: base.publicKey,
+        authority: payer.publicKey,
+        collection: collectionPDA,
+        mint: mint,
+        metadata: metadata,
+        collectionAuthorityRecord: collectionAuthorityRecord,
+        tokenMetadataProgram: METAPLEX_PROGRAM_ID
+    }).rpc();
 }
