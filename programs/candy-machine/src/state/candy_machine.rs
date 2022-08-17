@@ -7,8 +7,8 @@ use super::candy_machine_data::CandyMachineData;
 #[derive(Default, Debug)]
 pub struct CandyMachine {
     pub features: u64,
-    pub authority: Pubkey,
     pub wallet: Pubkey,
+    pub authority: Pubkey,
     pub collection: Option<Pubkey>,
     pub items_redeemed: u64,
     pub data: CandyMachineData,

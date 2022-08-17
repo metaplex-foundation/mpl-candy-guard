@@ -22,7 +22,7 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
     let authority_record = ctx.accounts.collection_authority_record.to_account_info();
     let revoke_collection_infos = vec![
         authority_record.clone(),
-        candy_machine.to_account_info(),
+        ctx.accounts.collection.to_account_info(),
         ctx.accounts.authority.to_account_info(),
         ctx.accounts.metadata.to_account_info(),
         mint.clone(),
@@ -35,7 +35,7 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
         &revoke_collection_authority(
             ctx.accounts.token_metadata_program.key(),
             authority_record.key(),
-            candy_machine.key(),
+            ctx.accounts.collection.key(),
             ctx.accounts.authority.key(),
             ctx.accounts.metadata.key(),
             mint.key(),
@@ -54,6 +54,12 @@ pub struct RemoveCollection<'info> {
     #[account(mut, has_one = authority)]
     candy_machine: Account<'info, CandyMachine>,
     authority: Signer<'info>,
+    /// CHECK: only used as a signer
+    #[account(
+        seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
+        bump
+    )]
+    collection: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     mint: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI

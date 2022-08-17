@@ -2,9 +2,9 @@ import * as anchor from "@project-serum/anchor";
 import { Program, Wallet } from "@project-serum/anchor";
 import { expect } from 'chai';
 import { CandyMachine } from "../target/types/candy_machine";
-import { defaultCandyMachineSettings, createCandyMachine, mintFromCandyMachine } from "./helpers"
+import * as test from "./helpers"
 
-describe("Candy Machine", () => {
+describe("Collection", () => {
     // configure the client to use the local cluster
     anchor.setProvider(anchor.AnchorProvider.env());
     // candy machine for the tests
@@ -19,8 +19,9 @@ describe("Candy Machine", () => {
      */
     it("initialize", async () => {
         const items = 10;
-        const data = defaultCandyMachineSettings(items, payer.publicKey);
-        const candyMachineKey = await createCandyMachine(program, keypair, payer, data);
+        const data = test.defaultCandyMachineSettings(items, payer.publicKey);
+
+        await test.createCandyMachine(program, keypair, payer, data);
 
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
 
@@ -51,10 +52,20 @@ describe("Candy Machine", () => {
     });
 
     /**
-     * Mint an item from the candy machine.
+     * Add a collection mint.
      */
-    it("mint", async () => {
-        const signature = await mintFromCandyMachine(program, keypair, payer);
-        console.log(signature);
+    it("add_collection", async () => {
+        await test.addCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);        
+        expect(candyMachine.collection).to.not.equal(null);
+    });
+
+    /**
+     * Remove a collection mint.
+     */
+     it("remove_collection", async () => {
+        await test.removeCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
+        expect(candyMachine.collection).to.equal(null);
     });
 });

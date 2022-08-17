@@ -6,14 +6,12 @@ pub use crate::state::CandyGuardData;
 
 pub use bot_tax::BotTax;
 pub use lamports_charge::LamportsCharge;
-pub use last_instruction::LastInstruction;
 pub use live_date::LiveDate;
 pub use spltoken_charge::SPLTokenCharge;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
 mod lamports_charge;
-mod last_instruction;
 mod live_date;
 mod spltoken_charge;
 mod whitelist;
@@ -91,9 +89,9 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
     }
 
     /// Deserializes the guard from a slice of data. Only attempts the deserialization
-    /// if the data slice is large enough and the guard is enabled.
-    fn load(features: u64, data: &mut [u8], offset: usize) -> Result<Option<Self>> {
-        if offset <= data.len() && Self::is_enabled(features) {
+    /// if the data slice is large enough.
+    fn load(data: &mut [u8], offset: usize) -> Result<Option<Self>> {
+        if offset <= data.len() {
             let mut slice = &data[offset - Self::size()..offset];
             let guard = Self::deserialize(&mut slice)?;
             Ok(Some(guard))

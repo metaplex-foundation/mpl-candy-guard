@@ -40,7 +40,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let ty = unwrap_option_t(&f.ty);
         quote! {
             current += #ty::size();
-            let #name = #ty::load(features, data, current)?;
+            let #name = if #ty::is_enabled(features) {
+                #ty::load(data, current)?
+            } else {
+                None
+            };
         }
     });
 

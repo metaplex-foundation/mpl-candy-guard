@@ -15,11 +15,11 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
 
     let mut candy_machine = CandyMachine {
         data,
-        authority: ctx.accounts.authority.key(),
+        features: 0,
         wallet: ctx.accounts.wallet.key(),
+        authority: ctx.accounts.authority.key(),
         collection: None,
         items_redeemed: 0,
-        features: 0,
     };
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
@@ -42,7 +42,7 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
             return err!(CandyError::ExceededLengthError);
         }
     } else if let Some(hidden) = &candy_machine.data.hidden_settings {
-        // name settings
+        // hidden name settings
         let expected = replace_patterns(
             hidden.name.clone(),
             (candy_machine.data.items_available - 1) as usize,
@@ -50,7 +50,7 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
         if MAX_NAME_LENGTH < expected.len() {
             return err!(CandyError::ExceededLengthError);
         }
-        // uri validation
+        // hidden uri validation
         let expected = replace_patterns(
             hidden.uri.clone(),
             (candy_machine.data.items_available - 1) as usize,
