@@ -5,6 +5,7 @@ pub use mint::*;
 pub use remove_collection::*;
 pub use set_authority::*;
 pub use set_collection::*;
+pub use update::*;
 
 pub mod add_collection;
 pub mod add_config_lines;
@@ -13,3 +14,4 @@ pub mod mint;
 pub mod remove_collection;
 pub mod set_authority;
 pub mod set_collection;
+pub mod update;

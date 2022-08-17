@@ -50,4 +50,8 @@ pub mod candy_machine {
     pub fn set_authority(ctx: Context<SetAuthority>, new_authority: Pubkey) -> Result<()> {
         instructions::set_authority(ctx, new_authority)
     }
+
+    pub fn update(ctx: Context<Update>, data: CandyMachineData) -> Result<()> {
+        instructions::update(ctx, data)
+    }
 }
