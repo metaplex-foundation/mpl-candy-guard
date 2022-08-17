@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use mpl_token_metadata::state::{MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_URI_LENGTH};
 
-use crate::{constants::HIDDEN_SECTION, errors::CandyError};
+use crate::{constants::HIDDEN_SECTION, errors::CandyError, utils::replace_patterns};
 
 /// Candy machine configuration data.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, Debug)]
@@ -85,5 +86,50 @@ impl CandyMachineData {
         } else {
             0
         }
+    }
+
+    pub fn validate(&self) -> Result<()> {
+        // hidden settings take precedence over config lines since when
+        // hidden settings are used, the account does not need to include
+        // space for config lines
+
+        if let Some(hidden) = &self.hidden_settings {
+            // hidden name
+            let expected = replace_patterns(hidden.name.clone(), self.items_available as usize);
+            if MAX_NAME_LENGTH < expected.len() {
+                return err!(CandyError::ExceededLengthError);
+            }
+            // hidden uri
+            let expected = replace_patterns(hidden.uri.clone(), self.items_available as usize);
+            if MAX_URI_LENGTH < expected.len() {
+                return err!(CandyError::ExceededLengthError);
+            }
+        } else if let Some(config_line) = &self.config_line_settings {
+            // name settings
+            let expected = replace_patterns(
+                config_line.prefix_name.clone(),
+                self.items_available as usize,
+            );
+            if MAX_NAME_LENGTH < (expected.len() + config_line.name_length as usize) {
+                return err!(CandyError::ExceededLengthError);
+            }
+            // uri validation
+            let expected = replace_patterns(
+                config_line.prefix_uri.clone(),
+                self.items_available as usize,
+            );
+            if MAX_URI_LENGTH < (expected.len() + config_line.uri_length as usize) {
+                return err!(CandyError::ExceededLengthError);
+            }
+        } else {
+            return err!(CandyError::MissingConfigLinesSettings);
+        }
+
+        // (MAX_CREATOR_LIMIT - 1) because the candy machine is going to be a creator
+        if self.creators.len() > (MAX_CREATOR_LIMIT - 1) {
+            return err!(CandyError::TooManyCreators);
+        }
+
+        Ok(())
     }
 }

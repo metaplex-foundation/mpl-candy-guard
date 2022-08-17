@@ -50,7 +50,7 @@ pub enum CandyError {
     InvalidString,
     #[msg("Suspicious transaction detected")]
     SuspiciousTransaction,
-    #[msg("Cannot Switch to Hidden Settings after items available is greater than 0")]
+    #[msg("Cannot switch to hidden settings after items available is greater than 0")]
     CannotSwitchToHiddenSettings,
     #[msg("Incorrect SlotHashes PubKey")]
     IncorrectSlotHashesPubkey,
@@ -76,4 +76,8 @@ pub enum CandyError {
     ExceededLengthError,
     #[msg("Missing config lines settings")]
     MissingConfigLinesSettings,
+    #[msg("Cannot increase the length in config lines settings")]
+    CannotIncreaseLength,
+    #[msg("Cannot switch from hidden settings")]
+    CannotSwitchFromHiddenSettings,
 }

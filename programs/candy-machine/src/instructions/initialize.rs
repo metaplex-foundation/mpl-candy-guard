@@ -1,14 +1,10 @@
 use crate::{
     constants::HIDDEN_SECTION,
-    errors::CandyError,
-    replace_patterns,
     state::{CandyMachine, CandyMachineData},
     utils::fixed_length_string,
 };
 use anchor_lang::{prelude::*, Discriminator};
-use mpl_token_metadata::state::{
-    MAX_CREATOR_LIMIT, MAX_NAME_LENGTH, MAX_SYMBOL_LENGTH, MAX_URI_LENGTH,
-};
+use mpl_token_metadata::state::MAX_SYMBOL_LENGTH;
 
 pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()> {
     let candy_machine_account = &mut ctx.accounts.candy_machine;
@@ -23,49 +19,8 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
     };
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
-
-    if let Some(config_line) = &candy_machine.data.config_line_settings {
-        // name settings
-        let expected = replace_patterns(
-            config_line.prefix_name.clone(),
-            (candy_machine.data.items_available - 1) as usize,
-        );
-        if MAX_NAME_LENGTH < (expected.len() + config_line.name_length as usize) {
-            return err!(CandyError::ExceededLengthError);
-        }
-        // uri validation
-        let expected = replace_patterns(
-            config_line.prefix_uri.clone(),
-            (candy_machine.data.items_available - 1) as usize,
-        );
-        if MAX_URI_LENGTH < (expected.len() + config_line.uri_length as usize) {
-            return err!(CandyError::ExceededLengthError);
-        }
-    } else if let Some(hidden) = &candy_machine.data.hidden_settings {
-        // hidden name settings
-        let expected = replace_patterns(
-            hidden.name.clone(),
-            (candy_machine.data.items_available - 1) as usize,
-        );
-        if MAX_NAME_LENGTH < expected.len() {
-            return err!(CandyError::ExceededLengthError);
-        }
-        // hidden uri validation
-        let expected = replace_patterns(
-            hidden.uri.clone(),
-            (candy_machine.data.items_available - 1) as usize,
-        );
-        if MAX_URI_LENGTH < expected.len() {
-            return err!(CandyError::ExceededLengthError);
-        }
-    } else {
-        return err!(CandyError::MissingConfigLinesSettings);
-    }
-
-    // (MAX_CREATOR_LIMIT - 1) because the candy machine is going to be a creator
-    if candy_machine.data.creators.len() > (MAX_CREATOR_LIMIT - 1) {
-        return err!(CandyError::TooManyCreators);
-    }
+    // validates the config data settings
+    candy_machine.data.validate()?;
 
     let mut struct_data = CandyMachine::discriminator().try_to_vec().unwrap();
     struct_data.append(&mut candy_machine.try_to_vec().unwrap());
