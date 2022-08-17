@@ -23,7 +23,7 @@ describe("Mint CPI", () => {
      * Creates the candy machine for the tests.
      */
     it("candy machine: initialize", async () => {
-        const items = 100;
+        const items = 10;
         const data = test.defaultCandyMachineSettings(items, payer.publicKey);
         const candyMachineKey = await test.createCandyMachine(candyMachineProgram, candyMachineKeypair, payer, data);
 
@@ -68,6 +68,25 @@ describe("Mint CPI", () => {
         let candyGuard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKey);
         // all guards are disable at the start
         expect(candyGuard.features.toNumber()).to.equal(0);
+
+        // enabling some guards
+    
+        let settings = test.defaultCandyGuardSettings();
+        settings.botTax.lamports = new anchor.BN(100000000);
+        settings.botTax.lastInstruction = true;
+        settings.liveDate = null;
+        settings.lamportsCharge.amount = new anchor.BN(1000000000);
+        settings.spltokenCharge = null;
+        settings.whitelist = null;
+    
+        await candyGuardProgram.methods.update(settings).accounts({
+          candyGuard: candyGuardKey,
+          authority: payer.publicKey,
+        }).rpc();
+    
+        candyGuard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKey);
+        // bot_tax (b001) + lamports_charge (b100)
+        expect(candyGuard.features.toNumber()).to.equal(9);
     });
 
     /**

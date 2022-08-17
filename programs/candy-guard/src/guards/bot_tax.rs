@@ -1,15 +1,24 @@
-use super::*;
+use solana_program::{
+    program::invoke,
+    serialize_utils::{read_pubkey, read_u16},
+    system_instruction,
+    sysvar::instructions::get_instruction_relative,
+};
 
-use solana_program::{program::invoke, system_instruction};
+use super::*;
+use crate::{errors::CandyGuardError, utils::cmp_pubkeys};
+
+const A_TOKEN: Pubkey = solana_program::pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct BotTax {
     pub lamports: u64,
+    pub last_instruction: bool,
 }
 
 impl Guard for BotTax {
     fn size() -> usize {
-        std::mem::size_of::<u64>() // lamports
+        std::mem::size_of::<u64>() + 1 // u64 + bool
     }
 
     fn mask() -> u64 {
@@ -20,12 +29,68 @@ impl Guard for BotTax {
 impl Condition for BotTax {
     fn validate<'info>(
         &self,
-        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
         _candy_guard_data: &CandyGuardData,
         _evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        // the purpuse of this guard is to indicate whether the bot tax is enbled or not
-        // and to store the lamports fee
+        if self.last_instruction {
+            let instruction_sysvar_account = &ctx.accounts.instruction_sysvar_account;
+            let instruction_sysvar_account_info = instruction_sysvar_account.to_account_info();
+            let instruction_sysvar = instruction_sysvar_account_info.data.borrow();
+            // the next instruction after the mint
+            let next_ix = get_instruction_relative(1, &instruction_sysvar_account_info);
+
+            match next_ix {
+                Ok(ix) => {
+                    let discriminator = &ix.data[0..8];
+                    let after_collection_ix =
+                        get_instruction_relative(2, &instruction_sysvar_account_info);
+
+                    if !cmp_pubkeys(&ix.program_id, &crate::id())
+                        || discriminator != [103, 17, 200, 25, 118, 95, 125, 61]
+                        || after_collection_ix.is_ok()
+                    {
+                        // we fail here, it is much cheaper to fail here than to allow a malicious user
+                        // to add an ix at the end and then fail
+                        msg!("Failing and halting due to an extra unauthorized instruction");
+                        return err!(CandyGuardError::MintNotLastTransaction);
+                    }
+                }
+                Err(_) => {
+                    if ctx.accounts.candy_machine.collection.is_some() {
+                        // set_collection instruction expected
+                        return err!(CandyGuardError::MissingCollectionInstruction);
+                    }
+                }
+            }
+
+            let mut idx = 0;
+            let num_instructions = read_u16(&mut idx, &instruction_sysvar)
+                .map_err(|_| ProgramError::InvalidAccountData)?;
+
+            for index in 0..num_instructions {
+                let mut current = 2 + (index * 2) as usize;
+                let start = read_u16(&mut current, &instruction_sysvar).unwrap();
+
+                current = start as usize;
+                let num_accounts = read_u16(&mut current, &instruction_sysvar).unwrap();
+                current += (num_accounts as usize) * (1 + 32);
+                let program_id = read_pubkey(&mut current, &instruction_sysvar).unwrap();
+
+                if !cmp_pubkeys(&program_id, &crate::id())
+                    && !cmp_pubkeys(&program_id, &spl_token::id())
+                    && !cmp_pubkeys(
+                        &program_id,
+                        &anchor_lang::solana_program::system_program::ID,
+                    )
+                    && !cmp_pubkeys(&program_id, &A_TOKEN)
+                {
+                    msg!("Transaction had ix with program id {}", program_id);
+                    return err!(CandyGuardError::MintNotLastTransaction);
+                }
+            }
+        }
+
         Ok(())
     }
 

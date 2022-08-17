@@ -49,7 +49,8 @@ export async function createCandyGuard(
 export function defaultCandyGuardSettings() {
     return JSON.parse('{\
         "botTax": {\
-          "lamports": 0\
+          "lamports": 0,\
+          "lastInstruction": false\
         },\
         "liveDate": {\
           "date": 0\

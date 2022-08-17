@@ -38,7 +38,7 @@ pub struct CandyGuard {
 
 #[derive(CandyGuard, AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct CandyGuardData {
-    /// Bot tax guard (penalty for invalid transactions).
+    /// Last instruction check and bot tax (penalty for invalid transactions).
     pub bot_tax: Option<BotTax>,
     /// Live data guard (controls when minting is allowed).
     pub live_date: Option<LiveDate>,
@@ -48,7 +48,4 @@ pub struct CandyGuardData {
     pub spltoken_charge: Option<SPLTokenCharge>,
     /// Whitelist guard (whitelist mint settings).
     pub whitelist: Option<Whitelist>,
-    /// Last instruction guard (ensure that the mint instructions is the last
-    /// instruction of the transaction).
-    pub last_instruction: Option<LastInstruction>,
 }
