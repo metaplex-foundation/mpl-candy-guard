@@ -16,12 +16,10 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
     let mut candy_machine = CandyMachine {
         data,
         features: 0,
-        base: ctx.accounts.base.key(),
         wallet: ctx.accounts.wallet.key(),
         authority: ctx.accounts.authority.key(),
         collection: None,
         items_redeemed: 0,
-        bump: *ctx.bumps.get("candy_machine").unwrap(),
     };
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
@@ -91,14 +89,9 @@ pub struct Initialize<'info> {
     #[account(
         zero,
         rent_exempt = skip,
-        constraint = candy_machine.to_account_info().owner == program_id && candy_machine.to_account_info().data_len() >= data.get_space_for_candy()?,
-        seeds = [b"candy_machine", base.key().as_ref()],
-        bump
+        constraint = candy_machine.to_account_info().owner == program_id && candy_machine.to_account_info().data_len() >= data.get_space_for_candy()?
     )]
     candy_machine: UncheckedAccount<'info>,
-    // Base key of the candy machine PDA
-    #[account(mut)]
-    base: Signer<'info>,
     /// CHECK: wallet can be any account and is not written to or read
     wallet: UncheckedAccount<'info>,
     /// CHECK: authority can be any account and is not written to or read

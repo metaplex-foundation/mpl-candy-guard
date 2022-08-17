@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use mpl_token_metadata::{instruction::set_and_verify_collection};
+use mpl_token_metadata::instruction::set_and_verify_collection;
 use solana_program::{
-    program::invoke_signed, sysvar, sysvar::instructions::get_instruction_relative,
+    program::invoke_signed, pubkey::Pubkey, sysvar, sysvar::instructions::get_instruction_relative,
 };
 
 use crate::{cmp_pubkeys, CandyMachine};
@@ -69,16 +69,13 @@ pub fn set_collection(ctx: Context<SetCollection>) -> Result<()> {
         }
     }
 
-    let seeds = [
-        b"candy_machine".as_ref(),
-        &candy_machine.base.to_bytes(),
-        &[candy_machine.bump],
-    ];
-    let signer = [&seeds[..]];
+    let seeds = [b"candy_machine".as_ref(), &candy_machine.key().to_bytes()];
+    let (_, bump) = Pubkey::find_program_address(&seeds, &crate::ID);
+    let signer = &[seeds[0], seeds[1], &[bump]];
 
     let set_collection_infos = vec![
         ctx.accounts.metadata.to_account_info(),
-        candy_machine.to_account_info(),
+        ctx.accounts.collection.to_account_info(),
         ctx.accounts.payer.to_account_info(),
         ctx.accounts.authority.to_account_info(),
         collection_mint.to_account_info(),
@@ -90,7 +87,7 @@ pub fn set_collection(ctx: Context<SetCollection>) -> Result<()> {
         &set_and_verify_collection(
             ctx.accounts.token_metadata_program.key(),
             ctx.accounts.metadata.key(),
-            candy_machine.key(),
+            ctx.accounts.collection.key(),
             ctx.accounts.payer.key(),
             ctx.accounts.authority.key(),
             collection_mint.key(),
@@ -99,7 +96,7 @@ pub fn set_collection(ctx: Context<SetCollection>) -> Result<()> {
             Some(ctx.accounts.collection_authority_record.key()),
         ),
         set_collection_infos.as_slice(),
-        &signer,
+        &[signer],
     )?;
     Ok(())
 }
@@ -115,7 +112,12 @@ pub struct SetCollection<'info> {
     payer: Signer<'info>,
     /// CHECK: account checked in CPI/instruction sysvar
     metadata: UncheckedAccount<'info>,
-    /// CHECK: account constraints checked in account trait
+    /// CHECK: only used as a signer
+    #[account(
+        seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
+        bump
+    )]
+    collection: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     collection_mint: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
@@ -127,6 +129,7 @@ pub struct SetCollection<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::instructions::id())]
     instructions: UncheckedAccount<'info>,
+    /// CHECK: account checked in CPI
     #[account(address = mpl_token_metadata::id())]
     token_metadata_program: UncheckedAccount<'info>,
 }

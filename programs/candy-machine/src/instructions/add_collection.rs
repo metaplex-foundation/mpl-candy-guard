@@ -29,7 +29,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
     if authority_record.data_is_empty() {
         let approve_collection_infos = vec![
             authority_record.clone(),
-            candy_machine.to_account_info(),
+            ctx.accounts.collection.to_account_info(),
             ctx.accounts.authority.to_account_info(),
             ctx.accounts.payer.to_account_info(),
             ctx.accounts.metadata.to_account_info(),
@@ -46,7 +46,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
             &approve_collection_authority(
                 ctx.accounts.token_metadata_program.key(),
                 authority_record.key(),
-                candy_machine.to_account_info().key(),
+                ctx.accounts.collection.key(),
                 ctx.accounts.authority.key(),
                 ctx.accounts.payer.key(),
                 ctx.accounts.metadata.key(),
@@ -72,7 +72,13 @@ pub struct AddCollection<'info> {
     candy_machine: Account<'info, CandyMachine>,
     // candy machine authority
     authority: Signer<'info>,
+    // payer of the transaction
     payer: Signer<'info>,
+    #[account(
+        seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
+        bump
+    )]
+    collection: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     metadata: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI

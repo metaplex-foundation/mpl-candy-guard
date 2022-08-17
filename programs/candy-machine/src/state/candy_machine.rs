@@ -7,12 +7,10 @@ use super::candy_machine_data::CandyMachineData;
 #[derive(Default, Debug)]
 pub struct CandyMachine {
     pub features: u64,
-    pub base: Pubkey,
     pub wallet: Pubkey,
     pub authority: Pubkey,
     pub collection: Option<Pubkey>,
     pub items_redeemed: u64,
-    pub bump: u8,
     pub data: CandyMachineData,
     // hidden data section to avoid deserialisation:
     //
