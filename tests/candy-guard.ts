@@ -1,8 +1,8 @@
 import * as anchor from "@project-serum/anchor";
-import { BN, Program } from "@project-serum/anchor";
-import { SystemProgram } from '@solana/web3.js';
+import { Program, Wallet } from "@project-serum/anchor";
 import { expect } from 'chai';
 import { CandyGuard } from "../target/types/candy_guard";
+import { createCandyGuard, defaultCandyGuardSettings, getCandyGuardPDA } from "./helpers";
 
 describe("Candy Guard", () => {
   // configure the client to use the local cluster
@@ -12,67 +12,75 @@ describe("Candy Guard", () => {
   // candy guard program
   const program = anchor.workspace.CandyGuard as Program<CandyGuard>;
   // payer of the transactions
-  const payer = (program.provider as anchor.AnchorProvider).wallet;
+  const payer = (program.provider as anchor.AnchorProvider).wallet as Wallet;
 
+  /**
+   * Initializes a new candy guard.
+   */
   it("initialize", async () => {
-    // candy guard pda
-    const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from('candy_guard'), keypair.publicKey.toBuffer()],
-      program.programId,
-    );
-
-    await program.methods
-      .initialize()
-      .accounts({
-        candyGuard: pda,
-        base: keypair.publicKey,
-        authority: payer.publicKey,
-        payer: payer.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([keypair])
-      .rpc();
-
-    let candy_guard = await program.account.candyGuard.fetch(pda);
-
-    expect(candy_guard.features.toNumber()).to.equal(0);
+    let candyGuardKey = await createCandyGuard(program, keypair, payer);
+    let candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
+    expect(candyGuard.features.toNumber()).to.equal(0);
   });
 
+  /**
+   * Updates the candy guard configuration.
+   */
   it("update", async () => {
-    // candy guard pda
-    const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from('candy_guard'), keypair.publicKey.toBuffer()],
-      program.programId,
-    );
+    let candyGuardKey = await getCandyGuardPDA(program, keypair);
+    let candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
+    // no features enabled by default
+    expect(candyGuard.features.toNumber()).to.equal(0);
 
-    let candy_guard = await program.account.candyGuard.fetch(pda);
-    expect(candy_guard.features.toNumber()).to.equal(0);
+    // enabling some guards
 
-    const settings = JSON.parse('{\
-      "botTax": {\
-        "lamports": 100000000\
-      },\
-      "liveDate": {\
-        "date": 1657669708\
-      },\
-      "lamportsCharge": {\
-        "amount": 1000000000\
-      },\
-      "spltokenCharge": null,\
-      "whitelist": null\
-    }');
-
+    let settings = defaultCandyGuardSettings();
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate.date = null;
     settings.lamportsCharge.amount = new anchor.BN(1000000000);
+    settings.spltokenCharge = null;
+    settings.whitelist = null;
 
     await program.methods.update(settings).accounts({
-      candyGuard: pda,
+      candyGuard: candyGuardKey,
       authority: payer.publicKey,
     }).rpc();
 
-    candy_guard = await program.account.candyGuard.fetch(pda);
-    // bot_tax (1) + live_date (2) + lamports_charge (8)
-    expect(candy_guard.features.toNumber()).to.equal(11);
+    candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
+    // bot_tax (b001) + live_date (b10) + lamports_charge (b100)
+    expect(candyGuard.features.toNumber()).to.equal(11);
+
+    // disabling all guards
+
+    settings.botTax = null;
+    settings.liveDate = null;
+    settings.lamportsCharge = null;
+    settings.spltokenCharge = null;
+    settings.whitelist = null;
+
+    await program.methods.update(settings).accounts({
+      candyGuard: candyGuardKey,
+      authority: payer.publicKey,
+    }).rpc();
+
+    candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
+    expect(candyGuard.features.toNumber()).to.equal(0);
+
+    // enabling one again
+
+    settings = defaultCandyGuardSettings();
+    settings.botTax.lamports = new anchor.BN(100000000);
+    settings.liveDate = null;
+    settings.lamportsCharge = null;
+    settings.spltokenCharge = null;
+    settings.whitelist = null;
+
+    await program.methods.update(settings).accounts({
+      candyGuard: candyGuardKey,
+      authority: payer.publicKey,
+    }).rpc();
+
+    candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
+    expect(candyGuard.features.toNumber()).to.equal(1);
   });
 });
