@@ -217,7 +217,7 @@ export async function getCandyMachinePDA(program: Program<CandyMachine>, base: K
  * Helper function to create the candy machine data struct. In most cases these values will be
  * replaced in the test methods.
  */
-export function defaultCandyMachineSettings(items: number, creator: PublicKey) {
+export function defaultCandyMachineSettings(items: number, creator: PublicKey, isSequential: boolean) {
     const settings = JSON.parse(`{\
         "itemsAvailable": ${items},\
         "symbol": "CANDYGUARD",\
@@ -233,7 +233,8 @@ export function defaultCandyMachineSettings(items: number, creator: PublicKey) {
             "prefixName": "CandyGuard ",\
             "nameLength": ${CONFIG_NAME_LENGTH},\
             "prefixUri": \"https://arweave.net/\",\
-            "uriLength": ${CONFIG_URI_LENGTH}\
+            "uriLength": ${CONFIG_URI_LENGTH},\
+            "isSequential": false\
         },\
         "hiddenSettings": null\
     }`);
@@ -242,6 +243,7 @@ export function defaultCandyMachineSettings(items: number, creator: PublicKey) {
     settings.maxSupply = new anchor.BN(0);
     settings.configLineSettings.nameLength = new anchor.BN(CONFIG_NAME_LENGTH);
     settings.configLineSettings.uriLength = new anchor.BN(CONFIG_URI_LENGTH);
+    settings.configLineSettings.isSequential = isSequential;
     settings.creators[0].address = creator;
 
     return settings;

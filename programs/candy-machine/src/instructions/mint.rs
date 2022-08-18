@@ -19,17 +19,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         return err!(CandyError::MetadataAccountMustBeEmpty);
     }
 
-    // only the candy machine authority can mint
-    if !cmp_pubkeys(
-        &ctx.accounts.authority.key(),
-        &ctx.accounts.candy_machine.authority,
-    ) {
-        return err!(CandyError::NotAuthority);
-    }
-
     let candy_machine = &mut ctx.accounts.candy_machine;
-    let candy_machine_creator = &ctx.accounts.candy_machine_creator;
-
     // are there items to be minted?
     if candy_machine.items_redeemed >= candy_machine.data.items_available {
         return err!(CandyError::CandyMachineEmpty);
@@ -55,9 +45,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 
     // (3) minting
 
-    let cm_key = candy_machine.key();
-    let authority_seeds = [PREFIX.as_bytes(), cm_key.as_ref(), &[creator_bump]];
-
+    let candy_machine_creator = &ctx.accounts.candy_machine_creator;
     let mut creators: Vec<mpl_token_metadata::state::Creator> =
         vec![mpl_token_metadata::state::Creator {
             address: candy_machine_creator.key(),
@@ -97,6 +85,10 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         ctx.accounts.rent.to_account_info(),
         candy_machine_creator.to_account_info(),
     ];
+
+    let cm_key = candy_machine.key();
+    let authority_seeds = [PREFIX.as_bytes(), cm_key.as_ref(), &[creator_bump]];
+
     invoke_signed(
         &create_metadata_accounts_v2(
             ctx.accounts.token_metadata_program.key(),
@@ -118,6 +110,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         metadata_infos.as_slice(),
         &[&authority_seeds],
     )?;
+
     invoke_signed(
         &create_master_edition_v3(
             ctx.accounts.token_metadata_program.key(),
@@ -138,6 +131,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     if !candy_machine.data.retain_authority {
         new_update_authority = Some(ctx.accounts.update_authority.key());
     }
+
     invoke_signed(
         &update_metadata_accounts_v2(
             ctx.accounts.token_metadata_program.key(),
@@ -185,25 +179,31 @@ pub fn get_config_line(
 
     // (1) determine the mint index (index is a random index on the available indices array)
 
-    let items_available = candy_machine.data.items_available as u64;
-    let indices_start = HIDDEN_SECTION
-        + 4
-        + (items_available as usize) * candy_machine.data.get_config_line_size()
-        + 4
-        + ((items_available
-            .checked_div(8)
-            .ok_or(CandyError::NumericalOverflowError)?
-            + 1) as usize)
-        + 4;
-    // calculates the mint index and retrieves the value at that position
-    let mint_index = indices_start + index * 4;
-    let value_to_use = u32::from_le_bytes(*array_ref![account_data, mint_index, 4]) as usize;
-    // calculates the last available index and retrieves the value at that position
-    let last_index = indices_start + ((items_available - mint_number - 1) * 4) as usize;
-    let last_value = u32::from_le_bytes(*array_ref![account_data, last_index, 4]);
-    // swap-remove: this guarantees that we remove the used mint index from the available array
-    // in a constant time O(1) no matter how big the indices array is
-    account_data[mint_index..mint_index + 4].copy_from_slice(&u32::to_le_bytes(last_value));
+    let value_to_use = if settings.is_sequential {
+        mint_number as usize
+    } else {
+        let items_available = candy_machine.data.items_available as u64;
+        let indices_start = HIDDEN_SECTION
+            + 4
+            + (items_available as usize) * candy_machine.data.get_config_line_size()
+            + 4
+            + ((items_available
+                .checked_div(8)
+                .ok_or(CandyError::NumericalOverflowError)?
+                + 1) as usize)
+            + 4;
+        // calculates the mint index and retrieves the value at that position
+        let mint_index = indices_start + index * 4;
+        let value_to_use = u32::from_le_bytes(*array_ref![account_data, mint_index, 4]) as usize;
+        // calculates the last available index and retrieves the value at that position
+        let last_index = indices_start + ((items_available - mint_number - 1) * 4) as usize;
+        let last_value = u32::from_le_bytes(*array_ref![account_data, last_index, 4]);
+        // swap-remove: this guarantees that we remove the used mint index from the available array
+        // in a constant time O(1) no matter how big the indices array is
+        account_data[mint_index..mint_index + 4].copy_from_slice(&u32::to_le_bytes(last_value));
+
+        value_to_use
+    };
 
     // (2) retrieve the config line at the mint_index position
 
@@ -246,8 +246,7 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(seeds=[PREFIX.as_bytes(), candy_machine.key().as_ref()], bump=creator_bump)]
     candy_machine_creator: UncheckedAccount<'info>,
-    // candy machine authority
-    #[account(mut)]
+    // candy machine authority (mint only allowed if the authority is a signer)
     authority: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
