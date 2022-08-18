@@ -56,16 +56,26 @@ describe("Collection", () => {
      */
     it("add_collection", async () => {
         await test.addCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
-        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);        
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
         expect(candyMachine.collection).to.not.equal(null);
     });
 
     /**
      * Remove a collection mint.
      */
-     it("remove_collection", async () => {
+    it("remove_collection", async () => {
         await test.removeCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
         expect(candyMachine.collection).to.equal(null);
+    });
+
+    /**
+     * Withdraw the rent from the candy machine.
+     */
+    it("withdraw", async () => {
+        await program.methods.withdraw().accounts({
+            candyMachine: keypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
     });
 });

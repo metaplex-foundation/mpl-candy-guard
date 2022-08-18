@@ -128,4 +128,14 @@ describe("Update (Candy Machine)", () => {
 
         expect(fail).equal(true);
     });
+
+    /**
+     * Withdraw the rent from the candy machine.
+     */
+    it("withdraw", async () => {
+        await program.methods.withdraw().accounts({
+            candyMachine: keypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
+    });
 });

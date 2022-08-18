@@ -57,4 +57,14 @@ describe("Candy Machine", () => {
         const signature = await mintFromCandyMachine(program, keypair, payer);
         console.log(signature);
     });
+
+    /**
+     * Withdraw the rent from the candy machine.
+     */
+    it("withdraw", async () => {
+        await program.methods.withdraw().accounts({
+            candyMachine: keypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
+    });
 });

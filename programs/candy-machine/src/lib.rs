@@ -54,4 +54,8 @@ pub mod candy_machine {
     pub fn update(ctx: Context<Update>, data: CandyMachineData) -> Result<()> {
         instructions::update(ctx, data)
     }
+
+    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
+        instructions::withdraw(ctx)
+    }
 }

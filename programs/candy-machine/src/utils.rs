@@ -31,11 +31,11 @@ pub fn fixed_length_string(value: String, length: usize) -> Result<String> {
 /// Replace the index pattern variables on the specified string.
 pub fn replace_patterns(value: String, index: usize) -> String {
     let mut mutable = value;
-    // check for pattern $id+1$
+    // check for pattern $ID+1$
     if mutable.contains(REPLACEMENT_INDEX_INCREMENT) {
         mutable = mutable.replace(REPLACEMENT_INDEX_INCREMENT, &(index + 1).to_string());
     }
-    // check for pattern $id$
+    // check for pattern $ID$
     if mutable.contains(REPLACEMENT_INDEX) {
         mutable = mutable.replace(REPLACEMENT_INDEX, &index.to_string());
     }

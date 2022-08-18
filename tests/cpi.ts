@@ -70,7 +70,7 @@ describe("Mint CPI", () => {
         expect(candyGuard.features.toNumber()).to.equal(0);
 
         // enabling some guards
-    
+
         let settings = test.defaultCandyGuardSettings();
         settings.botTax.lamports = new anchor.BN(100000000);
         settings.botTax.lastInstruction = true;
@@ -78,12 +78,12 @@ describe("Mint CPI", () => {
         settings.lamportsCharge.amount = new anchor.BN(1000000000);
         settings.spltokenCharge = null;
         settings.whitelist = null;
-    
+
         await candyGuardProgram.methods.update(settings).accounts({
-          candyGuard: candyGuardKey,
-          authority: payer.publicKey,
+            candyGuard: candyGuardKey,
+            authority: payer.publicKey,
         }).rpc();
-    
+
         candyGuard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKey);
         // bot_tax (b001) + lamports_charge (b100)
         expect(candyGuard.features.toNumber()).to.equal(9);
@@ -162,5 +162,15 @@ describe("Mint CPI", () => {
      */
     it("candy machine: mint", async () => {
         await test.mintFromCandyMachine(candyMachineProgram, candyMachineKeypair, payer);
+    });
+
+    /**
+     * Withdraw the rent from the candy machine.
+     */
+    it("withdraw", async () => {
+        await candyMachineProgram.methods.withdraw().accounts({
+            candyMachine: candyMachineKeypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
     });
 });

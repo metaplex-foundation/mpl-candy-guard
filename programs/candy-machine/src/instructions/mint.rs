@@ -228,12 +228,12 @@ pub fn get_config_line(
         EMPTY_STR.to_string()
     };
 
-    let complete_name = settings.prefix_name.clone() + &name;
-    let complete_uri = settings.prefix_uri.clone() + &uri;
+    let complete_name = replace_patterns(settings.prefix_name.clone(), value_to_use) + &name;
+    let complete_uri = replace_patterns(settings.prefix_uri.clone(), value_to_use) + &uri;
 
     Ok(ConfigLine {
-        name: replace_patterns(complete_name, value_to_use),
-        uri: replace_patterns(complete_uri, value_to_use),
+        name: complete_name,
+        uri: complete_uri,
     })
 }
 
