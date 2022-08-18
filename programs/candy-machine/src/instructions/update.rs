@@ -36,6 +36,12 @@ pub fn update(ctx: Context<Update>, data: CandyMachineData) -> Result<()> {
             {
                 return err!(CandyError::CannotIncreaseLength);
             }
+
+            if config_lines.is_sequential != new_config_lines.is_sequential
+                && candy_machine.items_redeemed > 0
+            {
+                return err!(CandyError::CannotChangeSequentialIndexGeneration);
+            }
         }
     } else if data.config_line_settings.is_some() {
         return err!(CandyError::CannotSwitchFromHiddenSettings);

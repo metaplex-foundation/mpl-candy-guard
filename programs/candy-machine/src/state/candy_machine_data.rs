@@ -59,6 +59,8 @@ pub struct ConfigLineSettings {
     pub prefix_uri: String,
     /// Length of the remaining part of the URI
     pub uri_length: u32,
+    /// Indicates whether to use a senquential index generator or not
+    pub is_sequential: bool,
 }
 
 impl CandyMachineData {

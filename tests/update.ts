@@ -19,7 +19,7 @@ describe("Update (Candy Machine)", () => {
      */
     it("initialize", async () => {
         const items = 10;
-        const data = test.defaultCandyMachineSettings(items, payer.publicKey);
+        const data = test.defaultCandyMachineSettings(items, payer.publicKey, false);
 
         await test.createCandyMachine(program, keypair, payer, data);
 
@@ -70,5 +70,62 @@ describe("Update (Candy Machine)", () => {
         expect(candyMachine.data.symbol.replace(/\0+$/, '')).to.equal("UPDATED");
         expect(candyMachine.data.retainAuthority).equal(false);
         expect(candyMachine.data.isMutable).equal(false);
+    });
+
+    /**
+     * Adds config lines to the candy machine.
+     */
+    it("add_config_lines", async () => {
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
+        const lines = [];
+
+        for (let i = 0; i < candyMachine.data.itemsAvailable.toNumber(); i++) {
+            const line = JSON.parse(`{\
+                "name": "NFT #${i + 1}",\
+                "uri": "uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ"\
+            }`);
+
+            lines[i] = line;
+        }
+
+        await program.methods.addConfigLines(0, lines).accounts({
+            candyMachine: keypair.publicKey,
+            authority: payer.publicKey,
+        }).rpc();
+    });
+
+    /**
+     * Mint an item from the candy machine.
+     */
+    it("mint", async () => {
+        const signature = await test.mintFromCandyMachine(program, keypair, payer);
+        console.log(signature);
+    });
+
+    /**
+     * Add a collection mint.
+     */
+    it("update (is_sequential)", async () => {
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
+        let data = test.defaultCandyMachineSettings(
+            candyMachine.data.itemsAvailable.toNumber(),
+            payer.publicKey,
+            true
+        );
+
+        // we cannot change the isSequential after minting has started
+
+        let fail = false;
+        try {
+            await program.methods.update(data).accounts({
+                candyMachine: keypair.publicKey,
+                authority: payer.publicKey,
+                wallet: candyMachine.wallet
+            }).rpc();
+        } catch {
+            fail = true;
+        }
+
+        expect(fail).equal(true);
     });
 });

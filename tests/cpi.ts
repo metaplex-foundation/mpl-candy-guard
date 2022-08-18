@@ -24,7 +24,7 @@ describe("Mint CPI", () => {
      */
     it("candy machine: initialize", async () => {
         const items = 10;
-        const data = test.defaultCandyMachineSettings(items, payer.publicKey);
+        const data = test.defaultCandyMachineSettings(items, payer.publicKey, false);
         const candyMachineKey = await test.createCandyMachine(candyMachineProgram, candyMachineKeypair, payer, data);
 
         let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);

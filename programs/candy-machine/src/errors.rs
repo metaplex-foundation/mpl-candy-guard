@@ -2,17 +2,17 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum CandyError {
-    #[msg("Account does not have correct owner!")]
+    #[msg("Account does not have correct owner")]
     IncorrectOwner,
-    #[msg("Account is not initialized!")]
+    #[msg("Account is not initialized")]
     Uninitialized,
-    #[msg("Mint Mismatch!")]
+    #[msg("Mint Mismatch")]
     MintMismatch,
-    #[msg("Index greater than length!")]
+    #[msg("Index greater than length")]
     IndexGreaterThanLength,
-    #[msg("Numerical overflow error!")]
+    #[msg("Numerical overflow error")]
     NumericalOverflowError,
-    #[msg("Can only provide up to 4 creators to candy machine (because candy machine is one)!")]
+    #[msg("Can only provide up to 4 creators to candy machine (because candy machine is one)")]
     TooManyCreators,
     #[msg("Not enough tokens to pay for this minting")]
     NotEnoughTokens,
@@ -20,9 +20,9 @@ pub enum CandyError {
     NotEnoughSOL,
     #[msg("Token transfer failed")]
     TokenTransferFailed,
-    #[msg("Candy machine is empty!")]
+    #[msg("Candy machine is empty")]
     CandyMachineEmpty,
-    #[msg("Candy machine is not live!")]
+    #[msg("Candy machine is not live")]
     CandyMachineNotLive,
     #[msg("Configs that are using hidden uris do not have config lines, they have a single hash representing hashed order")]
     HiddenSettingsConfigsDoNotHaveConfigLines,
@@ -80,6 +80,6 @@ pub enum CandyError {
     CannotIncreaseLength,
     #[msg("Cannot switch from hidden settings")]
     CannotSwitchFromHiddenSettings,
-    #[msg("Only the authority can mint")]
-    NotAuthority,
+    #[msg("Cannot change sequential index generation after items have begun to be minted")]
+    CannotChangeSequentialIndexGeneration,
 }

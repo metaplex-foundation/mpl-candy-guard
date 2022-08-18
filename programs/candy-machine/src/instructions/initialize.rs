@@ -19,7 +19,7 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyMachineData) -> Result<()
     };
 
     candy_machine.data.symbol = fixed_length_string(candy_machine.data.symbol, MAX_SYMBOL_LENGTH)?;
-    // validates the config data settings
+    // validates the config lines settings
     candy_machine.data.validate()?;
 
     let mut struct_data = CandyMachine::discriminator().try_to_vec().unwrap();

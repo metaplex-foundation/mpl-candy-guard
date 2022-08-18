@@ -19,7 +19,7 @@ describe("Collection", () => {
      */
     it("initialize", async () => {
         const items = 10;
-        const data = test.defaultCandyMachineSettings(items, payer.publicKey);
+        const data = test.defaultCandyMachineSettings(items, payer.publicKey, false);
 
         await test.createCandyMachine(program, keypair, payer, data);
 
