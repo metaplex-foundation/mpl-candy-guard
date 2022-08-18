@@ -139,7 +139,7 @@ pub fn add_config_lines(
 }
 
 pub fn get_config_count(data: &RefMut<&mut [u8]>) -> Result<usize> {
-    return Ok(u32::from_le_bytes(*array_ref![data, HIDDEN_SECTION, 4]) as usize);
+    Ok(u32::from_le_bytes(*array_ref![data, HIDDEN_SECTION, 4]) as usize)
 }
 
 /// Add multiple config lines to the candy machine.

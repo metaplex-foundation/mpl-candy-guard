@@ -10,7 +10,7 @@ pub struct Whitelist {
     pub mode: WhitelistTokenMode,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, PartialEq, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, PartialEq, Eq, Clone, Debug)]
 pub enum WhitelistTokenMode {
     BurnEveryTime,
     NeverBurn,

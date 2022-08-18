@@ -327,7 +327,6 @@ export async function mintFromCandyMachine(program: Program<CandyMachine>, base:
             systemProgram: SystemProgram.programId,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
-            instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
         })
         .preInstructions([anchor.web3.SystemProgram.createAccount({
             fromPubkey: payer.publicKey,

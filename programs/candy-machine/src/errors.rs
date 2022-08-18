@@ -80,4 +80,6 @@ pub enum CandyError {
     CannotIncreaseLength,
     #[msg("Cannot switch from hidden settings")]
     CannotSwitchFromHiddenSettings,
+    #[msg("Only the authority can mint")]
+    NotAuthority,
 }

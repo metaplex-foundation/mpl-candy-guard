@@ -4,15 +4,10 @@ use arrayref::array_ref;
 use mpl_token_metadata::instruction::{
     create_master_edition_v3, create_metadata_accounts_v2, update_metadata_accounts_v2,
 };
-use solana_program::{
-    program::invoke_signed,
-    serialize_utils::{read_pubkey, read_u16},
-    sysvar,
-    sysvar::instructions::get_instruction_relative,
-};
+use solana_program::{program::invoke_signed, sysvar};
 
 use crate::{
-    constants::{A_TOKEN, CUPCAKE_ID, EMPTY_STR, GUMDROP_ID, HIDDEN_SECTION, PREFIX},
+    constants::{EMPTY_STR, HIDDEN_SECTION, PREFIX},
     utils::*,
     CandyError, CandyMachine, ConfigLine,
 };
@@ -24,71 +19,12 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         return err!(CandyError::MetadataAccountMustBeEmpty);
     }
 
-    // the candy machine authority has "super-powers", so no need to validate instructions
+    // only the candy machine authority can mint
     if !cmp_pubkeys(
         &ctx.accounts.authority.key(),
         &ctx.accounts.candy_machine.authority,
     ) {
-        let instruction_sysvar_account = &ctx.accounts.instruction_sysvar_account;
-        let instruction_sysvar_account_info = instruction_sysvar_account.to_account_info();
-        let instruction_sysvar = instruction_sysvar_account_info.data.borrow();
-        let current_ix = get_instruction_relative(0, &instruction_sysvar_account_info).unwrap();
-
-        // restricting who can call candy machine via CPI
-        if !cmp_pubkeys(&current_ix.program_id, &crate::id())
-            && !cmp_pubkeys(&current_ix.program_id, &GUMDROP_ID)
-            && !cmp_pubkeys(&current_ix.program_id, &CUPCAKE_ID)
-        {
-            return err!(CandyError::SuspiciousTransaction);
-        }
-        let next_ix = get_instruction_relative(1, &instruction_sysvar_account_info);
-
-        match next_ix {
-            Ok(ix) => {
-                let discriminator = &ix.data[0..8];
-                let after_collection_ix =
-                    get_instruction_relative(2, &instruction_sysvar_account_info);
-                if !cmp_pubkeys(&ix.program_id, &crate::id())
-                    || discriminator != [103, 17, 200, 25, 118, 95, 125, 61]
-                    || after_collection_ix.is_ok()
-                {
-                    // we fail here, it is much cheaper to fail here than to allow a malicious user to
-                    // add an ix at the end and then fail
-                    msg!("Failing and halting due to an extra unauthorized instruction");
-                    return err!(CandyError::SuspiciousTransaction);
-                }
-            }
-            Err(_) => {
-                // TODO: collection support missing
-                return err!(CandyError::MissingSetCollectionDuringMint);
-            }
-        }
-
-        let mut idx = 0;
-        let num_instructions = read_u16(&mut idx, &instruction_sysvar)
-            .map_err(|_| ProgramError::InvalidAccountData)?;
-
-        for index in 0..num_instructions {
-            let mut current = 2 + (index * 2) as usize;
-            let start = read_u16(&mut current, &instruction_sysvar).unwrap();
-
-            current = start as usize;
-            let num_accounts = read_u16(&mut current, &instruction_sysvar).unwrap();
-            current += (num_accounts as usize) * (1 + 32);
-            let program_id = read_pubkey(&mut current, &instruction_sysvar).unwrap();
-
-            if !cmp_pubkeys(&program_id, &crate::id())
-                && !cmp_pubkeys(&program_id, &spl_token::id())
-                && !cmp_pubkeys(
-                    &program_id,
-                    &anchor_lang::solana_program::system_program::ID,
-                )
-                && !cmp_pubkeys(&program_id, &A_TOKEN)
-            {
-                msg!("Transaction had ix with program id {}", program_id);
-                return err!(CandyError::SuspiciousTransaction);
-            }
-        }
+        return err!(CandyError::NotAuthority);
     }
 
     let candy_machine = &mut ctx.accounts.candy_machine;
@@ -337,7 +273,4 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::slot_hashes::id())]
     recent_slothashes: UncheckedAccount<'info>,
-    /// CHECK: account constraints checked in account trait
-    #[account(address = sysvar::instructions::id())]
-    instruction_sysvar_account: UncheckedAccount<'info>,
 }

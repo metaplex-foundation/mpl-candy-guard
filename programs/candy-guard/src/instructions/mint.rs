@@ -87,7 +87,6 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
         system_program: ctx.accounts.system_program.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
-        instruction_sysvar_account: ctx.accounts.instruction_sysvar_account.to_account_info(),
     };
     let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
     // candy machine mint CPI
