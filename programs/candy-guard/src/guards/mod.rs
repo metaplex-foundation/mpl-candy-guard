@@ -34,7 +34,7 @@ pub trait Condition {
     ) -> Result<()>;
 
     /// Perform the action associated with the guard before the CPI `mint` instruction.
-    /// 
+    ///
     /// This function only gets called when all guards have been successfuly validated.
     /// Any error generated will make the transaction to fail.
     fn pre_actions<'info>(
@@ -45,7 +45,7 @@ pub trait Condition {
     ) -> Result<()>;
 
     /// Perform the action associated with the guard after the CPI `mint` instruction.
-    /// 
+    ///
     /// This function only gets called when all guards have been successfuly validated.
     /// Any error generated will make the transaction to fail.
     fn post_actions<'info>(
