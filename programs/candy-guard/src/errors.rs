@@ -10,14 +10,16 @@ pub enum CandyGuardError {
     IncorrectOwner,
     #[msg("Account is not initialized")]
     Uninitialized,
+    #[msg("Missing expected remaining account")]
+    MissingRemainingAccount,
+    // bot tax
+    #[msg("Mint must be the last instructions of the transaction")]
+    MintNotLastTransaction,
+    #[msg("Missing set collection during mint IX")]
+    MissingCollectionInstruction,
     // live date
     #[msg("Mint is not live")]
     MintNotLive,
-    // whitelist
-    #[msg("Token burn failed")]
-    TokenBurnFailed,
-    #[msg("No whitelist token present")]
-    NoWhitelistToken,
     // native price
     #[msg("Not enough SOL to pay for the mint")]
     NotEnoughSOL,
@@ -26,8 +28,12 @@ pub enum CandyGuardError {
     TokenTransferFailed,
     #[msg("Not enough tokens to pay for this minting")]
     NotEnoughTokens,
-    #[msg("Mint must be the last instructions of the transaction")]
-    MintNotLastTransaction,
-    #[msg("Missing set collection during mint IX")]
-    MissingCollectionInstruction,
+    // third-party signer
+    #[msg("A signature was required but not found")]
+    MissingRequiredSignature,
+    // whitelist
+    #[msg("Token burn failed")]
+    TokenBurnFailed,
+    #[msg("No whitelist token present")]
+    NoWhitelistToken,
 }

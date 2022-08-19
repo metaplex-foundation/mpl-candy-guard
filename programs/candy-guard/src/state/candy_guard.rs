@@ -33,7 +33,8 @@ pub struct CandyGuard {
     // 2) live data
     // 3) lamports charge
     // 4) spltoken charge
-    // 5) whitelist
+    // 5) third party signer
+    // 6) whitelist
 }
 
 #[derive(CandyGuard, AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -46,6 +47,8 @@ pub struct CandyGuardData {
     pub lamports_charge: Option<LamportsCharge>,
     /// Spl-token charge guard (set the price for the mint in spl-token amount).
     pub spltoken_charge: Option<SPLTokenCharge>,
+    /// Third party signer guard.
+    pub third_party_signer: Option<ThirdPartySigner>,
     /// Whitelist guard (whitelist mint settings).
     pub whitelist: Option<Whitelist>,
 }

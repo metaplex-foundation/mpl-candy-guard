@@ -25,7 +25,7 @@ impl Guard for Whitelist {
     }
 
     fn mask() -> u64 {
-        0x4u64
+        0b1u64 << 5
     }
 }
 

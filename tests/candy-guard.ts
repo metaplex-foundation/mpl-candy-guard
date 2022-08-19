@@ -39,6 +39,7 @@ describe("Candy Guard", () => {
     settings.liveDate.date = null;
     settings.lamportsCharge.amount = new anchor.BN(1000000000);
     settings.spltokenCharge = null;
+    settings.thirdPartySigner = null;
     settings.whitelist = null;
 
     await program.methods.update(settings).accounts({
@@ -47,8 +48,8 @@ describe("Candy Guard", () => {
     }).rpc();
 
     candyGuard = await program.account.candyGuard.fetch(candyGuardKey);
-    // bot_tax (b001) + live_date (b10) + lamports_charge (b100)
-    expect(candyGuard.features.toNumber()).to.equal(11);
+    // bot_tax (b001) + live_date (b010) + lamports_charge (b100)
+    expect(candyGuard.features.toNumber()).to.equal(7);
 
     // disabling all guards
 
@@ -56,6 +57,7 @@ describe("Candy Guard", () => {
     settings.liveDate = null;
     settings.lamportsCharge = null;
     settings.spltokenCharge = null;
+    settings.thirdPartySigner = null;
     settings.whitelist = null;
 
     await program.methods.update(settings).accounts({
@@ -73,6 +75,7 @@ describe("Candy Guard", () => {
     settings.liveDate = null;
     settings.lamportsCharge = null;
     settings.spltokenCharge = null;
+    settings.thirdPartySigner = null;
     settings.whitelist = null;
 
     await program.methods.update(settings).accounts({

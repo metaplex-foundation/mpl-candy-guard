@@ -63,6 +63,9 @@ export function defaultCandyGuardSettings() {
             "amount": 0,\
             "tokenMint": null\
         },\
+        "thirdPartySigner": {\
+            "signerKey": null\
+        },\
         "whitelist": {\
             "mint": null,\
             "presale": false,\
@@ -84,7 +87,8 @@ export async function mintFromCandyGuard(
     candyMachineProgram: Program<CandyMachine>,
     candyGuardBaseKeypair: Keypair,
     candyMachineKeypair: Keypair,
-    payer: Wallet): Promise<string> {
+    payer: Wallet,
+    thirdPartySigner: Keypair = null): Promise<string> {
     // candy guard PDA
     const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
@@ -124,6 +128,18 @@ export async function mintFromCandyGuard(
         METAPLEX_PROGRAM_ID,
     );
 
+    const signers = [mint];
+    const remainingAccounts = [];
+
+    if (thirdPartySigner) {
+        remainingAccounts.push({
+            pubkey: thirdPartySigner.publicKey,
+            isSigner: true,
+            isWritable: false,
+        });
+        signers.push(thirdPartySigner);
+    }
+
     return await candyGuardProgram.methods
         .mint(bump)
         .accounts({
@@ -145,6 +161,7 @@ export async function mintFromCandyGuard(
             recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
             instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
         })
+        .remainingAccounts(remainingAccounts)
         .preInstructions([anchor.web3.SystemProgram.createAccount({
             fromPubkey: payer.publicKey,
             newAccountPubkey: mint.publicKey,
@@ -157,7 +174,7 @@ export async function mintFromCandyGuard(
         createInitializeMintInstruction(mint.publicKey, 0, payer.publicKey, payer.publicKey),
         createAssociatedTokenAccountInstruction(payer.publicKey, associatedToken, payer.publicKey, mint.publicKey),
         createMintToInstruction(mint.publicKey, associatedToken, payer.publicKey, 1, [])])
-        .signers([mint])
+        .signers(signers)
         .rpc();
 }
 

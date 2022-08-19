@@ -15,7 +15,7 @@ impl Guard for LamportsCharge {
     }
 
     fn mask() -> u64 {
-        0x8u64
+        0b1u64 << 2
     }
 }
 

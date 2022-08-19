@@ -2,12 +2,12 @@
 seeds = false
 
 [programs.localnet]
-candy_guard = "FEf9mMa22GxyxVKjXDUwdiYtH8isuhAsSqBSjQg9CTzu"
-candy_machine = "EevwmjzdgWnG1Bqfthb33KEsQUmyPsoofKLdu3JJR4zS"
+candy_guard = "2NvCY7Frz4MKA51fBT1GXFNdB74eRtYQ8PkUMM1gYiTK"
+candy_machine = "AaciizBuB6XnuztWxVq52KJwDv8WggF8yAEhrRx2ECEU"
 
 [programs.devnet]
-candy_guard = "FEf9mMa22GxyxVKjXDUwdiYtH8isuhAsSqBSjQg9CTzu"
-candy_machine = "EevwmjzdgWnG1Bqfthb33KEsQUmyPsoofKLdu3JJR4zS"
+candy_guard = "2NvCY7Frz4MKA51fBT1GXFNdB74eRtYQ8PkUMM1gYiTK"
+candy_machine = "AaciizBuB6XnuztWxVq52KJwDv8WggF8yAEhrRx2ECEU"
 
 [registry]
 url = "https://anchor.projectserum.com"

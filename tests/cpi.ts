@@ -77,6 +77,7 @@ describe("Mint CPI", () => {
         settings.liveDate = null;
         settings.lamportsCharge.amount = new anchor.BN(1000000000);
         settings.spltokenCharge = null;
+        settings.thirdPartySigner = null;
         settings.whitelist = null;
 
         await candyGuardProgram.methods.update(settings).accounts({
@@ -86,7 +87,7 @@ describe("Mint CPI", () => {
 
         candyGuard = await candyGuardProgram.account.candyGuard.fetch(candyGuardKey);
         // bot_tax (b001) + lamports_charge (b100)
-        expect(candyGuard.features.toNumber()).to.equal(9);
+        expect(candyGuard.features.toNumber()).to.equal(5);
     });
 
     /**

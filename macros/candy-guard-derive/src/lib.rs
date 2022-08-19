@@ -95,7 +95,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
             pub fn to_data(&self, data: &mut [u8]) -> anchor_lang::Result<u64> {
                 let mut features = 0;
-                let mut offset = 0;
+                let mut offset = DATA_OFFSET;
 
                 #(#to_data)*
 
