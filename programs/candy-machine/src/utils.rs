@@ -1,47 +1,17 @@
-use std::str::from_utf8_unchecked;
-
 use anchor_lang::prelude::*;
 use solana_program::{
     account_info::AccountInfo,
-    program::{invoke, invoke_signed},
+    program::invoke,
     program_memory::sol_memcmp,
     program_pack::{IsInitialized, Pack},
     pubkey::{Pubkey, PUBKEY_BYTES},
     system_instruction,
 };
-use spl_associated_token_account::get_associated_token_address;
 
 use crate::{
     constants::{NULL_STRING, REPLACEMENT_INDEX, REPLACEMENT_INDEX_INCREMENT},
     CandyError,
 };
-
-/// Return a padded string up to the specified length. If the specified
-/// string `value` is longer than the allowed `length`, return an error.
-pub fn fixed_length_string(value: String, length: usize) -> Result<String> {
-    if length < value.len() {
-        // the value is larger than the allowed length
-        return err!(CandyError::ExceededLengthError);
-    }
-
-    let padding = NULL_STRING.repeat(length - value.len());
-    Ok(value + &padding)
-}
-
-/// Replace the index pattern variables on the specified string.
-pub fn replace_patterns(value: String, index: usize) -> String {
-    let mut mutable = value;
-    // check for pattern $ID+1$
-    if mutable.contains(REPLACEMENT_INDEX_INCREMENT) {
-        mutable = mutable.replace(REPLACEMENT_INDEX_INCREMENT, &(index + 1).to_string());
-    }
-    // check for pattern $ID$
-    if mutable.contains(REPLACEMENT_INDEX) {
-        mutable = mutable.replace(REPLACEMENT_INDEX, &index.to_string());
-    }
-
-    mutable
-}
 
 pub fn assert_initialized<T: Pack + IsInitialized>(account_info: &AccountInfo) -> Result<T> {
     let account: T = T::unpack_unchecked(&account_info.data.borrow())?;
@@ -56,180 +26,16 @@ pub fn cmp_pubkeys(a: &Pubkey, b: &Pubkey) -> bool {
     sol_memcmp(a.as_ref(), b.as_ref(), PUBKEY_BYTES) == 0
 }
 
-pub fn assert_owned_by(account: &AccountInfo, owner: &Pubkey) -> Result<()> {
-    if !cmp_pubkeys(account.owner, owner) {
-        Err(CandyError::IncorrectOwner.into())
-    } else {
-        Ok(())
-    }
-}
-///TokenTransferParams
-pub struct TokenTransferParams<'a: 'b, 'b> {
-    /// source
-    /// CHECK: account checked in CPI
-    pub source: AccountInfo<'a>,
-    /// destination
-    /// CHECK: account checked in CPI
-    pub destination: AccountInfo<'a>,
-    /// amount
-    pub amount: u64,
-    /// authority
-    /// CHECK: account checked in CPI
-    pub authority: AccountInfo<'a>,
-    /// authority_signer_seeds
-    pub authority_signer_seeds: &'b [&'b [u8]],
-    /// token_program
-    /// CHECK: account checked in CPI
-    pub token_program: AccountInfo<'a>,
-}
-
-#[inline(always)]
-pub fn spl_token_transfer(params: TokenTransferParams<'_, '_>) -> Result<()> {
-    let TokenTransferParams {
-        source,
-        destination,
-        authority,
-        token_program,
-        amount,
-        authority_signer_seeds,
-    } = params;
-
-    let mut signer_seeds = vec![];
-    if !authority_signer_seeds.is_empty() {
-        signer_seeds.push(authority_signer_seeds)
+/// Return a padded string up to the specified length. If the specified
+/// string `value` is longer than the allowed `length`, return an error.
+pub fn fixed_length_string(value: String, length: usize) -> Result<String> {
+    if length < value.len() {
+        // the value is larger than the allowed length
+        return err!(CandyError::ExceededLengthError);
     }
 
-    let result = invoke_signed(
-        &spl_token::instruction::transfer(
-            token_program.key,
-            source.key,
-            destination.key,
-            authority.key,
-            &[],
-            amount,
-        )?,
-        &[source, destination, authority, token_program],
-        &signer_seeds,
-    );
-
-    result.map_err(|_| CandyError::TokenTransferFailed.into())
-}
-
-pub fn assert_is_ata(
-    ata: &AccountInfo,
-    wallet: &Pubkey,
-    mint: &Pubkey,
-) -> core::result::Result<spl_token::state::Account, ProgramError> {
-    assert_owned_by(ata, &spl_token::id())?;
-    let ata_account: spl_token::state::Account = assert_initialized(ata)?;
-    assert_keys_equal(&ata_account.owner, wallet)?;
-    assert_keys_equal(&ata_account.mint, mint)?;
-    assert_keys_equal(&get_associated_token_address(wallet, mint), ata.key)?;
-    Ok(ata_account)
-}
-
-pub fn assert_keys_equal(key1: &Pubkey, key2: &Pubkey) -> Result<()> {
-    if !cmp_pubkeys(key1, key2) {
-        err!(CandyError::PublicKeyMismatch)
-    } else {
-        Ok(())
-    }
-}
-
-/// TokenBurnParams
-pub struct TokenBurnParams<'a: 'b, 'b> {
-    /// mint
-    /// CHECK: account checked in CPI
-    pub mint: AccountInfo<'a>,
-    /// source
-    /// CHECK: account checked in CPI
-    pub source: AccountInfo<'a>,
-    /// amount
-    pub amount: u64,
-    /// authority
-    /// CHECK: account checked in CPI
-    pub authority: AccountInfo<'a>,
-    /// authority_signer_seeds
-    pub authority_signer_seeds: Option<&'b [&'b [u8]]>,
-    /// token_program
-    /// CHECK: account checked in CPI
-    pub token_program: AccountInfo<'a>,
-}
-
-pub fn spl_token_burn(params: TokenBurnParams<'_, '_>) -> Result<()> {
-    let TokenBurnParams {
-        mint,
-        source,
-        authority,
-        token_program,
-        amount,
-        authority_signer_seeds,
-    } = params;
-    let mut seeds: Vec<&[&[u8]]> = vec![];
-    if let Some(seed) = authority_signer_seeds {
-        seeds.push(seed);
-    }
-    let result = invoke_signed(
-        &spl_token::instruction::burn(
-            token_program.key,
-            source.key,
-            mint.key,
-            authority.key,
-            &[],
-            amount,
-        )?,
-        &[source, mint, authority, token_program],
-        seeds.as_slice(),
-    );
-    result.map_err(|_| CandyError::TokenBurnFailed.into())
-}
-
-pub fn is_feature_active(uuid: &str, feature_index: usize) -> bool {
-    uuid.as_bytes()[feature_index] == b"1"[0]
-}
-
-// string is 6 bytes long, can be any valid utf8 char coming in.
-// feature_index is between 0 and 5, inclusive. We set it to an array of utf8 "0"s first
-pub fn set_feature_flag(uuid: &mut String, feature_index: usize) {
-    let mut bytes: [u8; 6] = [b'0'; 6];
-    uuid.bytes().enumerate().for_each(|(i, byte)| {
-        if i == feature_index || byte == b'1' {
-            bytes[i] = b'1';
-        }
-    });
-
-    // unsafe is fine because we know for a fact that the array will only
-    // contain valid UTF8 bytes since we fully ignore user inputted UUID and set
-    // it to an array of only valid bytes (b'0') and then only modify the bytes in
-    // that valid utf8 byte array to other valid utf8 characters (b'1')
-    // This saves a bit of compute from the overhead of using the from_utf8 or
-    // other similar methods that need to ensure that the bytes are valid
-    unsafe {
-        uuid.replace_range(.., from_utf8_unchecked(&bytes));
-    }
-}
-
-// string is 6 bytes long, can be any valid utf8 char coming in.
-// feature_index is between 0 and 5, inclusive. We set it to an array of utf8 "0"s first
-pub fn remove_feature_flag(uuid: &mut String, feature_index: usize) {
-    let mut bytes: [u8; 6] = [b'0'; 6];
-    uuid.bytes().enumerate().for_each(|(i, byte)| {
-        if i == feature_index {
-            bytes[i] = b'0';
-        } else if byte == b'1' {
-            bytes[i] = b'1';
-        }
-    });
-
-    // unsafe is fine because we know for a fact that the array will only
-    // contain valid UTF8 bytes since we fully ignore user inputted UUID and set
-    // it to an array of only valid bytes (b'0') and then only modify the bytes in
-    // that valid utf8 byte array to other valid utf8 characters (b'1')
-    // This saves a bit of compute from the overhead of using the from_utf8 or
-    // other similar methods that need to ensure that the bytes are valid
-    unsafe {
-        uuid.replace_range(.., from_utf8_unchecked(&bytes));
-    }
+    let padding = NULL_STRING.repeat(length - value.len());
+    Ok(value + &padding)
 }
 
 pub fn punish_bots<'a>(
@@ -253,35 +59,24 @@ pub fn punish_bots<'a>(
     Ok(())
 }
 
+/// Replace the index pattern variables on the specified string.
+pub fn replace_patterns(value: String, index: usize) -> String {
+    let mut mutable = value;
+    // check for pattern $ID+1$
+    if mutable.contains(REPLACEMENT_INDEX_INCREMENT) {
+        mutable = mutable.replace(REPLACEMENT_INDEX_INCREMENT, &(index + 1).to_string());
+    }
+    // check for pattern $ID$
+    if mutable.contains(REPLACEMENT_INDEX) {
+        mutable = mutable.replace(REPLACEMENT_INDEX, &index.to_string());
+    }
+
+    mutable
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::constants::COLLECTIONS_FEATURE_INDEX;
-
-    #[test]
-    fn feature_flag_working() {
-        let mut uuid = String::from("ABCDEF");
-        println!(
-            "Should be 65: {}",
-            uuid.as_bytes()[COLLECTIONS_FEATURE_INDEX]
-        );
-
-        uuid = String::from("01H333");
-        println!("Should be 01H333: {}", uuid);
-        set_feature_flag(&mut uuid, COLLECTIONS_FEATURE_INDEX + 1);
-        assert!(is_feature_active(&uuid, COLLECTIONS_FEATURE_INDEX + 1));
-        println!("Should be 010000: {}", uuid);
-        remove_feature_flag(&mut uuid, COLLECTIONS_FEATURE_INDEX + 1);
-        assert!(!is_feature_active(&uuid, COLLECTIONS_FEATURE_INDEX + 1));
-        println!("Should be 000000: {}", uuid);
-
-        set_feature_flag(&mut uuid, COLLECTIONS_FEATURE_INDEX);
-        assert!(is_feature_active(&uuid, COLLECTIONS_FEATURE_INDEX));
-        println!("Should be 100000: {}", uuid);
-        remove_feature_flag(&mut uuid, COLLECTIONS_FEATURE_INDEX);
-        assert!(!is_feature_active(&uuid, COLLECTIONS_FEATURE_INDEX));
-        println!("Should be 000000: {}", uuid);
-    }
 
     #[test]
     fn check_keys_equal() {

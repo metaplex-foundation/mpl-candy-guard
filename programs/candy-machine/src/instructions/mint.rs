@@ -7,7 +7,7 @@ use mpl_token_metadata::instruction::{
 use solana_program::{program::invoke_signed, sysvar};
 
 use crate::{
-    constants::{EMPTY_STR, HIDDEN_SECTION, PREFIX},
+    constants::{AUTHORITY_SEED, EMPTY_STR, HIDDEN_SECTION},
     utils::*,
     CandyError, CandyMachine, ConfigLine,
 };
@@ -87,7 +87,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     ];
 
     let cm_key = candy_machine.key();
-    let authority_seeds = [PREFIX.as_bytes(), cm_key.as_ref(), &[creator_bump]];
+    let authority_seeds = [AUTHORITY_SEED.as_bytes(), cm_key.as_ref(), &[creator_bump]];
 
     invoke_signed(
         &create_metadata_accounts_v2(
@@ -212,14 +212,13 @@ pub fn get_config_line(
     let name_length = settings.name_length as usize;
     let uri_length = settings.uri_length as usize;
 
-    // name
     let name = if name_length > 0 {
         let name_slice: &mut [u8] = &mut account_data[position..position + name_length];
         unsafe { String::from_utf8_unchecked(name_slice.to_vec()) }
     } else {
         EMPTY_STR.to_string()
     };
-    // uri
+
     position += name_length;
     let uri = if uri_length > 0 {
         let uri_slice: &mut [u8] = &mut account_data[position..position + uri_length];
@@ -244,13 +243,13 @@ pub struct Mint<'info> {
     #[account(mut, has_one = authority)]
     candy_machine: Box<Account<'info, CandyMachine>>,
     /// CHECK: account constraints checked in account trait
-    #[account(seeds=[PREFIX.as_bytes(), candy_machine.key().as_ref()], bump=creator_bump)]
+    #[account(seeds = [AUTHORITY_SEED.as_bytes(), candy_machine.key().as_ref()], bump = creator_bump)]
     candy_machine_creator: UncheckedAccount<'info>,
-    // candy machine authority (mint only allowed if the authority is a signer)
+    // candy machine authority (mint only allowed for the authority)
     authority: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
-    // With the following accounts we aren't using anchor macros because they are CPI'd
+    // the following accounts aren't using anchor macros because they are CPI'd
     // through to token-metadata which will do all the validations we need on them.
     /// CHECK: account checked in CPI
     #[account(mut)]
