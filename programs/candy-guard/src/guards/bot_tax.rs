@@ -85,24 +85,6 @@ impl Condition for BotTax {
 
         Ok(())
     }
-
-    fn pre_actions<'info>(
-        &self,
-        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _candy_guard_data: &CandyGuardData,
-        _evaluation_context: &mut EvaluationContext,
-    ) -> Result<()> {
-        Ok(())
-    }
-
-    fn post_actions<'info>(
-        &self,
-        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _candy_guard_data: &CandyGuardData,
-        _evaluation_context: &mut EvaluationContext,
-    ) -> Result<()> {
-        Ok(())
-    }
 }
 
 impl BotTax {

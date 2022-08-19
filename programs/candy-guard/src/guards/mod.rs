@@ -41,10 +41,12 @@ pub trait Condition {
     /// Any error generated will make the transaction to fail.
     fn pre_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        candy_guard_data: &CandyGuardData,
-        evaluation_context: &mut EvaluationContext,
-    ) -> Result<()>;
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        Ok(())
+    }
 
     /// Perform the action associated with the guard after the CPI `mint` instruction.
     ///
@@ -52,10 +54,12 @@ pub trait Condition {
     /// Any error generated will make the transaction to fail.
     fn post_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        candy_guard_data: &CandyGuardData,
-        evaluation_context: &mut EvaluationContext,
-    ) -> Result<()>;
+        _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+        _candy_guard_data: &CandyGuardData,
+        _evaluation_context: &mut EvaluationContext,
+    ) -> Result<()> {
+        Ok(())
+    }
 }
 
 pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
