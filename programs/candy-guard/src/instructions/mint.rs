@@ -139,7 +139,7 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct Mint<'info> {
-    #[account(mut)]
+    #[account(seeds = [b"candy_guard", candy_guard.base.key().as_ref()], bump)]
     pub candy_guard: Account<'info, CandyGuard>,
     /// CHECK: account constraints checked in account trait
     #[account(address = candy_machine::id())]
