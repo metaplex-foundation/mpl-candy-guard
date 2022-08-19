@@ -70,6 +70,23 @@ describe("Collection", () => {
     });
 
     /**
+     * Add a collection mint.
+     */
+    it("add_collection (for minting)", async () => {
+        await test.addCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
+        let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
+        expect(candyMachine.collection).to.not.equal(null);
+    });
+
+    /**
+     * Mint an item from the candy machine.
+     */
+    it("mint", async () => {
+        const signature = await test.mintFromCandyMachine(program, keypair, payer, test.COLLECTION_MINT_ID);
+        console.log(signature);
+    });
+
+    /**
      * Withdraw the rent from the candy machine.
      */
     it("withdraw", async () => {

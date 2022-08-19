@@ -15,12 +15,12 @@ declare_id!("2NvCY7Frz4MKA51fBT1GXFNdB74eRtYQ8PkUMM1gYiTK");
 pub mod candy_guard {
     use super::*;
 
-    /// Create a new `CandyGuard` account.
+    /// Create a new candy guard account.
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         instructions::initialize(ctx)
     }
 
-    /// Mint an NFT from a `CandyMachine` "behind" a `CandyGuard`.
+    /// Mint an NFT from a candy machine wrapped in the candy guard.
     pub fn mint<'info>(
         ctx: Context<'_, '_, '_, 'info, Mint<'info>>,
         creator_bump: u8,
@@ -28,19 +28,19 @@ pub mod candy_guard {
         instructions::mint(ctx, creator_bump)
     }
 
-    /// Remove a `CandyGuard` from a `CandyMachine`, setting the authority to the
-    /// `CandyGuard` authority.
+    /// Remove a candy guard from a candy machine, setting the authority to the
+    /// candy guard authority.
     pub fn unwrap(ctx: Context<Unwrap>) -> Result<()> {
         instructions::unwrap(ctx)
     }
 
-    /// Update the `CandyGuard` configuration.
+    /// Update the candy guard configuration.
     pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
         instructions::update(ctx, data)
     }
 
-    /// Add a `CandyGuard` to a `CandyMachine`. After the guard is added, mint
-    /// is only allowed through the `CandyGuard`.
+    /// Add a candy guard to a candy machine. After the guard is added, mint
+    /// is only allowed through the candy guard.
     pub fn wrap(ctx: Context<Wrap>) -> Result<()> {
         instructions::wrap(ctx)
     }

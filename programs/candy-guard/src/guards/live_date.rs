@@ -7,8 +7,8 @@ pub struct LiveDate {
 
 impl Guard for LiveDate {
     fn size() -> usize {
-        1                            // option
-        + std::mem::size_of::<i64>() // date
+        1   // option
+        + 8 // date
     }
 
     fn mask() -> u64 {

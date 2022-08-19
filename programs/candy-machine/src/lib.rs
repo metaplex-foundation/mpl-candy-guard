@@ -5,7 +5,7 @@ use instructions::*;
 pub use state::*;
 pub use utils::*;
 
-mod constants;
+pub mod constants;
 mod errors;
 mod instructions;
 mod state;

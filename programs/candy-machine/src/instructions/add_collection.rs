@@ -5,11 +5,12 @@ use mpl_token_metadata::{
 };
 use solana_program::program::invoke;
 
-use crate::{cmp_pubkeys, CandyError, CandyMachine};
+use crate::{cmp_pubkeys, constants::COLLECTION_SEED, CandyError, CandyMachine};
 
 pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
-    let mint = ctx.accounts.mint.to_account_info();
-    let metadata: Metadata = Metadata::from_account_info(&ctx.accounts.metadata.to_account_info())?;
+    let mint = ctx.accounts.collection_mint.to_account_info();
+    let metadata: Metadata =
+        Metadata::from_account_info(&ctx.accounts.collection_metadata.to_account_info())?;
 
     if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.authority.key()) {
         return err!(CandyError::IncorrectCollectionAuthority);
@@ -19,7 +20,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
         return err!(CandyError::MintMismatch);
     }
 
-    let edition = ctx.accounts.edition.to_account_info();
+    let edition = ctx.accounts.collection_edition.to_account_info();
     let authority_record = ctx.accounts.collection_authority_record.to_account_info();
     let candy_machine = &mut ctx.accounts.candy_machine;
 
@@ -36,10 +37,10 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
     if authority_record.data_is_empty() {
         let approve_collection_infos = vec![
             authority_record.clone(),
-            ctx.accounts.collection.to_account_info(),
+            ctx.accounts.collection_authority.to_account_info(),
             ctx.accounts.authority.to_account_info(),
             ctx.accounts.payer.to_account_info(),
-            ctx.accounts.metadata.to_account_info(),
+            ctx.accounts.collection_metadata.to_account_info(),
             mint.clone(),
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
@@ -47,18 +48,18 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
 
         msg!(
             "Approving collection authority for {} with new authority {}.",
-            ctx.accounts.metadata.key(),
-            ctx.accounts.collection.key()
+            ctx.accounts.collection_metadata.key(),
+            ctx.accounts.collection_authority.key()
         );
 
         invoke(
             &approve_collection_authority(
                 ctx.accounts.token_metadata_program.key(),
                 authority_record.key(),
-                ctx.accounts.collection.key(),
+                ctx.accounts.collection_authority.key(),
                 ctx.accounts.authority.key(),
                 ctx.accounts.payer.key(),
-                ctx.accounts.metadata.key(),
+                ctx.accounts.collection_metadata.key(),
                 *mint.key,
             ),
             approve_collection_infos.as_slice(),
@@ -85,17 +86,17 @@ pub struct AddCollection<'info> {
     // payer of the transaction
     payer: Signer<'info>,
     #[account(
-        seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
+        seeds = [COLLECTION_SEED.as_bytes(), candy_machine.to_account_info().key.as_ref()],
         bump
     )]
     /// CHECK: account checked in CPI
-    collection: UncheckedAccount<'info>,
+    collection_authority: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
-    metadata: UncheckedAccount<'info>,
+    collection_metadata: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
-    mint: UncheckedAccount<'info>,
+    collection_mint: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
-    edition: UncheckedAccount<'info>,
+    collection_edition: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     #[account(mut)]
     collection_authority_record: UncheckedAccount<'info>,

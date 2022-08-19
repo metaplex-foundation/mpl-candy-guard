@@ -44,8 +44,8 @@ describe("Third Party Signer", () => {
     let settings = test.defaultCandyGuardSettings();
     settings.botTax = null;
     settings.liveDate = null;
-    settings.lamportsCharge = null;
-    settings.spltokenCharge = null;
+    settings.lamports = null;
+    settings.spltoken = null;
     settings.thirdPartySigner.signerKey = signer.publicKey;
     settings.whitelist = null;
 

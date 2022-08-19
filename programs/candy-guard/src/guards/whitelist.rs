@@ -18,9 +18,9 @@ pub enum WhitelistTokenMode {
 
 impl Guard for Whitelist {
     fn size() -> usize {
-        32                               // mint
-        + std::mem::size_of::<bool>()    // presale
-        + 1 + std::mem::size_of::<u64>() // option + discount_price
+        32      // mint
+        + 1     // presale
+        + 1 + 8 // option + discount_price
         + 1 // mode
     }
 
@@ -38,7 +38,7 @@ impl Condition for Whitelist {
     ) -> Result<()> {
         // retrieves the (potential) whitelist token account
         let whitelist_index = evaluation_context.remaining_account_counter;
-        let whitelist_token_account = &ctx.remaining_accounts[whitelist_index];
+        let whitelist_token_account = Self::get_account_info(ctx, whitelist_index)?;
         // consumes the whitelist token account
         evaluation_context.remaining_account_counter += 1;
 
@@ -58,16 +58,18 @@ impl Condition for Whitelist {
                     if let Some(price) = self.discount_price {
                         // user will pay the discount price (either lamports or spl-token
                         // amount)
-                        if candy_guard_data.lamports_charge.is_some() {
+                        if candy_guard_data.lamports.is_some() {
                             evaluation_context.lamports = price;
-                        } else if candy_guard_data.spltoken_charge.is_some() {
+                        } else if candy_guard_data.spltoken.is_some() {
                             evaluation_context.amount = price;
                         }
                     }
                     // should we burn the token?
                     if self.mode == WhitelistTokenMode::BurnEveryTime {
                         let whitelist_token_mint =
-                            &ctx.remaining_accounts[evaluation_context.remaining_account_counter];
+                            Self::get_account_info(ctx, whitelist_index + 1)?;
+                        // validates that we have the whitelist_burn_authority account
+                        let _ = Self::get_account_info(ctx, whitelist_index + 2)?;
                         // consumes the remaning account
                         evaluation_context.remaining_account_counter += 2;
                         // is the mint account the one expected?
@@ -125,14 +127,15 @@ impl Condition for Whitelist {
         if evaluation_context.whitelist && self.mode == WhitelistTokenMode::BurnEveryTime {
             let index = evaluation_context.whitelist_index;
             // the accounts have already being validated
-            let whitelist_token_account = &ctx.remaining_accounts[index];
-            let whitelist_burn_authority = &ctx.remaining_accounts[index + 2];
+            let whitelist_token_account = Self::get_account_info(ctx, index)?;
+            let whitelist_token_mint = Self::get_account_info(ctx, index + 1)?;
+            let whitelist_burn_authority = Self::get_account_info(ctx, index + 2)?;
 
             spl_token_burn(TokenBurnParams {
-                mint: whitelist_token_account.clone(),
-                source: whitelist_token_account.clone(),
+                mint: whitelist_token_mint.to_account_info(),
+                source: whitelist_token_account.to_account_info(),
                 amount: 1,
-                authority: whitelist_burn_authority.clone(),
+                authority: whitelist_burn_authority.to_account_info(),
                 authority_signer_seeds: None,
                 token_program: ctx.accounts.token_program.to_account_info(),
             })?;

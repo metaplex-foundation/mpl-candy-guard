@@ -1,8 +1,8 @@
 use anchor_lang::{prelude::*, solana_program::sysvar};
 use anchor_spl::token::Token;
-use candy_machine::{self, CandyMachine};
+use candy_machine::{constants::COLLECTION_ACCOUNTS_COUNT, CandyMachine};
 
-use crate::guards::EvaluationContext;
+use crate::guards::{CandyGuardError, EvaluationContext};
 use crate::state::{CandyGuard, CandyGuardData};
 use crate::utils::cmp_pubkeys;
 
@@ -13,7 +13,16 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     let candy_guard_data =
         CandyGuardData::from_data(candy_guard.features, &mut account_info.data.borrow_mut())?;
     let conditions = candy_guard_data.enabled_conditions();
-    // context for this transaction
+    let process_error = |error: Error| -> Result<()> {
+        if let Some(bot_tax) = &candy_guard_data.bot_tax {
+            bot_tax.punish_bots(error, &ctx)?;
+            Ok(())
+        } else {
+            Err(error)
+        }
+    };
+
+    // evaluation context for this transaction
     let mut evaluation_context = EvaluationContext {
         is_authority: cmp_pubkeys(&candy_guard.authority, &ctx.accounts.payer.key()),
         remaining_account_counter: 0,
@@ -25,16 +34,17 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         whitelist_index: 0,
     };
 
+    // validates the required transaction data
+
+    if let Err(error) = validate(&ctx, &mut evaluation_context) {
+        return process_error(error);
+    }
+
     // validates enabled guards (any error at this point is subject to bot tax)
 
     for condition in &conditions {
         if let Err(error) = condition.validate(&ctx, &candy_guard_data, &mut evaluation_context) {
-            return if let Some(bot_tax) = &candy_guard_data.bot_tax {
-                bot_tax.punish_bots(error, &ctx)?;
-                Ok(())
-            } else {
-                Err(error)
-            };
+            return process_error(error);
         }
     }
 
@@ -60,6 +70,30 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     Ok(())
 }
 
+/// Performs a validation of the transaction before executing the guards.
+fn validate<'info>(
+    ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+    evaluation_context: &mut EvaluationContext,
+) -> Result<()> {
+    if let Some(collection) = &ctx.accounts.candy_machine.collection {
+        if ctx.remaining_accounts.len() < COLLECTION_ACCOUNTS_COUNT {
+            return err!(CandyGuardError::MissingCollectionAccounts);
+        }
+        let collection_mint = &ctx.remaining_accounts[2];
+        if !cmp_pubkeys(collection_mint.key, collection) {
+            return err!(CandyGuardError::CollectionKeyMismatch);
+        }
+        let collection_metadata = &ctx.remaining_accounts[3];
+        if !cmp_pubkeys(collection_metadata.owner, &mpl_token_metadata::id()) {
+            return err!(CandyGuardError::IncorrectOwner);
+        }
+
+        evaluation_context.remaining_account_counter += COLLECTION_ACCOUNTS_COUNT;
+    }
+    Ok(())
+}
+
+/// Send a mint transaction to the candy machine.
 fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u8) -> Result<()> {
     let candy_guard = &ctx.accounts.candy_guard;
     // PDA signer for the transaction
@@ -88,8 +122,17 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
         rent: ctx.accounts.rent.to_account_info(),
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
-    // candy machine mint CPI
+    let mut cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
+
+    if ctx.accounts.candy_machine.collection.is_some() {
+        // only forward the required collection accounts
+        for account in 0..COLLECTION_ACCOUNTS_COUNT {
+            cpi_ctx
+                .remaining_accounts
+                .push(ctx.remaining_accounts[account].to_account_info());
+        }
+    }
+
     candy_machine::cpi::mint(cpi_ctx, creator_bump)
 }
 
@@ -139,12 +182,20 @@ pub struct Mint<'info> {
     #[account(address = sysvar::instructions::id())]
     pub instruction_sysvar_account: UncheckedAccount<'info>,
     // remaining accounts:
-    // > only needed if spltoken guard enabled
+    // > needed when the candy machine has collection
+    // collection_authority
+    // collection_authority_record
+    // collection_mint
+    // collection_metadata
+    // collection_master_edition
+    // > needed if spltoken guard enabled
     // token_account_info
     // transfer_authority_info
-    // > only needed if whitelist guard enabled
+    // > needed if third_party_signer guard enabled
+    // signer
+    // > needed if whitelist guard enabled
     // whitelist_token_account
-    // > only needed if whitelist guard enabled and mode is "BurnEveryTime"
+    // > needed if whitelist guard enabled and mode is "BurnEveryTime"
     // whitelist_token_mint
     // whitelist_burn_authority
 }

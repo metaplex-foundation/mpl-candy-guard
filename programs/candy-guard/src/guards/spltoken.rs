@@ -4,14 +4,14 @@ use crate::errors::CandyGuardError;
 use crate::utils::{assert_is_ata, spl_token_transfer, TokenTransferParams};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct SPLTokenCharge {
+pub struct SPLToken {
     pub amount: u64,
     pub token_mint: Pubkey,
 }
 
-impl Guard for SPLTokenCharge {
+impl Guard for SPLToken {
     fn size() -> usize {
-        std::mem::size_of::<u64>() // amount
+        8    // amount
         + 32 // token mint
     }
 
@@ -20,7 +20,7 @@ impl Guard for SPLTokenCharge {
     }
 }
 
-impl Condition for SPLTokenCharge {
+impl Condition for SPLToken {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
@@ -29,7 +29,9 @@ impl Condition for SPLTokenCharge {
     ) -> Result<()> {
         // token
         let token_account_index = evaluation_context.remaining_account_counter;
-        let token_account_info = &ctx.remaining_accounts[token_account_index];
+        let token_account_info = Self::get_account_info(ctx, token_account_index)?;
+        // validates that we have the transfer_authority_info account
+        let _ = Self::get_account_info(ctx, token_account_index + 1)?;
         evaluation_context.remaining_account_counter += 2;
 
         let token_account = assert_is_ata(
@@ -56,13 +58,13 @@ impl Condition for SPLTokenCharge {
     ) -> Result<()> {
         let index = evaluation_context.spltoken_index;
         // the accounts have already been validated
-        let token_account_info = &ctx.remaining_accounts[index];
-        let transfer_authority_info = &ctx.remaining_accounts[index + 1];
+        let token_account_info = Self::get_account_info(ctx, index)?;
+        let transfer_authority_info = Self::get_account_info(ctx, index + 1)?;
 
         spl_token_transfer(TokenTransferParams {
-            source: token_account_info.clone(),
+            source: token_account_info.to_account_info(),
             destination: ctx.accounts.wallet.to_account_info(),
-            authority: transfer_authority_info.clone(),
+            authority: transfer_authority_info.to_account_info(),
             authority_signer_seeds: &[],
             token_program: ctx.accounts.token_program.to_account_info(),
             amount: evaluation_context.amount,

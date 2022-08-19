@@ -12,6 +12,11 @@ pub enum CandyGuardError {
     Uninitialized,
     #[msg("Missing expected remaining account")]
     MissingRemainingAccount,
+    // collection
+    #[msg("Collection public key mismatch")]
+    CollectionKeyMismatch,
+    #[msg("Missing collection accounts")]
+    MissingCollectionAccounts,
     // bot tax
     #[msg("Mint must be the last instructions of the transaction")]
     MintNotLastTransaction,

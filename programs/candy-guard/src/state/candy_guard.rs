@@ -9,7 +9,7 @@ use candy_guard_derive::CandyGuard;
 //  + 32 (base)
 //  +  1 (bump)
 //  + 32 (authority)
-//  +  8 (u64)
+//  +  8 (features)
 pub const DATA_OFFSET: usize = 8 + 32 + 1 + 32 + 8;
 
 #[account]
@@ -31,8 +31,8 @@ pub struct CandyGuard {
     // available guards:
     // 1) bot tax
     // 2) live data
-    // 3) lamports charge
-    // 4) spltoken charge
+    // 3) lamports
+    // 4) spltoken
     // 5) third party signer
     // 6) whitelist
 }
@@ -43,10 +43,10 @@ pub struct CandyGuardData {
     pub bot_tax: Option<BotTax>,
     /// Live data guard (controls when minting is allowed).
     pub live_date: Option<LiveDate>,
-    /// Lamports charge guard (set the price for the mint in lamports).
-    pub lamports_charge: Option<LamportsCharge>,
-    /// Spl-token charge guard (set the price for the mint in spl-token amount).
-    pub spltoken_charge: Option<SPLTokenCharge>,
+    /// Lamports guard (set the price for the mint in lamports).
+    pub lamports: Option<Lamports>,
+    /// Spl-token guard (set the price for the mint in spl-token amount).
+    pub spltoken: Option<SPLToken>,
     /// Third party signer guard.
     pub third_party_signer: Option<ThirdPartySigner>,
     /// Whitelist guard (whitelist mint settings).
