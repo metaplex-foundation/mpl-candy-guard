@@ -8,12 +8,14 @@ pub use bot_tax::BotTax;
 pub use lamports_charge::LamportsCharge;
 pub use live_date::LiveDate;
 pub use spltoken_charge::SPLTokenCharge;
+pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
 mod lamports_charge;
 mod live_date;
 mod spltoken_charge;
+mod third_party_signer;
 mod whitelist;
 
 pub trait Condition {
@@ -97,6 +99,17 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
             Ok(Some(guard))
         } else {
             Ok(None)
+        }
+    }
+
+    fn get_account_info<'info, T>(
+        ctx: &Context<'_, '_, '_, 'info, T>,
+        index: usize,
+    ) -> Result<AccountInfo<'info>> {
+        if index < ctx.remaining_accounts.len() {
+            Ok(ctx.remaining_accounts[index].to_account_info())
+        } else {
+            err!(CandyGuardError::MissingRemainingAccount)
         }
     }
 }

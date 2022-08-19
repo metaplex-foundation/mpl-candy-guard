@@ -22,7 +22,7 @@ impl Guard for BotTax {
     }
 
     fn mask() -> u64 {
-        0x1u64
+        0b1u64
     }
 }
 
@@ -100,8 +100,6 @@ impl Condition for BotTax {
         _candy_guard_data: &CandyGuardData,
         _evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        // the purpuse of this guard is to indicate whether the bot tax is enbled or not
-        // and to store the lamports fee
         Ok(())
     }
 
@@ -111,8 +109,6 @@ impl Condition for BotTax {
         _candy_guard_data: &CandyGuardData,
         _evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        // the purpuse of this guard is to indicate whether the bot tax is enbled or not
-        // and to store the lamports fee
         Ok(())
     }
 }

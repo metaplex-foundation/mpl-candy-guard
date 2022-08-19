@@ -16,7 +16,7 @@ impl Guard for SPLTokenCharge {
     }
 
     fn mask() -> u64 {
-        0x10u64
+        0b1u64 << 3
     }
 }
 

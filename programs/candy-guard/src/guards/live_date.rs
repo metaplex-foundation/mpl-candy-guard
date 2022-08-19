@@ -12,7 +12,7 @@ impl Guard for LiveDate {
     }
 
     fn mask() -> u64 {
-        0x2u64
+        0b1u64 << 1
     }
 }
 
