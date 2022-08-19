@@ -40,7 +40,9 @@ pub fn add_config_lines(
     let uri_length = config_line.uri_length as usize;
     let config_line_length = name_length + uri_length;
 
-    // name and uri can be empty empty when both are using a replacement variable
+    // both name and uri can be empty when are using a replacement variable; there is
+    // still a need to call the add_config_lines so their indices are written on the
+    // account for the random index generation
     if config_line_length > 0 {
         let mut position = HIDDEN_SECTION + 4 + (index as usize) * config_line_length;
 
@@ -138,6 +140,7 @@ pub fn add_config_lines(
     Ok(())
 }
 
+/// Return the current number of lines written to the account.
 pub fn get_config_count(data: &RefMut<&mut [u8]>) -> Result<usize> {
     Ok(u32::from_le_bytes(*array_ref![data, HIDDEN_SECTION, 4]) as usize)
 }

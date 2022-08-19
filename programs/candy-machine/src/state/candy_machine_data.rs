@@ -90,24 +90,28 @@ impl CandyMachineData {
         }
     }
 
+    /// Validates the hidden and config lines settings against the maximum
+    /// allowed values for name and URI.
+    /// 
+    /// Hidden settings take precedence over config lines since when hidden
+    /// settings are used, the account does not need to include space for
+    /// config lines.
     pub fn validate(&self) -> Result<()> {
-        // hidden settings take precedence over config lines since when
-        // hidden settings are used, the account does not need to include
-        // space for config lines
+        // validation substitutes any variable for the maximum allowed index
+        // to check the longest possible name and uri that can result from the
+        // replacement of the variables
 
         if let Some(hidden) = &self.hidden_settings {
-            // hidden name
             let expected = replace_patterns(hidden.name.clone(), self.items_available as usize);
             if MAX_NAME_LENGTH < expected.len() {
                 return err!(CandyError::ExceededLengthError);
             }
-            // hidden uri
+
             let expected = replace_patterns(hidden.uri.clone(), self.items_available as usize);
             if MAX_URI_LENGTH < expected.len() {
                 return err!(CandyError::ExceededLengthError);
             }
         } else if let Some(config_line) = &self.config_line_settings {
-            // name settings
             let expected = replace_patterns(
                 config_line.prefix_name.clone(),
                 self.items_available as usize,
@@ -115,7 +119,7 @@ impl CandyMachineData {
             if MAX_NAME_LENGTH < (expected.len() + config_line.name_length as usize) {
                 return err!(CandyError::ExceededLengthError);
             }
-            // uri validation
+
             let expected = replace_patterns(
                 config_line.prefix_uri.clone(),
                 self.items_available as usize,
