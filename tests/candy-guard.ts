@@ -37,8 +37,8 @@ describe("Candy Guard", () => {
     let settings = defaultCandyGuardSettings();
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate.date = null;
-    settings.lamportsCharge.amount = new anchor.BN(1000000000);
-    settings.spltokenCharge = null;
+    settings.lamports.amount = new anchor.BN(1000000000);
+    settings.spltoken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 
@@ -55,8 +55,8 @@ describe("Candy Guard", () => {
 
     settings.botTax = null;
     settings.liveDate = null;
-    settings.lamportsCharge = null;
-    settings.spltokenCharge = null;
+    settings.lamports = null;
+    settings.spltoken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 
@@ -73,8 +73,8 @@ describe("Candy Guard", () => {
     settings = defaultCandyGuardSettings();
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate = null;
-    settings.lamportsCharge = null;
-    settings.spltokenCharge = null;
+    settings.lamports = null;
+    settings.spltoken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 

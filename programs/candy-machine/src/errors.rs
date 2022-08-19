@@ -40,4 +40,8 @@ pub enum CandyError {
     CannotSwitchFromHiddenSettings,
     #[msg("Cannot change sequential index generation after items have begun to be minted")]
     CannotChangeSequentialIndexGeneration,
+    #[msg("Collection public key mismatch")]
+    CollectionKeyMismatch,
+    #[msg("Missing collection accounts")]
+    MissingCollectionAccounts,
 }

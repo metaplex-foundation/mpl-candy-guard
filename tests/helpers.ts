@@ -56,10 +56,10 @@ export function defaultCandyGuardSettings() {
         "liveDate": {\
           "date": 0\
         },\
-        "lamportsCharge": {\
+        "lamports": {\
           "amount": 0\
         },\
-        "spltokenCharge": {\
+        "spltoken": {\
             "amount": 0,\
             "tokenMint": null\
         },\
@@ -88,7 +88,8 @@ export async function mintFromCandyGuard(
     candyGuardBaseKeypair: Keypair,
     candyMachineKeypair: Keypair,
     payer: Wallet,
-    thirdPartySigner: Keypair = null): Promise<string> {
+    thirdPartySigner: Keypair = null,
+    collectionMint: PublicKey = null): Promise<string> {
     // candy guard PDA
     const [pda,] = await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
@@ -130,6 +131,59 @@ export async function mintFromCandyGuard(
 
     const signers = [mint];
     const remainingAccounts = [];
+
+    if (collectionMint) {
+        let [collectionAuthority,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('collection'), candyMachineKeypair.publicKey.toBuffer()],
+            candyMachineProgram.programId,
+        );
+
+        let [collectionAuthorityRecord,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                collectionMint.toBuffer(),
+                Buffer.from('collection_authority'),
+                collectionAuthority.toBuffer()
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        let [collectionMetadata,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), collectionMint.toBuffer()],
+            METAPLEX_PROGRAM_ID,
+        );
+        let [collectionMasterEdition,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), collectionMint.toBuffer(), Buffer.from('edition')],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        remainingAccounts.push({
+            pubkey: collectionAuthority,
+            isSigner: false,
+            isWritable: true,
+        });
+        remainingAccounts.push({
+            pubkey: collectionAuthorityRecord,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMint,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMetadata,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMasterEdition,
+            isSigner: false,
+            isWritable: false,
+        });
+    }
 
     if (thirdPartySigner) {
         remainingAccounts.push({
@@ -190,24 +244,26 @@ const MAX_CREATOR_LIMIT = 5;
 
 export const HIDDEN_SECTION = 8               // discriminator
     + 8                                       // features
-    + 32                                      // authority
     + 32                                      // wallet
-    + 33                                      // (optional) collection
+    + 32                                      // authority
+    + 33                                      // (optional) + collection 
     + 8                                       // items redeemed
-    + 8                                       // items available
-    + 4 + MAX_SYMBOL_LENGTH                   // u32 len + symbol
+    + 8                                       // items available (config data)
+    + 4 + MAX_SYMBOL_LENGTH                   // u32 + max symbol length
     + 2                                       // seller fee basis points
     + 8                                       // max supply
     + 1                                       // is mutable
     + 1                                       // retain authority
-    + 4 + MAX_CREATOR_LIMIT * MAX_CREATOR_LEN // u32 len + creators vec
-    + 4 + MAX_NAME_LENGTH                     // u32 len +prefix_name length (config line setting)
+    + 4 + MAX_CREATOR_LIMIT * MAX_CREATOR_LEN // u32 + creators vec
+    + 1                                       // option (config lines settings)
+    + 4 + MAX_NAME_LENGTH                     // u32 + max name length
     + 4                                       // name length
-    + 4 + MAX_URI_LENGTH                      // u32 len +prefix_uri length
+    + 4 + MAX_URI_LENGTH                      // u32 + max uri length
     + 4                                       // uri length
+    + 1                                       // is sequential
     + 1                                       // option (hidden setting)
-    + 4 + MAX_NAME_LENGTH                     // u32 len +name length
-    + 4 + MAX_URI_LENGTH                      // u32 len +uri length
+    + 4 + MAX_NAME_LENGTH                     // u32 + max name length
+    + 4 + MAX_URI_LENGTH                      // u32 + max uri length
     + 32;                                     // hash
 
 export const CONFIG_NAME_LENGTH = 10;
@@ -296,7 +352,11 @@ export async function createCandyMachine(program: Program<CandyMachine>,
     return base.publicKey;
 }
 
-export async function mintFromCandyMachine(program: Program<CandyMachine>, base: Keypair, payer: Wallet): Promise<string> {
+export async function mintFromCandyMachine(
+    program: Program<CandyMachine>,
+    base: Keypair,
+    payer: Wallet,
+    collectionMint: PublicKey = null): Promise<string> {
     // mint address
     const mint = anchor.web3.Keypair.generate();
     // creator PDA
@@ -329,6 +389,61 @@ export async function mintFromCandyMachine(program: Program<CandyMachine>, base:
         METAPLEX_PROGRAM_ID,
     );
 
+    const remainingAccounts = [];
+
+    if (collectionMint) {
+        let [collectionAuthority,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('collection'), base.publicKey.toBuffer()],
+            program.programId,
+        );
+
+        let [collectionAuthorityRecord,] = await anchor.web3.PublicKey.findProgramAddress(
+            [
+                Buffer.from('metadata'),
+                METAPLEX_PROGRAM_ID.toBuffer(),
+                collectionMint.toBuffer(),
+                Buffer.from('collection_authority'),
+                collectionAuthority.toBuffer()
+            ],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        let [collectionMetadata,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), collectionMint.toBuffer()],
+            METAPLEX_PROGRAM_ID,
+        );
+        let [collectionMasterEdition,] = await anchor.web3.PublicKey.findProgramAddress(
+            [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), collectionMint.toBuffer(), Buffer.from('edition')],
+            METAPLEX_PROGRAM_ID,
+        );
+
+        remainingAccounts.push({
+            pubkey: collectionAuthority,
+            isSigner: false,
+            isWritable: true,
+        });
+        remainingAccounts.push({
+            pubkey: collectionAuthorityRecord,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMint,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMetadata,
+            isSigner: false,
+            isWritable: false,
+        });
+        remainingAccounts.push({
+            pubkey: collectionMasterEdition,
+            isSigner: false,
+            isWritable: false,
+        });
+    }
+
     return await program.methods
         .mint(bump)
         .accounts({
@@ -347,6 +462,7 @@ export async function mintFromCandyMachine(program: Program<CandyMachine>, base:
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             recentSlothashes: anchor.web3.SYSVAR_SLOT_HASHES_PUBKEY,
         })
+        .remainingAccounts(remainingAccounts)
         .preInstructions([anchor.web3.SystemProgram.createAccount({
             fromPubkey: payer.publicKey,
             newAccountPubkey: mint.publicKey,
@@ -386,7 +502,7 @@ export async function addCollection(
     mint: PublicKey,
     payer: Wallet): Promise<string> {
 
-    let [collectionPDA,] = await anchor.web3.PublicKey.findProgramAddress(
+    let [collectionAuthority,] = await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from('collection'), base.publicKey.toBuffer()],
         program.programId,
     );
@@ -397,7 +513,7 @@ export async function addCollection(
             METAPLEX_PROGRAM_ID.toBuffer(),
             mint.toBuffer(),
             Buffer.from('collection_authority'),
-            collectionPDA.toBuffer()
+            collectionAuthority.toBuffer()
         ],
         METAPLEX_PROGRAM_ID,
     );
@@ -416,10 +532,10 @@ export async function addCollection(
         candyMachine: base.publicKey,
         authority: payer.publicKey,
         payer: payer.publicKey,
-        collection: collectionPDA,
-        mint: mint,
-        metadata: metadata,
-        edition: edition,
+        collectionAuthority: collectionAuthority,
+        collectionMint: mint,
+        collectionMetadata: metadata,
+        collectionEdition: edition,
         collectionAuthorityRecord: collectionAuthorityRecord,
         tokenMetadataProgram: METAPLEX_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -430,10 +546,10 @@ export async function addCollection(
 export async function removeCollection(
     program: Program<CandyMachine>,
     base: Keypair,
-    mint: PublicKey,
+    collectionMint: PublicKey,
     payer: Wallet): Promise<string> {
 
-    let [collectionPDA,] = await anchor.web3.PublicKey.findProgramAddress(
+    let [collectionAuthority,] = await anchor.web3.PublicKey.findProgramAddress(
         [Buffer.from('collection'), base.publicKey.toBuffer()],
         program.programId,
     );
@@ -442,24 +558,24 @@ export async function removeCollection(
         [
             Buffer.from('metadata'),
             METAPLEX_PROGRAM_ID.toBuffer(),
-            mint.toBuffer(),
+            collectionMint.toBuffer(),
             Buffer.from('collection_authority'),
-            collectionPDA.toBuffer()
+            collectionAuthority.toBuffer()
         ],
         METAPLEX_PROGRAM_ID,
     );
 
-    let [metadata,] = await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    let [collectionMetadata,] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from('metadata'), METAPLEX_PROGRAM_ID.toBuffer(), collectionMint.toBuffer()],
         METAPLEX_PROGRAM_ID,
     );
 
     return await program.methods.removeCollection().accounts({
         candyMachine: base.publicKey,
         authority: payer.publicKey,
-        collection: collectionPDA,
-        mint: mint,
-        metadata: metadata,
+        collectionAuthority: collectionAuthority,
+        collectionMint: collectionMint,
+        collectionMetadata: collectionMetadata,
         collectionAuthorityRecord: collectionAuthorityRecord,
         tokenMetadataProgram: METAPLEX_PROGRAM_ID
     }).rpc();

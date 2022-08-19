@@ -53,14 +53,6 @@ pub fn cmp_pubkeys(a: &Pubkey, b: &Pubkey) -> bool {
     sol_memcmp(a.as_ref(), b.as_ref(), PUBKEY_BYTES) == 0
 }
 
-pub fn assert_owned_by(account: &AccountInfo, owner: &Pubkey) -> Result<()> {
-    if !cmp_pubkeys(account.owner, owner) {
-        err!(CandyGuardError::IncorrectOwner)
-    } else {
-        Ok(())
-    }
-}
-
 pub fn assert_initialized<T: Pack + IsInitialized>(account_info: &AccountInfo) -> Result<T> {
     let account: T = T::unpack_unchecked(&account_info.data.borrow())?;
     if !account.is_initialized() {
@@ -86,6 +78,14 @@ pub fn assert_is_ata(
 pub fn assert_keys_equal(key1: &Pubkey, key2: &Pubkey) -> Result<()> {
     if !cmp_pubkeys(key1, key2) {
         err!(CandyGuardError::PublicKeyMismatch)
+    } else {
+        Ok(())
+    }
+}
+
+pub fn assert_owned_by(account: &AccountInfo, owner: &Pubkey) -> Result<()> {
+    if !cmp_pubkeys(account.owner, owner) {
+        err!(CandyGuardError::IncorrectOwner)
     } else {
         Ok(())
     }

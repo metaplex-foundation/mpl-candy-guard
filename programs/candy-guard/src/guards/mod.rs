@@ -5,16 +5,16 @@ pub use crate::instructions::mint::*;
 pub use crate::state::CandyGuardData;
 
 pub use bot_tax::BotTax;
-pub use lamports_charge::LamportsCharge;
+pub use lamports::Lamports;
 pub use live_date::LiveDate;
-pub use spltoken_charge::SPLTokenCharge;
+pub use spltoken::SPLToken;
 pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
-mod lamports_charge;
+mod lamports;
 mod live_date;
-mod spltoken_charge;
+mod spltoken;
 mod third_party_signer;
 mod whitelist;
 
@@ -102,12 +102,12 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
         }
     }
 
-    fn get_account_info<'info, T>(
-        ctx: &Context<'_, '_, '_, 'info, T>,
+    fn get_account_info<'c, 'info, T>(
+        ctx: &Context<'_, '_, 'c, 'info, T>,
         index: usize,
-    ) -> Result<AccountInfo<'info>> {
+    ) -> Result<&'c AccountInfo<'info>> {
         if index < ctx.remaining_accounts.len() {
-            Ok(ctx.remaining_accounts[index].to_account_info())
+            Ok(&ctx.remaining_accounts[index])
         } else {
             err!(CandyGuardError::MissingRemainingAccount)
         }

@@ -2,12 +2,15 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use arrayref::array_ref;
 use mpl_token_metadata::instruction::{
-    create_master_edition_v3, create_metadata_accounts_v2, update_metadata_accounts_v2,
+    create_master_edition_v3, create_metadata_accounts_v2, set_and_verify_collection,
+    update_metadata_accounts_v2,
 };
 use solana_program::{program::invoke_signed, sysvar};
 
 use crate::{
-    constants::{AUTHORITY_SEED, EMPTY_STR, HIDDEN_SECTION},
+    constants::{
+        AUTHORITY_SEED, COLLECTION_ACCOUNTS_COUNT, COLLECTION_SEED, EMPTY_STR, HIDDEN_SECTION,
+    },
     utils::*,
     CandyError, CandyMachine, ConfigLine,
 };
@@ -23,6 +26,20 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     // are there items to be minted?
     if candy_machine.items_redeemed >= candy_machine.data.items_available {
         return err!(CandyError::CandyMachineEmpty);
+    }
+
+    if let Some(collection) = &candy_machine.collection {
+        if ctx.remaining_accounts.len() < COLLECTION_ACCOUNTS_COUNT {
+            return err!(CandyError::MissingCollectionAccounts);
+        }
+        let collection_mint = &ctx.remaining_accounts[2];
+        if !cmp_pubkeys(collection_mint.key, collection) {
+            return err!(CandyError::CollectionKeyMismatch);
+        }
+        let collection_metadata = &ctx.remaining_accounts[3];
+        if !cmp_pubkeys(collection_metadata.owner, &mpl_token_metadata::id()) {
+            return err!(CandyError::IncorrectOwner);
+        }
     }
 
     // (2) selecting an item to mint
@@ -154,6 +171,47 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         &[&authority_seeds],
     )?;
 
+    // (4) setting the collection
+
+    if candy_machine.collection.is_some() {
+        let collection_authority = ctx.remaining_accounts[0].to_account_info();
+        let collection_authority_record = ctx.remaining_accounts[1].to_account_info();
+        let collection_mint = ctx.remaining_accounts[2].to_account_info();
+        let collection_metadata = ctx.remaining_accounts[3].to_account_info();
+        let collection_master_edition = ctx.remaining_accounts[4].to_account_info();
+
+        let set_collection_infos = vec![
+            ctx.accounts.metadata.to_account_info(),
+            collection_authority.to_account_info(),
+            ctx.accounts.payer.to_account_info(),
+            ctx.accounts.authority.to_account_info(),
+            collection_mint.to_account_info(),
+            collection_metadata.to_account_info(),
+            collection_master_edition.to_account_info(),
+            collection_authority_record.to_account_info(),
+        ];
+
+        let seeds = [COLLECTION_SEED.as_bytes(), &candy_machine.key().to_bytes()];
+        let (_, bump) = Pubkey::find_program_address(&seeds, &crate::ID);
+        let signer = &[seeds[0], seeds[1], &[bump]];
+
+        invoke_signed(
+            &set_and_verify_collection(
+                ctx.accounts.token_metadata_program.key(),
+                ctx.accounts.metadata.key(),
+                collection_authority.key(),
+                ctx.accounts.payer.key(),
+                ctx.accounts.authority.key(),
+                collection_mint.key(),
+                collection_metadata.key(),
+                collection_master_edition.key(),
+                Some(collection_authority_record.key()),
+            ),
+            set_collection_infos.as_slice(),
+            &[signer],
+        )?;
+    }
+
     Ok(())
 }
 
@@ -250,7 +308,7 @@ pub struct Mint<'info> {
     #[account(mut)]
     payer: Signer<'info>,
     // the following accounts aren't using anchor macros because they are CPI'd
-    // through to token-metadata which will do all the validations we need on them.
+    // through to token-metadata which will do all the validations we need on them
     /// CHECK: account checked in CPI
     #[account(mut)]
     metadata: UncheckedAccount<'info>,
@@ -271,4 +329,10 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::slot_hashes::id())]
     recent_slothashes: UncheckedAccount<'info>,
+    // remaining accounts required when the candy machine has a collection:
+    // [0] collection_authority
+    // [1] collection_authority_record
+    // [2] collection_mint
+    // [3] collection_metadata
+    // [4] collection_master_edition
 }

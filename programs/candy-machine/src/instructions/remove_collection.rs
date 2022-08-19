@@ -4,15 +4,16 @@ use mpl_token_metadata::{
 };
 use solana_program::program::invoke;
 
-use crate::{cmp_pubkeys, CandyError, CandyMachine};
+use crate::{cmp_pubkeys, constants::COLLECTION_SEED, CandyError, CandyMachine};
 
 pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
-    let mint = ctx.accounts.mint.to_account_info();
+    let mint = ctx.accounts.collection_mint.to_account_info();
     let candy_machine = &mut ctx.accounts.candy_machine;
     if candy_machine.items_redeemed > 0 {
         return err!(CandyError::NoChangingCollectionDuringMint);
     }
-    let metadata: Metadata = Metadata::from_account_info(&ctx.accounts.metadata.to_account_info())?;
+    let metadata: Metadata =
+        Metadata::from_account_info(&ctx.accounts.collection_metadata.to_account_info())?;
     if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.authority.key()) {
         return err!(CandyError::IncorrectCollectionAuthority);
     };
@@ -22,22 +23,22 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
     let authority_record = ctx.accounts.collection_authority_record.to_account_info();
     let revoke_collection_infos = vec![
         authority_record.clone(),
-        ctx.accounts.collection.to_account_info(),
+        ctx.accounts.collection_authority.to_account_info(),
         ctx.accounts.authority.to_account_info(),
-        ctx.accounts.metadata.to_account_info(),
+        ctx.accounts.collection_metadata.to_account_info(),
         mint.clone(),
     ];
     msg!(
         "Revoking collection authority for {}.",
-        ctx.accounts.metadata.key()
+        ctx.accounts.collection_metadata.key()
     );
     invoke(
         &revoke_collection_authority(
             ctx.accounts.token_metadata_program.key(),
             authority_record.key(),
-            ctx.accounts.collection.key(),
+            ctx.accounts.collection_authority.key(),
             ctx.accounts.authority.key(),
-            ctx.accounts.metadata.key(),
+            ctx.accounts.collection_metadata.key(),
             mint.key(),
         ),
         revoke_collection_infos.as_slice(),
@@ -56,14 +57,14 @@ pub struct RemoveCollection<'info> {
     authority: Signer<'info>,
     /// CHECK: only used as a signer
     #[account(
-        seeds = [b"collection".as_ref(), candy_machine.to_account_info().key.as_ref()],
+        seeds = [COLLECTION_SEED.as_bytes(), candy_machine.to_account_info().key.as_ref()],
         bump
     )]
-    collection: UncheckedAccount<'info>,
+    collection_authority: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
-    mint: UncheckedAccount<'info>,
+    collection_mint: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
-    metadata: UncheckedAccount<'info>,
+    collection_metadata: UncheckedAccount<'info>,
     /// CHECK: account checked in CPI
     #[account(mut)]
     collection_authority_record: UncheckedAccount<'info>,

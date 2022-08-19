@@ -5,7 +5,7 @@ import { CandyGuard } from "../target/types/candy_guard";
 import { CandyMachine } from "../target/types/candy_machine";
 import * as test from "./helpers"
 
-describe("Mint CPI", () => {
+describe("Mint (Candy Guard -> Candy Machine)", () => {
     // configure the client to use the local cluster
     anchor.setProvider(anchor.AnchorProvider.env());
     // candy guard base for generating the PDA address
@@ -75,8 +75,8 @@ describe("Mint CPI", () => {
         settings.botTax.lamports = new anchor.BN(100000000);
         settings.botTax.lastInstruction = true;
         settings.liveDate = null;
-        settings.lamportsCharge.amount = new anchor.BN(1000000000);
-        settings.spltokenCharge = null;
+        settings.lamports.amount = new anchor.BN(1000000000);
+        settings.spltoken = null;
         settings.thirdPartySigner = null;
         settings.whitelist = null;
 
@@ -126,7 +126,7 @@ describe("Mint CPI", () => {
     });
 
     /**
-     * Mints from the candy guard.
+     * Mints from the candy guard + bot tax.
      */
     it("candy guard: mint", async () => {
         const signature = await test.mintFromCandyGuard(
@@ -162,7 +162,7 @@ describe("Mint CPI", () => {
      * Mint from the candy machine authority should work again.
      */
     it("candy machine: mint", async () => {
-        await test.mintFromCandyMachine(candyMachineProgram, candyMachineKeypair, payer);
+        await test.mintFromCandyMachine(candyMachineProgram, candyMachineKeypair, payer, test.COLLECTION_MINT_ID);
     });
 
     /**

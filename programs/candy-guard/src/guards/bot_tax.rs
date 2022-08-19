@@ -18,7 +18,7 @@ pub struct BotTax {
 
 impl Guard for BotTax {
     fn size() -> usize {
-        std::mem::size_of::<u64>() + 1 // u64 + bool
+        8 + 1 // u64 + bool
     }
 
     fn mask() -> u64 {
@@ -40,27 +40,19 @@ impl Condition for BotTax {
             // the next instruction after the mint
             let next_ix = get_instruction_relative(1, &instruction_sysvar_account_info);
 
-            match next_ix {
-                Ok(ix) => {
-                    let discriminator = &ix.data[0..8];
-                    let after_collection_ix =
-                        get_instruction_relative(2, &instruction_sysvar_account_info);
+            if let Ok(ix) = next_ix {
+                let discriminator = &ix.data[0..8];
+                let after_collection_ix =
+                    get_instruction_relative(2, &instruction_sysvar_account_info);
 
-                    if !cmp_pubkeys(&ix.program_id, &crate::id())
-                        || discriminator != [103, 17, 200, 25, 118, 95, 125, 61]
-                        || after_collection_ix.is_ok()
-                    {
-                        // we fail here, it is much cheaper to fail here than to allow a malicious user
-                        // to add an ix at the end and then fail
-                        msg!("Failing and halting due to an extra unauthorized instruction");
-                        return err!(CandyGuardError::MintNotLastTransaction);
-                    }
-                }
-                Err(_) => {
-                    if ctx.accounts.candy_machine.collection.is_some() {
-                        // set_collection instruction expected
-                        return err!(CandyGuardError::MissingCollectionInstruction);
-                    }
+                if !cmp_pubkeys(&ix.program_id, &crate::id())
+                    || discriminator != [103, 17, 200, 25, 118, 95, 125, 61]
+                    || after_collection_ix.is_ok()
+                {
+                    // we fail here, it is much cheaper to fail here than to allow a malicious user
+                    // to add an ix at the end and then fail
+                    msg!("Failing and halting due to an extra unauthorized instruction");
+                    return err!(CandyGuardError::MintNotLastTransaction);
                 }
             }
 

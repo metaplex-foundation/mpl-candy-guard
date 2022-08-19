@@ -5,13 +5,13 @@ use solana_program::{program::invoke, system_instruction};
 use crate::errors::CandyGuardError;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct LamportsCharge {
+pub struct Lamports {
     pub amount: u64,
 }
 
-impl Guard for LamportsCharge {
+impl Guard for Lamports {
     fn size() -> usize {
-        std::mem::size_of::<u64>() // date
+        8 // amount
     }
 
     fn mask() -> u64 {
@@ -19,7 +19,7 @@ impl Guard for LamportsCharge {
     }
 }
 
-impl Condition for LamportsCharge {
+impl Condition for Lamports {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
