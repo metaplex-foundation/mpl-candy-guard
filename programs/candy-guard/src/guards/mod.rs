@@ -1,17 +1,19 @@
 pub use anchor_lang::prelude::*;
 
-pub use crate::errors::CandyGuardError;
-pub use crate::instructions::mint::*;
-pub use crate::state::CandyGuardData;
-
 pub use bot_tax::BotTax;
+pub use gatekeeper::Gatekeeper;
 pub use lamports::Lamports;
 pub use live_date::LiveDate;
 pub use spltoken::SplToken;
 pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
 
+pub use crate::errors::CandyGuardError;
+pub use crate::instructions::mint::*;
+pub use crate::state::CandyGuardData;
+
 mod bot_tax;
+mod gatekeeper;
 mod lamports;
 mod live_date;
 mod spltoken;
@@ -143,4 +145,7 @@ pub struct EvaluationContext {
     /// The index from the remaining accounts to find the whitelist_token_account,
     /// whitelist_token_mint and whitelist_burn_authority
     pub whitelist_index: usize,
+    /// The index from the remaining accounts to find the gateway_token, gateway_program,
+    /// and network_expire_feature
+    pub gatekeeper_index: usize,
 }

@@ -43,4 +43,7 @@ pub enum CandyGuardError {
     TokenBurnFailed,
     #[msg("No whitelist token present")]
     NoWhitelistToken,
+    // gatekeeper
+    #[msg("Gateway token is not valid")]
+    GatewayTokenInvalid,
 }

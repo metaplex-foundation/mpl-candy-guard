@@ -32,6 +32,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         spltoken_index: 0,
         whitelist: false,
         whitelist_index: 0,
+        gatekeeper_index: 0,
     };
 
     // validates the required transaction data
@@ -206,4 +207,9 @@ pub struct Mint<'info> {
     // > needed if whitelist guard enabled and mode is "BurnEveryTime"
     // whitelist_token_mint
     // whitelist_burn_authority
+    // > needed if gatekeeper guard enabled
+    // gateway_token
+    // > needed if gatekeeper guard enabled and expire_on_use is true
+    // gateway program
+    // network_expire_feature
 }
