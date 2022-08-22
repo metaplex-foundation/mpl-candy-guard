@@ -29,7 +29,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         is_presale: false,
         lamports: 0,
         amount: 0,
-        spltoken_index: 0,
+        spl_token_index: 0,
         whitelist: false,
         whitelist_index: 0,
         gatekeeper_index: 0,
@@ -197,7 +197,7 @@ pub struct Mint<'info> {
     // collection_mint
     // collection_metadata
     // collection_master_edition
-    // > needed if spltoken guard enabled
+    // > needed if spl_token guard enabled
     // token_account_info
     // transfer_authority_info
     // > needed if third_party_signer guard enabled

@@ -46,4 +46,9 @@ pub enum CandyGuardError {
     // gatekeeper
     #[msg("Gateway token is not valid")]
     GatewayTokenInvalid,
+    // end settings
+    #[msg("Current time is after the set end settings date")]
+    AfterEndSettingsDate,
+    #[msg("Current items minted is at the set end settings amount")]
+    AfterEndSettingsMintAmount,
 }
