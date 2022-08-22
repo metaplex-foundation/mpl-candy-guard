@@ -298,7 +298,7 @@ pub fn get_config_line(
 #[derive(Accounts)]
 #[instruction(creator_bump: u8)]
 pub struct Mint<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut, has_one = authority, has_one = update_authority)]
     candy_machine: Box<Account<'info, CandyMachine>>,
     /// CHECK: account constraints checked in account trait
     #[account(seeds = [AUTHORITY_SEED.as_bytes(), candy_machine.key().as_ref()], bump = creator_bump)]
