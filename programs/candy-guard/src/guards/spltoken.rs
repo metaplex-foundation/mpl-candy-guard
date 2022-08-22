@@ -45,7 +45,7 @@ impl Condition for SplToken {
         }
 
         evaluation_context.amount = self.amount;
-        evaluation_context.spltoken_index = token_account_index;
+        evaluation_context.spl_token_index = token_account_index;
 
         Ok(())
     }
@@ -56,7 +56,7 @@ impl Condition for SplToken {
         _candy_guard_data: &CandyGuardData,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let index = evaluation_context.spltoken_index;
+        let index = evaluation_context.spl_token_index;
         // the accounts have already been validated
         let token_account_info = Self::get_account_info(ctx, index)?;
         let transfer_authority_info = Self::get_account_info(ctx, index + 1)?;

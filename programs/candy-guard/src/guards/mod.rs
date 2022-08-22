@@ -5,6 +5,8 @@ pub use crate::instructions::mint::*;
 pub use crate::state::CandyGuardData;
 
 pub use bot_tax::BotTax;
+pub use end_settings::EndSettings;
+pub use gatekeeper::Gatekeeper;
 pub use lamports::Lamports;
 pub use live_date::LiveDate;
 pub use spltoken::SplToken;
@@ -12,6 +14,8 @@ pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
 
 mod bot_tax;
+mod end_settings;
+mod gatekeeper;
 mod lamports;
 mod live_date;
 mod spltoken;
@@ -130,17 +134,20 @@ pub struct EvaluationContext {
     // > lamports
     /// The amount to charge for the mint (this can be updated by the whitelist guard).
     pub lamports: u64,
-    // > spltoken
+    // > spl_token
     /// The amount to charge for the mint (this can be updated by the whitelist guard
     /// when the `lamports_charge` is not in use).
     pub amount: u64,
     /// The index from the remaining accounts to find the token_account and
     /// transfer_authority_account
-    pub spltoken_index: usize,
+    pub spl_token_index: usize,
     // > whitelist
     /// Indicates whether the user is whitelisted or not.
     pub whitelist: bool,
     /// The index from the remaining accounts to find the whitelist_token_account,
     /// whitelist_token_mint and whitelist_burn_authority
     pub whitelist_index: usize,
+    /// The index from the remaining accounts to find the gateway_token, gateway_program,
+    /// and network_expire_feature
+    pub gatekeeper_index: usize,
 }

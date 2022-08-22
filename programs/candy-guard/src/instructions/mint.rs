@@ -29,9 +29,10 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         is_presale: false,
         lamports: 0,
         amount: 0,
-        spltoken_index: 0,
+        spl_token_index: 0,
         whitelist: false,
         whitelist_index: 0,
+        gatekeeper_index: 0,
     };
 
     // validates the required transaction data
@@ -196,7 +197,7 @@ pub struct Mint<'info> {
     // collection_mint
     // collection_metadata
     // collection_master_edition
-    // > needed if spltoken guard enabled
+    // > needed if spl_token guard enabled
     // token_account_info
     // transfer_authority_info
     // > needed if third_party_signer guard enabled
@@ -206,4 +207,9 @@ pub struct Mint<'info> {
     // > needed if whitelist guard enabled and mode is "BurnEveryTime"
     // whitelist_token_mint
     // whitelist_burn_authority
+    // > needed if gatekeeper guard enabled
+    // gateway_token
+    // > needed if gatekeeper guard enabled and expire_on_use is true
+    // gateway program
+    // network_expire_feature
 }

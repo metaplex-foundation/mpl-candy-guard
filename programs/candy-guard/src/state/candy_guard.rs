@@ -35,6 +35,7 @@ pub struct CandyGuard {
     // 4) spltoken
     // 5) third party signer
     // 6) whitelist
+    // 7) gatekeeper
 }
 
 #[derive(CandyGuard, AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -51,4 +52,8 @@ pub struct CandyGuardData {
     pub third_party_signer: Option<ThirdPartySigner>,
     /// Whitelist guard (whitelist mint settings).
     pub whitelist: Option<Whitelist>,
+    /// Gatekeeper guard
+    pub gatekeeper: Option<Gatekeeper>,
+    /// End settings guard
+    pub end_settings: Option<EndSettings>,
 }
