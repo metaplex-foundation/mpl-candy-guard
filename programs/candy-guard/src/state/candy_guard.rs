@@ -54,4 +54,6 @@ pub struct CandyGuardData {
     pub whitelist: Option<Whitelist>,
     /// Gatekeeper guard
     pub gatekeeper: Option<Gatekeeper>,
+    /// End settings guard
+    pub end_settings: Option<EndSettings>,
 }
