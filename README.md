@@ -20,5 +20,5 @@ anchor deploy
 
 There are a few tests included, which can be run with:
 ```
-achor tests
+anchor tests
 ```
