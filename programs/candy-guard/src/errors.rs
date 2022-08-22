@@ -17,6 +17,8 @@ pub enum CandyGuardError {
     CollectionKeyMismatch,
     #[msg("Missing collection accounts")]
     MissingCollectionAccounts,
+    #[msg("Collection update authority public key mismatch")]
+    CollectionUpdateAuthorityKeyMismatch,
     // bot tax
     #[msg("Mint must be the last instructions of the transaction")]
     MintNotLastTransaction,

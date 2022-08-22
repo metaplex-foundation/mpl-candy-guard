@@ -42,7 +42,7 @@ describe("Mint (Candy Guard -> Candy Machine)", () => {
 
         for (let i = 0; i < candyMachine.data.itemsAvailable.toNumber(); i++) {
             const line = JSON.parse(`{\
-                "name": "#$ID+1$",\
+                "name": "#${i + 1}",\
                 "uri": "uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ"\
             }`);
 
@@ -53,10 +53,19 @@ describe("Mint (Candy Guard -> Candy Machine)", () => {
     });
 
     /**
+     * Add a collection mint.
+     */
+     it("candy machine: add_collection", async () => {
+        await test.addCollection(candyMachineProgram, candyMachineKeypair, test.COLLECTION_MINT_ID, payer);
+        let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
+        expect(candyMachine.collectionMint).to.not.equal(null);
+    });
+
+    /**
      * Minting from the candy machine without the guard.
      */
     it("candy machine: mint (without-guard)", async () => {
-        await test.mintFromCandyMachine(candyMachineProgram, candyMachineKeypair, payer);
+        await test.mintFromCandyMachine(candyMachineProgram, candyMachineKeypair, payer, test.COLLECTION_MINT_ID);
     });
 
     /**
@@ -134,7 +143,9 @@ describe("Mint (Candy Guard -> Candy Machine)", () => {
             candyMachineProgram,
             candyGuardBaseKeypair,
             candyMachineKeypair,
-            payer
+            payer,
+            null,
+            test.COLLECTION_MINT_ID
         );
 
         console.log(signature);

@@ -95,7 +95,7 @@ export async function mintFromCandyGuard(
         [Buffer.from('candy_guard'), candyGuardBaseKeypair.publicKey.toBuffer()],
         candyGuardProgram.programId,
     );
-    // candy machine
+    // candy machine object
     let candyMachine = await candyMachineProgram.account.candyMachine.fetch(candyMachineKeypair.publicKey);
     // mint address
     const mint = anchor.web3.Keypair.generate();
@@ -200,13 +200,14 @@ export async function mintFromCandyGuard(
             candyGuard: pda,
             candyMachineProgram: candyMachineProgram.programId,
             candyMachine: candyMachineKeypair.publicKey,
+            updateAuthority: candyMachine.updateAuthority,
             candyMachineCreator: candyMachineCreator,
             payer: payer.publicKey,
             wallet: candyMachine.wallet,
             metadata: metadataAddress,
             mint: mint.publicKey,
             mintAuthority: payer.publicKey,
-            updateAuthority: payer.publicKey,
+            mintUpdateAuthority: payer.publicKey,
             masterEdition: masterEdition,
             tokenMetadataProgram: METAPLEX_PROGRAM_ID,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -246,7 +247,8 @@ export const HIDDEN_SECTION = 8               // discriminator
     + 8                                       // features
     + 32                                      // wallet
     + 32                                      // authority
-    + 33                                      // (optional) + collection 
+    + 32                                      // update_authority
+    + 33                                      // (optional) collection mint
     + 8                                       // items redeemed
     + 8                                       // items available (config data)
     + 4 + MAX_SYMBOL_LENGTH                   // u32 + max symbol length
@@ -357,6 +359,8 @@ export async function mintFromCandyMachine(
     base: Keypair,
     payer: Wallet,
     collectionMint: PublicKey = null): Promise<string> {
+    // candy machine object
+    let candyMachine = await program.account.candyMachine.fetch(base.publicKey);
     // mint address
     const mint = anchor.web3.Keypair.generate();
     // creator PDA
@@ -450,11 +454,12 @@ export async function mintFromCandyMachine(
             candyMachine: base.publicKey,
             candyMachineCreator: candyMachineCreator,
             authority: payer.publicKey,
+            updateAuthority: candyMachine.updateAuthority,
             payer: payer.publicKey,
             metadata: metadataAddress,
             mint: mint.publicKey,
             mintAuthority: payer.publicKey,
-            updateAuthority: payer.publicKey,
+            mintUpdateAuthority: payer.publicKey,
             masterEdition: masterEdition,
             tokenMetadataProgram: METAPLEX_PROGRAM_ID,
             tokenProgram: TOKEN_PROGRAM_ID,
@@ -528,9 +533,13 @@ export async function addCollection(
         METAPLEX_PROGRAM_ID,
     );
 
+    // candy machine object
+    let candyMachine = await program.account.candyMachine.fetch(base.publicKey);
+
     return await program.methods.addCollection().accounts({
         candyMachine: base.publicKey,
         authority: payer.publicKey,
+        updateAuthority: candyMachine.updateAuthority,
         payer: payer.publicKey,
         collectionAuthority: collectionAuthority,
         collectionMint: mint,
@@ -570,9 +579,13 @@ export async function removeCollection(
         METAPLEX_PROGRAM_ID,
     );
 
+    // candy machine object
+    let candyMachine = await program.account.candyMachine.fetch(base.publicKey);
+
     return await program.methods.removeCollection().accounts({
         candyMachine: base.publicKey,
         authority: payer.publicKey,
+        updateAuthority: candyMachine.updateAuthority,
         collectionAuthority: collectionAuthority,
         collectionMint: collectionMint,
         collectionMetadata: collectionMetadata,

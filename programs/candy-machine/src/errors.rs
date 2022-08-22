@@ -44,4 +44,6 @@ pub enum CandyError {
     CollectionKeyMismatch,
     #[msg("Missing collection accounts")]
     MissingCollectionAccounts,
+    #[msg("Cannot change update authority if a collection mint is set")]
+    CannotChangeUpdateAuthority,
 }

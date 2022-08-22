@@ -14,7 +14,7 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
     }
     let metadata: Metadata =
         Metadata::from_account_info(&ctx.accounts.collection_metadata.to_account_info())?;
-    if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.authority.key()) {
+    if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.update_authority.key()) {
         return err!(CandyError::IncorrectCollectionAuthority);
     };
     if !cmp_pubkeys(&metadata.mint, &mint.key()) {
@@ -44,7 +44,7 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
         revoke_collection_infos.as_slice(),
     )?;
 
-    candy_machine.collection = None;
+    candy_machine.collection_mint = None;
 
     Ok(())
 }
@@ -52,9 +52,11 @@ pub fn remove_collection(ctx: Context<RemoveCollection>) -> Result<()> {
 /// Set the collection PDA for the candy machine
 #[derive(Accounts)]
 pub struct RemoveCollection<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut, has_one = authority, has_one = update_authority)]
     candy_machine: Account<'info, CandyMachine>,
     authority: Signer<'info>,
+    /// CHECK: authority can be any account and is not written to or read
+    update_authority: UncheckedAccount<'info>,
     /// CHECK: only used as a signer
     #[account(
         seeds = [COLLECTION_SEED.as_bytes(), candy_machine.to_account_info().key.as_ref()],

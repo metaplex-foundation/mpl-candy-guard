@@ -12,7 +12,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
     let metadata: Metadata =
         Metadata::from_account_info(&ctx.accounts.collection_metadata.to_account_info())?;
 
-    if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.authority.key()) {
+    if !cmp_pubkeys(&metadata.update_authority, &ctx.accounts.update_authority.key()) {
         return err!(CandyError::IncorrectCollectionAuthority);
     }
 
@@ -28,6 +28,8 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
         return err!(CandyError::NoChangingCollectionDuringMint);
     }
 
+    // the candy machine authority will become the collection update authority
+    // therefore we require that retain_authority is set to true
     if !candy_machine.data.retain_authority {
         return err!(CandyError::CandyCollectionRequiresRetainAuthority);
     }
@@ -38,7 +40,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
         let approve_collection_infos = vec![
             authority_record.clone(),
             ctx.accounts.collection_authority.to_account_info(),
-            ctx.accounts.authority.to_account_info(),
+            ctx.accounts.update_authority.to_account_info(),
             ctx.accounts.payer.to_account_info(),
             ctx.accounts.collection_metadata.to_account_info(),
             mint.clone(),
@@ -57,7 +59,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
                 ctx.accounts.token_metadata_program.key(),
                 authority_record.key(),
                 ctx.accounts.collection_authority.key(),
-                ctx.accounts.authority.key(),
+                ctx.accounts.update_authority.key(),
                 ctx.accounts.payer.key(),
                 ctx.accounts.collection_metadata.key(),
                 *mint.key,
@@ -71,7 +73,7 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
         );
     }
 
-    candy_machine.collection = Some(mint.key());
+    candy_machine.collection_mint = Some(mint.key());
 
     Ok(())
 }
@@ -79,10 +81,12 @@ pub fn add_collection(ctx: Context<AddCollection>) -> Result<()> {
 /// Set the collection PDA for the candy machine
 #[derive(Accounts)]
 pub struct AddCollection<'info> {
-    #[account(mut, has_one = authority)]
+    #[account(mut, has_one = authority, has_one = update_authority)]
     candy_machine: Account<'info, CandyMachine>,
     // candy machine authority
     authority: Signer<'info>,
+    /// CHECK: authority can be any account and is not written to or read
+    update_authority: UncheckedAccount<'info>,
     // payer of the transaction
     payer: Signer<'info>,
     #[account(

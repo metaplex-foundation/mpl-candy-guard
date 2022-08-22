@@ -28,7 +28,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         return err!(CandyError::CandyMachineEmpty);
     }
 
-    if let Some(collection) = &candy_machine.collection {
+    if let Some(collection) = &candy_machine.collection_mint {
         if ctx.remaining_accounts.len() < COLLECTION_ACCOUNTS_COUNT {
             return err!(CandyError::MissingCollectionAccounts);
         }
@@ -143,10 +143,10 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
         &[&authority_seeds],
     )?;
 
-    let mut new_update_authority = Some(candy_machine.authority);
+    let mut new_update_authority = Some(candy_machine.update_authority);
 
     if !candy_machine.data.retain_authority {
-        new_update_authority = Some(ctx.accounts.update_authority.key());
+        new_update_authority = Some(ctx.accounts.mint_update_authority.key());
     }
 
     invoke_signed(
@@ -173,18 +173,18 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
 
     // (4) setting the collection
 
-    if candy_machine.collection.is_some() {
-        let collection_authority = ctx.remaining_accounts[0].to_account_info();
-        let collection_authority_record = ctx.remaining_accounts[1].to_account_info();
-        let collection_mint = ctx.remaining_accounts[2].to_account_info();
-        let collection_metadata = ctx.remaining_accounts[3].to_account_info();
-        let collection_master_edition = ctx.remaining_accounts[4].to_account_info();
+    if candy_machine.collection_mint.is_some() {
+        let collection_authority = &ctx.remaining_accounts[0];
+        let collection_authority_record = &ctx.remaining_accounts[1];
+        let collection_mint = &ctx.remaining_accounts[2];
+        let collection_metadata = &ctx.remaining_accounts[3];
+        let collection_master_edition = &ctx.remaining_accounts[4];
 
         let set_collection_infos = vec![
             ctx.accounts.metadata.to_account_info(),
             collection_authority.to_account_info(),
             ctx.accounts.payer.to_account_info(),
-            ctx.accounts.authority.to_account_info(),
+            ctx.accounts.update_authority.to_account_info(),
             collection_mint.to_account_info(),
             collection_metadata.to_account_info(),
             collection_master_edition.to_account_info(),
@@ -201,7 +201,7 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
                 ctx.accounts.metadata.key(),
                 collection_authority.key(),
                 ctx.accounts.payer.key(),
-                ctx.accounts.authority.key(),
+                ctx.accounts.update_authority.key(),
                 collection_mint.key(),
                 collection_metadata.key(),
                 collection_master_edition.key(),
@@ -305,6 +305,8 @@ pub struct Mint<'info> {
     candy_machine_creator: UncheckedAccount<'info>,
     // candy machine authority (mint only allowed for the authority)
     authority: Signer<'info>,
+    /// CHECK: authority can be any account and is not written to or read
+    update_authority: UncheckedAccount<'info>,
     #[account(mut)]
     payer: Signer<'info>,
     // the following accounts aren't using anchor macros because they are CPI'd
@@ -316,7 +318,7 @@ pub struct Mint<'info> {
     #[account(mut)]
     mint: UncheckedAccount<'info>,
     mint_authority: Signer<'info>,
-    update_authority: Signer<'info>,
+    mint_update_authority: Signer<'info>,
     /// CHECK: account checked in CPI
     #[account(mut)]
     master_edition: UncheckedAccount<'info>,
