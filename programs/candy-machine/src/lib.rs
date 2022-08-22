@@ -53,8 +53,12 @@ pub mod candy_machine {
 
     /// Set a new authority of the candy machine. Changing the authority has the
     /// effect of changing who can mint.
-    pub fn set_authority(ctx: Context<SetAuthority>, new_authority: Pubkey) -> Result<()> {
-        instructions::set_authority(ctx, new_authority)
+    pub fn set_authority(
+        ctx: Context<SetAuthority>,
+        new_authority: Pubkey,
+        new_update_authority: Pubkey,
+    ) -> Result<()> {
+        instructions::set_authority(ctx, new_authority, new_update_authority)
     }
 
     /// Update the candy machine configuration.

@@ -57,7 +57,7 @@ describe("Collection", () => {
     it("add_collection", async () => {
         await test.addCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
-        expect(candyMachine.collection).to.not.equal(null);
+        expect(candyMachine.collectionMint).to.not.equal(null);
     });
 
     /**
@@ -66,7 +66,7 @@ describe("Collection", () => {
     it("remove_collection", async () => {
         await test.removeCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
-        expect(candyMachine.collection).to.equal(null);
+        expect(candyMachine.collectionMint).to.equal(null);
     });
 
     /**
@@ -75,7 +75,7 @@ describe("Collection", () => {
     it("add_collection (for minting)", async () => {
         await test.addCollection(program, keypair, test.COLLECTION_MINT_ID, payer);
         let candyMachine = await program.account.candyMachine.fetch(keypair.publicKey);
-        expect(candyMachine.collection).to.not.equal(null);
+        expect(candyMachine.collectionMint).to.not.equal(null);
     });
 
     /**

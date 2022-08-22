@@ -19,7 +19,7 @@ pub fn update(ctx: Context<Update>, data: CandyMachineData) -> Result<()> {
         return err!(CandyError::CannotSwitchToHiddenSettings);
     }
 
-    if candy_machine.collection.is_some() && !data.retain_authority {
+    if candy_machine.collection_mint.is_some() && !data.retain_authority {
         return err!(CandyError::CandyCollectionRequiresRetainAuthority);
     }
 

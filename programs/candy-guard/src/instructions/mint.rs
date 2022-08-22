@@ -35,7 +35,6 @@ pub fn mint<'info>(ctx: Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: u
     };
 
     // validates the required transaction data
-
     if let Err(error) = validate(&ctx, &mut evaluation_context) {
         return process_error(error);
     }
@@ -75,7 +74,7 @@ fn validate<'info>(
     ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
     evaluation_context: &mut EvaluationContext,
 ) -> Result<()> {
-    if let Some(collection) = &ctx.accounts.candy_machine.collection {
+    if let Some(collection) = &ctx.accounts.candy_machine.collection_mint {
         if ctx.remaining_accounts.len() < COLLECTION_ACCOUNTS_COUNT {
             return err!(CandyGuardError::MissingCollectionAccounts);
         }
@@ -110,11 +109,12 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
         candy_machine: ctx.accounts.candy_machine.to_account_info(),
         candy_machine_creator: ctx.accounts.candy_machine_creator.to_account_info(),
         authority: ctx.accounts.candy_guard.to_account_info(),
+        update_authority: ctx.accounts.update_authority.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         metadata: ctx.accounts.metadata.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         mint_authority: ctx.accounts.mint_authority.to_account_info(),
-        update_authority: ctx.accounts.update_authority.to_account_info(),
+        mint_update_authority: ctx.accounts.mint_update_authority.to_account_info(),
         master_edition: ctx.accounts.master_edition.to_account_info(),
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
@@ -122,16 +122,17 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>, creator_bump: 
         rent: ctx.accounts.rent.to_account_info(),
         recent_slothashes: ctx.accounts.recent_slothashes.to_account_info(),
     };
-    let mut cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
 
-    if ctx.accounts.candy_machine.collection.is_some() {
-        // only forward the required collection accounts
+    let mut remaining_accounts = Vec::new();
+    // only forward the required collection accounts
+    if ctx.accounts.candy_machine.collection_mint.is_some() {
         for account in 0..COLLECTION_ACCOUNTS_COUNT {
-            cpi_ctx
-                .remaining_accounts
-                .push(ctx.remaining_accounts[account].to_account_info());
+            remaining_accounts.push(ctx.remaining_accounts[account].to_account_info());
         }
     }
+
+    let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer)
+        .with_remaining_accounts(remaining_accounts);
 
     candy_machine::cpi::mint(cpi_ctx, creator_bump)
 }
@@ -144,8 +145,15 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = candy_machine::id())]
     pub candy_machine_program: AccountInfo<'info>,
-    #[account(mut, has_one = wallet, constraint = candy_guard.key() == candy_machine.authority)]
+    #[account(
+        mut,
+        has_one = wallet,
+        has_one = update_authority,
+        constraint = candy_guard.key() == candy_machine.authority
+    )]
     pub candy_machine: Box<Account<'info, CandyMachine>>,
+    /// CHECK: authority can be any account and is not written to or read
+    pub update_authority: UncheckedAccount<'info>,
     // seeds and bump are not validated by the candy guard, they will be validated
     // by the CPI'd candy machine mint instruction
     /// CHECK: account constraints checked in account trait
@@ -165,7 +173,7 @@ pub struct Mint<'info> {
     #[account(mut)]
     pub mint: UncheckedAccount<'info>,
     pub mint_authority: Signer<'info>,
-    pub update_authority: Signer<'info>,
+    pub mint_update_authority: Signer<'info>,
     /// CHECK: account checked in CPI
     #[account(mut)]
     pub master_edition: UncheckedAccount<'info>,

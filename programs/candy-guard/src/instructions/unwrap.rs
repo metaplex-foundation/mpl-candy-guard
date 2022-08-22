@@ -20,7 +20,11 @@ pub fn unwrap(ctx: Context<Unwrap>) -> Result<()> {
     };
     let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, update_ix, &signer);
     // candy machine update_authority CPI
-    candy_machine::cpi::set_authority(cpi_ctx, ctx.accounts.authority.key())?;
+    candy_machine::cpi::set_authority(
+        cpi_ctx,
+        ctx.accounts.authority.key(),
+        ctx.accounts.candy_machine.update_authority,
+    )?;
 
     Ok(())
 }
