@@ -38,7 +38,7 @@ describe("Candy Guard", () => {
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate.date = null;
     settings.lamports.amount = new anchor.BN(1000000000);
-    settings.spltoken = null;
+    settings.splToken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 
@@ -56,7 +56,7 @@ describe("Candy Guard", () => {
     settings.botTax = null;
     settings.liveDate = null;
     settings.lamports = null;
-    settings.spltoken = null;
+    settings.splToken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 
@@ -74,7 +74,7 @@ describe("Candy Guard", () => {
     settings.botTax.lamports = new anchor.BN(100000000);
     settings.liveDate = null;
     settings.lamports = null;
-    settings.spltoken = null;
+    settings.splToken = null;
     settings.thirdPartySigner = null;
     settings.whitelist = null;
 

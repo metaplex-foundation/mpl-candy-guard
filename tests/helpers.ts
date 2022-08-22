@@ -59,7 +59,7 @@ export function defaultCandyGuardSettings() {
         "lamports": {\
           "amount": 0\
         },\
-        "spltoken": {\
+        "splToken": {\
             "amount": 0,\
             "tokenMint": null\
         },\

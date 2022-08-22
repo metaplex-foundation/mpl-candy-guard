@@ -45,7 +45,7 @@ describe("Third Party Signer", () => {
     settings.botTax = null;
     settings.liveDate = null;
     settings.lamports = null;
-    settings.spltoken = null;
+    settings.splToken = null;
     settings.thirdPartySigner.signerKey = signer.publicKey;
     settings.whitelist = null;
 

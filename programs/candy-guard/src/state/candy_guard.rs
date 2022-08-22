@@ -46,7 +46,7 @@ pub struct CandyGuardData {
     /// Lamports guard (set the price for the mint in lamports).
     pub lamports: Option<Lamports>,
     /// Spl-token guard (set the price for the mint in spl-token amount).
-    pub spltoken: Option<SPLToken>,
+    pub spl_token: Option<SplToken>,
     /// Third party signer guard.
     pub third_party_signer: Option<ThirdPartySigner>,
     /// Whitelist guard (whitelist mint settings).

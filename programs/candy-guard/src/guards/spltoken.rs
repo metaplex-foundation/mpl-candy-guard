@@ -4,12 +4,12 @@ use crate::errors::CandyGuardError;
 use crate::utils::{assert_is_ata, spl_token_transfer, TokenTransferParams};
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct SPLToken {
+pub struct SplToken {
     pub amount: u64,
     pub token_mint: Pubkey,
 }
 
-impl Guard for SPLToken {
+impl Guard for SplToken {
     fn size() -> usize {
         8    // amount
         + 32 // token mint
@@ -20,7 +20,7 @@ impl Guard for SPLToken {
     }
 }
 
-impl Condition for SPLToken {
+impl Condition for SplToken {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,

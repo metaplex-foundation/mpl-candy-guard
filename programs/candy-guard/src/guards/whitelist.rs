@@ -60,7 +60,7 @@ impl Condition for Whitelist {
                         // amount)
                         if candy_guard_data.lamports.is_some() {
                             evaluation_context.lamports = price;
-                        } else if candy_guard_data.spltoken.is_some() {
+                        } else if candy_guard_data.spl_token.is_some() {
                             evaluation_context.amount = price;
                         }
                     }

@@ -7,7 +7,7 @@ pub use crate::state::CandyGuardData;
 pub use bot_tax::BotTax;
 pub use lamports::Lamports;
 pub use live_date::LiveDate;
-pub use spltoken::SPLToken;
+pub use spltoken::SplToken;
 pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
 
@@ -127,10 +127,10 @@ pub struct EvaluationContext {
     // > live_date
     /// Indicates whether the transaction started before the live date.
     pub is_presale: bool,
-    // > lamports_charge
+    // > lamports
     /// The amount to charge for the mint (this can be updated by the whitelist guard).
     pub lamports: u64,
-    // > spltoken_charge
+    // > spltoken
     /// The amount to charge for the mint (this can be updated by the whitelist guard
     /// when the `lamports_charge` is not in use).
     pub amount: u64,

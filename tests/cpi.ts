@@ -76,7 +76,7 @@ describe("Mint (Candy Guard -> Candy Machine)", () => {
         settings.botTax.lastInstruction = true;
         settings.liveDate = null;
         settings.lamports.amount = new anchor.BN(1000000000);
-        settings.spltoken = null;
+        settings.splToken = null;
         settings.thirdPartySigner = null;
         settings.whitelist = null;
 
