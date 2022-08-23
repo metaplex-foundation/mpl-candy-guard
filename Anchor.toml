@@ -22,5 +22,5 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 [workspace]
 members = [
   "programs/candy-guard",
-  "programs/candy-machine",
+  "programs/candy-core`",
 ]
