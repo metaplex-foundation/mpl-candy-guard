@@ -1,26 +1,14 @@
 [features]
 seeds = false
 
-[programs.localnet]
-candy_guard = "2NvCY7Frz4MKA51fBT1GXFNdB74eRtYQ8PkUMM1gYiTK"
-candy_machine = "AaciizBuB6XnuztWxVq52KJwDv8WggF8yAEhrRx2ECEU"
-
-[programs.devnet]
-candy_guard = "2NvCY7Frz4MKA51fBT1GXFNdB74eRtYQ8PkUMM1gYiTK"
-candy_machine = "AaciizBuB6XnuztWxVq52KJwDv8WggF8yAEhrRx2ECEU"
-
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "devnet"
-wallet = "/Users/febo/.config/solana/devnet.json"
-
-[scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+wallet = "~/.config/solana/devnet.json"
 
 [workspace]
 members = [
-  "programs/candy-guard",
-  "programs/candy-core`",
+  "program",
 ]
