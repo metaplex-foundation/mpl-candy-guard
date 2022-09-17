@@ -12,7 +12,7 @@ function localDeployPath(programName) {
 const programs = {
   candy_guard: {
     label: "Candy Guard",
-    programId: 'CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ',
+    programId: 'YootGoPnkafgM6C2vdVKE1QWctUVXA1ggSejgJnNQs7',
     deployPath: localDeployPath('mpl_candy_guard'),
   },
 };

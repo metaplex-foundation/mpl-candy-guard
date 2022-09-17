@@ -97,7 +97,7 @@ export const mintInstructionDiscriminator = [51, 57, 225, 47, 182, 146, 137, 166
 export function createMintInstruction(
   accounts: MintInstructionAccounts,
   args: MintInstructionArgs,
-  programId = new web3.PublicKey('grd1hVewsa8dR1T1JfSFGzQUqgWmc1xXZ3uRRFJJ8XJ'),
+  programId = new web3.PublicKey('YootGoPnkafgM6C2vdVKE1QWctUVXA1ggSejgJnNQs7'),
 ) {
   const [data] = mintStruct.serialize({
     instructionDiscriminator: mintInstructionDiscriminator,
