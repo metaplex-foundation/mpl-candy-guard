@@ -4,7 +4,7 @@ import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { METAPLEX_PROGRAM_ID, spokSamePubkey } from './utils';
-import { CandyMachine } from '../../../candy-core/js/src/generated';
+import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import spok from 'spok';
 
 const API = new InitTransactions();

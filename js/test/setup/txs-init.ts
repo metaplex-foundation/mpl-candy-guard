@@ -42,7 +42,7 @@ import {
   UpdateInstructionArgs,
   WrapInstructionAccounts,
 } from '../../src/generated';
-import { CandyMachine } from '../../../../candy-core/js/src/generated';
+import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import {
   createAssociatedTokenAccountInstruction,
   createInitializeMintInstruction,

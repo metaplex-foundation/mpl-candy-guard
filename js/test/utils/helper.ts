@@ -26,10 +26,7 @@ import {
   InitializeInstructionArgs,
   MintInstructionAccounts,
   PROGRAM_ID,
-  // @ts-ignore
 } from '@metaplex-foundation/mpl-candy-machine-core';
-// @ts-ignore
-import { COLLECTION_METADATA, getCandyMachineSpace } from '../../../../candy-core/js/test/utils';
 import { amman } from '../setup';
 import {
   createAssociatedTokenAccountInstruction,
@@ -47,6 +44,8 @@ import {
   keypairIdentity,
   Metaplex,
 } from '@metaplex-foundation/js';
+import { COLLECTION_METADATA } from './constants';
+import { getCandyMachineSpace } from '.';
 
 export const CANDY_MACHINE_PROGRAM = PROGRAM_ID;
 export const METAPLEX_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
