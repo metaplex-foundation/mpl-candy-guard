@@ -11,7 +11,7 @@ pub use end_settings::EndSettings;
 pub use gatekeeper::Gatekeeper;
 pub use lamports::Lamports;
 pub use live_date::LiveDate;
-pub use mint_limit::MintLimit;
+pub use mint_limit::{MintCounter, MintLimit};
 pub use nft_payment::NftPayment;
 pub use third_party_signer::ThirdPartySigner;
 pub use whitelist::Whitelist;
