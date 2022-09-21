@@ -135,7 +135,9 @@ impl CandyGuardData {
             let mut groups = Vec::with_capacity(group_counter as usize);
 
             for _i in 0..group_counter {
-                let label = String::try_from_slice(&data[cursor..])?;
+                let slice: &[u8] = &data[cursor..cursor + MAX_LABEL_SIZE];
+                let label = String::from_utf8(slice.to_vec())
+                    .map_err(|_| CandyGuardError::DeserializationError)?;
                 cursor += MAX_LABEL_SIZE;
                 let (guards, _) = GuardSet::from_data(&data[cursor..])?;
                 cursor += guards.size();
@@ -151,9 +153,9 @@ impl CandyGuardData {
     }
 
     pub fn active_set(data: &[u8], label: Option<String>) -> Result<GuardSet> {
-        // root guard set
-        let (mut root, _) = GuardSet::from_data(data)?;
-        let mut cursor = root.size();
+        // default guard set
+        let (mut default, _) = GuardSet::from_data(data)?;
+        let mut cursor = default.size();
 
         // number of groups
         let group_counter = u32::from_le_bytes(*arrayref::array_ref![data, cursor, 4]);
@@ -167,9 +169,9 @@ impl CandyGuardData {
                     if sol_memcmp(label_slice, &data[cursor..], label_slice.len()) == 0 {
                         cursor += MAX_LABEL_SIZE;
                         let (guards, _) = GuardSet::from_data(&data[cursor..])?;
-                        root.merge(guards);
+                        default.merge(guards);
                         // we found our group
-                        return Ok(root);
+                        return Ok(default);
                     } else {
                         cursor += MAX_LABEL_SIZE;
                         let features = u64::from_le_bytes(*arrayref::array_ref![data, cursor, 8]);
@@ -184,7 +186,7 @@ impl CandyGuardData {
             return err!(CandyGuardError::GroupNotFound);
         }
 
-        Ok(root)
+        Ok(default)
     }
 
     pub fn size(&self) -> usize {
