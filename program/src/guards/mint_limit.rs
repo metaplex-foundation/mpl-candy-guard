@@ -80,8 +80,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter =
-            Self::get_account_info(ctx, evaluation_context.indices["mintlimit_index"])?;
+        let counter = Self::get_account_info(ctx, evaluation_context.indices["mintlimit_index"])?;
 
         let user = ctx.accounts.payer.key();
         let candy_guard_key = &ctx.accounts.candy_guard.key();
@@ -107,7 +106,7 @@ impl Condition for MintLimit {
 
             invoke_signed(
                 &system_instruction::create_account(
-                    &ctx.accounts.payer.key,
+                    ctx.accounts.payer.key,
                     &pda,
                     rent.minimum_balance(std::mem::size_of::<u16>()),
                     std::mem::size_of::<u16>() as u64,
