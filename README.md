@@ -42,7 +42,7 @@ The Candy Guard program contains a set of core access control guards that can be
 - `MintLimit`: enforces mint limits on wallet addresses
 - `NftPayment`: requires an NFT as a payment method
 
-## Accounts
+## Account
 
 The Candy Guard configuration is stored in a single account. The information regarding the guards that are enable is stored in a "hidden" section of the account to avoid unnecessary deserialization.
 
@@ -53,7 +53,7 @@ The Candy Guard configuration is stored in a single account. The information reg
 | `bump`            | 40     | 1     | `u8` representing the bump of the derivation. |
 | `authority`       | 41     | 32    | `PubKey` of the authority address that controls the Candy Guard. |
 | *hidden section*  | 73     | ~     | Hidden data section to avoid unnecessary deserialization. This section of the account is used to serialize the guards data. |
-| - *features*      | 73     | 8     | Feature flags indicating which guards are serialized. If all guards are disable on the default guard set and there are no groups defined, nothing else is stored on the account. |
+| - *features*      | 73     | 8     | Feature flags indicating which guards are serialized. |
 | - *guard set*     | 81     | ~     | (optional) A sequence of serialized guard structs. |
 | - *group counter* | ~      | 4     | `u32` specifying the number of groups in use. |
 | - *groups*        | ~      | ~     | (optional) A variable number of `Group` structs representing different guard sets. Each groups is defined by:  |
