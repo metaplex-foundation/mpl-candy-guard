@@ -36,9 +36,9 @@ pub struct Unwrap<'info> {
         constraint = candy_machine.authority == candy_machine_authority.key()
     )]
     pub candy_machine: Account<'info, CandyMachine>,
+    // candy machine authority
+    pub candy_machine_authority: Signer<'info>,
     /// CHECK: account constraints checked in account trait
     #[account(address = mpl_candy_machine_core::id())]
     pub candy_machine_program: AccountInfo<'info>,
-    // candy machine authority
-    pub candy_machine_authority: Signer<'info>,
 }
