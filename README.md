@@ -62,3 +62,161 @@ The Candy Guard configuration is stored in a single account. The information reg
 | -- *guard set*    | ~      | ~     | (optional) A sequence of serialized guard structs. |
 
 Since the number of guards enabled and groups is variable, the account size is dynamically resized during the `update` instruction to accommodate the updated configuration.
+
+## Instructions
+
+### 📄 `initialize`
+
+This instruction creates and initializes a new `CandyGuard` account.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                          | Writable | Signer | Description |
+| ----------------------------- | :------: | :----: | ----------- |
+| `candy_guard`               | ✅       |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
+| `base`               |        | ✅      | Base public key for the PDA derivation. |
+| `authority`                   |          |        | Public key of the candy guard authority. |
+| `payer`                       |          | ✅     | Payer of the transaction. |
+| `system_program`              |          |        | `SystemProgram` account. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument                      | Offset | Size | Description               |
+| ----------------------------- | ------ | ---- | ------------------------- |
+| `data`                        | 0      | ~    | `CandyGuardData` object. |
+</details>
+
+
+### 📄 `mint`
+
+This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. Only when the transaction is succesfully validated, it is forwarded to the Candy Machine.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                          | Writable | Signer | Description |
+| ----------------------------- | :------: | :----: | ----------- |
+| `candy_guard`                 |          |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
+| `candy_machine_program`       |       |        | `CandyMachine` program ID. |
+| `candy_machine`               | ✅       |        | The `CandyMachine` account. |
+| `candy_machine_authority_pda` | ✅       |        | Authority PDA key (seeds `["candy_machine", candy_machine pubkey]`). |
+| `payer`                       | ✅       | ✅     | Payer of the transaction. |
+| `nft_metadata`                | ✅       |        | Metadata account of the NFT. |
+| `nft_mint`                    | ✅       |        | Mint account for the NFT. The account should be created before executing the instruction. |
+| `nft_mint_authority`          |          | ✅     | Mint authority of the NFT. |
+| `nft_master_edition`          | ✅       |        | Master Edition account of the NFT. |
+| `collection_authority_record` |          |        | Authority Record PDA of the collection. |
+| `collection_mint`             |          |        | Mint account of the collection. |
+| `collection_metadata`         | ✅       |        | Metadata account of the collection. |
+| `collection_master_edition`   |          |        | Master Edition account of the collection. |
+| `collection_update_authority` |          |        | Update authority of the collection. |
+| `token_metadata_program`      |          |        | Metaplex `TokenMetadata` program ID. |
+| `token_program`               |          |        | `spl-token` program ID. |
+| `system_program`              |          |        | `SystemProgram` account. |
+| `rent`                        |          |        | `Rent` account. |
+| `recent_slothashes`           |          |        | `SlotHashes` account. |
+| `instruction_sysvar_account`  |          |        | `Sysvar1nstructions` account. |
+| *remaining accounts*          |          |        | (optional) A list of optional accounts required by individual guards. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument        | Offset | Size | Description               |
+| --------------- | ------ | ---- | ------------------------- |
+| `mint_args`     | 0      | ~    | `[u8]` representing arguments for guards; an empty `[u8]` if there are no arguments. |
+| `label`         | ~      | 6    | (optional) `string` representing the group label to use for validation of guards. |
+</details>
+
+
+### 📄 `Unwrap`
+
+This instruction removes a Candy Guard from a Candy Machine, setting the mint authority of the Candy Machine to be the Candy Machine authority. The Candy Gard `public key` must match the Candy Machine `mint_authority` for this instruction to succeed.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
+| `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
+| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
+| `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
+| `candy_machine_program`    |         |        | `CandyMachine` program ID. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+None.
+</details>
+
+
+### 📄 `update`
+
+This instruction updates the Candy Guard configuration. Given that there is a flexible number of guards and groups that can be present, this instruction will resize the account accordingly, either increasing or decreasing the account size. Therefore, there will be either a charge for rent or a withdraw of rent lamports. 
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description |
+| ---------------- | :------: | :----: | ----------- |
+| `candy_guard`    | ✅       |        | The `CandyGuard` account PDA key. |
+| `authority`      |          |        | Public key of the `candy_guard` authority. |
+| `payer`          |          | ✅     | Payer of the transaction. |
+| `system_program` |          |        | `SystemProgram` account. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument                      | Offset | Size | Description               |
+| ----------------------------- | ------ | ---- | ------------------------- |
+| `data`                        | 0      | ~    | `CandyGuardData` object. |
+</details>
+
+
+### 📄 `withdraw`
+
+This instruction withdraws the rent lamports from the account and closes it. After executing this instruction, the Candy Guard account will not be operational.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name          | Writable | Signer | Description |
+| --------------| :------: | :----: | ----------- |
+| `candy_guard` | ✅       |        | The `CandyGuard` account. |
+| `authority`   | ✅       | ✅      | Public key of the `candy_guard` authority. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+None.
+</details>
+
+
+### 📄 `Wrap`
+
+This instruction adds a Candy Guard to a Candy Machine. After the guard is added, minting is only allowed through the Candy Guard.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
+| `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
+| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
+| `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
+| `candy_machine_program`    |         |        | `CandyMachine` program ID. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+None.
+</details>
