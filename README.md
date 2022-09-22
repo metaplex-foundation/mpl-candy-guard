@@ -8,7 +8,8 @@ The new `Candy Guard` program is designed to take away the **access control** lo
 
 The access control on a Candy Guard is encapsulated in individuals guards representing a specific rule that needs to be satisfied, which can be enabled or disabled. For example, the live date of the mint is represented as the `LiveDate` guard. This guard is satisfied only if the transaction time is on or after the configured start time on the guard. Other guards can validate different aspects of the access control – e.g., ensuring that the user holds a specific token (token gating).
 
-> **Note:** The Candy Guard program can only be used in combination with `Candy Machine Core` (`Candy Machine V3`) accounts.
+> **Note:**
+> The Candy Guard program can only be used in combination with `Candy Machine Core` (`Candy Machine V3`) accounts.
 >
 > When a Candy Guard is used in combination with a Candy Machine, it becomes its mint authority and minting is only possible through the Candy Guard.
 
