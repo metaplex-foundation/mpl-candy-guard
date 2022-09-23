@@ -16,11 +16,11 @@ test('initialize: new candy guard (no guards)', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: null,
+      startDate: null,
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -66,13 +66,13 @@ test('initialize: new candy guard (with guards)', async (t) => {
         destination: payerPair.publicKey,
       },
       splToken: null,
-      liveDate: {
-        date: null,
+      startDate: {
+        date: 1663965742,
       },
       thirdPartySigner: {
         signerKey: payerPair.publicKey,
       },
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -99,15 +99,15 @@ test('initialize: new candy guard (with guards)', async (t) => {
 
   // parse the guards configuration
   const accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo?.data.subarray(DATA_OFFSET)!);
+  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
 
   spok(t, candyGuardData.default.botTax, {
     lamports: spokSameBignum(data.default.botTax.lamports),
     lastInstruction: true,
   });
 
-  spok(t, candyGuardData.default.liveDate, {
-    date: null,
+  spok(t, candyGuardData.default.startDate, {
+    date: spokSameBignum(data.default.startDate.date),
   });
 
   spok(t, candyGuardData.default.lamports, {

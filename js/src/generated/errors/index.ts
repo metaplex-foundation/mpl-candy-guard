@@ -447,24 +447,24 @@ createErrorFromCodeLookup.set(0x1784, () => new TokenBurnFailedError());
 createErrorFromNameLookup.set('TokenBurnFailed', () => new TokenBurnFailedError());
 
 /**
- * NoWhitelistToken: 'No whitelist token present'
+ * MissingTokenGate: 'Missing token gate'
  *
  * @category Errors
  * @category generated
  */
-export class NoWhitelistTokenError extends Error {
+export class MissingTokenGateError extends Error {
   readonly code: number = 0x1785;
-  readonly name: string = 'NoWhitelistToken';
+  readonly name: string = 'MissingTokenGate';
   constructor() {
-    super('No whitelist token present');
+    super('Missing token gate');
     if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, NoWhitelistTokenError);
+      Error.captureStackTrace(this, MissingTokenGateError);
     }
   }
 }
 
-createErrorFromCodeLookup.set(0x1785, () => new NoWhitelistTokenError());
-createErrorFromNameLookup.set('NoWhitelistToken', () => new NoWhitelistTokenError());
+createErrorFromCodeLookup.set(0x1785, () => new MissingTokenGateError());
+createErrorFromNameLookup.set('MissingTokenGate', () => new MissingTokenGateError());
 
 /**
  * GatewayTokenInvalid: 'Gateway token is not valid'

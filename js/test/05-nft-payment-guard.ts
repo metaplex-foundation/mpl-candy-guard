@@ -17,13 +17,13 @@ test('nft payment (burn)', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -62,13 +62,13 @@ test('nft payment (burn)', async (t) => {
   const updatedData = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -182,13 +182,13 @@ test.only('nft payment as minter (burn)', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -233,13 +233,13 @@ test.only('nft payment as minter (burn)', async (t) => {
   const secondData = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -372,13 +372,13 @@ test('nft payment (transfer)', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -422,13 +422,13 @@ test('nft payment (transfer)', async (t) => {
   const updatedData = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 1662479807,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,

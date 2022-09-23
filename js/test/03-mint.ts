@@ -112,9 +112,9 @@ test('mint (CPI)', async (t) => {
       botTax: null,
       lamports: null,
       splToken: null,
-      liveDate: null,
+      startDate: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -247,13 +247,13 @@ test('mint from group', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: {
+      startDate: {
         date: 64091606400,
       },
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -265,7 +265,7 @@ test('mint from group', async (t) => {
         label: 'VIP',
         guards: {
           botTax: null,
-          liveDate: {
+          startDate: {
             date: 1662394820,
           },
           lamports: {
@@ -274,7 +274,7 @@ test('mint from group', async (t) => {
           },
           splToken: null,
           thirdPartySigner: null,
-          whitelist: null,
+          tokenGate: null,
           gatekeeper: null,
           endSettings: null,
           allowList: null,
@@ -286,7 +286,7 @@ test('mint from group', async (t) => {
         label: 'OGs',
         guards: {
           botTax: null,
-          liveDate: {
+          startDate: {
             date: 1662394820,
           },
           lamports: {
@@ -295,7 +295,7 @@ test('mint from group', async (t) => {
           },
           splToken: null,
           thirdPartySigner: null,
-          whitelist: null,
+          tokenGate: null,
           gatekeeper: null,
           endSettings: null,
           allowList: null,

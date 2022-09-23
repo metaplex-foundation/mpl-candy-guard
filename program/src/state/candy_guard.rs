@@ -35,9 +35,9 @@ pub struct CandyGuard {
     //  1) bot tax
     //  2) lamports
     //  3) spl token
-    //  4) live date
+    //  4) start date
     //  5) third party signer
-    //  6) whitelist
+    //  6) token gate
     //  7) gatekeeper
     //  8) end settings
     //  9) allow list
@@ -68,12 +68,12 @@ pub struct GuardSet {
     pub lamports: Option<Lamports>,
     /// Spl-token guard (set the price for the mint in spl-token amount).
     pub spl_token: Option<SplToken>,
-    /// Live data guard (controls when minting is allowed).
-    pub live_date: Option<LiveDate>,
+    /// Start data guard (controls when minting is allowed).
+    pub start_date: Option<StartDate>,
     /// Third party signer guard.
     pub third_party_signer: Option<ThirdPartySigner>,
     /// Whitelist guard (whitelist mint settings).
-    pub whitelist: Option<Whitelist>,
+    pub token_gate: Option<TokenGate>,
     /// Gatekeeper guard
     pub gatekeeper: Option<Gatekeeper>,
     /// End settings guard

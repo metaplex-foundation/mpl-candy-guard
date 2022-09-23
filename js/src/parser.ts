@@ -1,14 +1,14 @@
 import {
   CandyGuardData,
   botTaxBeet,
-  liveDateBeet,
   lamportsBeet,
   splTokenBeet,
   thirdPartySignerBeet,
-  whitelistBeet,
   gatekeeperBeet,
   endSettingsBeet,
   allowListBeet,
+  startDateBeet,
+  tokenGateBeet,
 } from './generated/types';
 import { BN } from 'bn.js';
 import * as beet from '@metaplex-foundation/beet';
@@ -29,8 +29,8 @@ import { Group } from './generated/types/Group';
  *     pub lamports: Option<Lamports>,
  *     /// Spl-token guard (set the price for the mint in spl-token amount).
  *     pub spl_token: Option<SplToken>,
- *     /// Live data guard (controls when minting is allowed).
- *     pub live_date: Option<LiveDate>,
+ *     /// Start data guard (controls when minting is allowed).
+ *     pub start_date: Option<StartDate>,
  *     /// Third party signer guard.
  *     pub third_party_signer: Option<ThirdPartySigner>,
  *     /// Whitelist guard (whitelist mint settings).
@@ -51,9 +51,9 @@ type Guards = {
   /* 01 */ botTaxEnabled: boolean;
   /* 02 */ lamportsEnabled: boolean;
   /* 03 */ splTokenEnabled: boolean;
-  /* 04 */ liveDateEnabled: boolean;
+  /* 04 */ startDateEnabled: boolean;
   /* 05 */ thirdPartySignerEnabled: boolean;
-  /* 06 */ whitelistEnabled: boolean;
+  /* 06 */ tokenGateEnabled: boolean;
   /* 07 */ gatekeeperEnabled: boolean;
   /* 08 */ endSettingsEnabled: boolean;
   /* 09 */ allowListEnabled: boolean;
@@ -65,9 +65,9 @@ const GUARDS_SIZE = {
   /* 01 */ botTax: 9,
   /* 02 */ lamports: 40,
   /* 03 */ splToken: 72,
-  /* 04 */ liveDate: 9,
+  /* 04 */ startDate: 8,
   /* 05 */ thirdPartySigner: 32,
-  /* 06 */ whitelist: 43,
+  /* 06 */ tokenGate: 33,
   /* 07 */ gatekeeper: 33,
   /* 08 */ endSettings: 9,
   /* 09 */ allowList: 32,
@@ -89,9 +89,9 @@ function determineGuards(buffer: Buffer): Guards {
     botTaxEnabled,
     lamportsEnabled,
     splTokenEnabled,
-    liveDateEnabled,
+    startDateEnabled,
     thirdPartySignerEnabled,
-    whitelistEnabled,
+    tokenGateEnabled,
     gatekeeperEnabled,
     endSettingsEnabled,
     allowListEnabled,
@@ -103,9 +103,9 @@ function determineGuards(buffer: Buffer): Guards {
     botTaxEnabled,
     lamportsEnabled,
     splTokenEnabled,
-    liveDateEnabled,
+    startDateEnabled,
     thirdPartySignerEnabled,
-    whitelistEnabled,
+    tokenGateEnabled,
     gatekeeperEnabled,
     endSettingsEnabled,
     allowListEnabled,
@@ -141,11 +141,11 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   const guards = determineGuards(buffer);
   const {
     botTaxEnabled,
-    liveDateEnabled,
+    startDateEnabled,
     lamportsEnabled,
     splTokenEnabled,
     thirdPartySignerEnabled,
-    whitelistEnabled,
+    tokenGateEnabled,
     gatekeeperEnabled,
     endSettingsEnabled,
     allowListEnabled,
@@ -157,6 +157,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   // data offset for deserialization (skip u64 features flag)
   let cursor = beet.u64.byteSize;
   // deserialized guards
+  // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   const data: Record<string, any> = {};
 
   if (botTaxEnabled) {
@@ -177,10 +178,10 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.splToken;
   }
 
-  if (liveDateEnabled) {
-    const [liveDate] = liveDateBeet.deserialize(buffer, cursor);
-    data.liveDate = liveDate;
-    cursor += GUARDS_SIZE.liveDate;
+  if (startDateEnabled) {
+    const [startDate] = startDateBeet.deserialize(buffer, cursor);
+    data.startDate = startDate;
+    cursor += GUARDS_SIZE.startDate;
   }
 
   if (thirdPartySignerEnabled) {
@@ -189,10 +190,10 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.thirdPartySigner;
   }
 
-  if (whitelistEnabled) {
-    const [whitelist] = whitelistBeet.deserialize(buffer, cursor);
-    data.whitelist = whitelist;
-    cursor += GUARDS_SIZE.whitelist;
+  if (tokenGateEnabled) {
+    const [tokenGate] = tokenGateBeet.deserialize(buffer, cursor);
+    data.tokenGate = tokenGate;
+    cursor += GUARDS_SIZE.tokenGate;
   }
 
   if (gatekeeperEnabled) {
@@ -228,11 +229,11 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   return {
     guardSet: {
       botTax: data.botTax ?? null,
-      liveDate: data.liveDate ?? null,
+      startDate: data.startDate ?? null,
       lamports: data.lamports ?? null,
       splToken: data.splToken ?? null,
       thirdPartySigner: data.thirdPartySigner ?? null,
-      whitelist: data.whitelist ?? null,
+      tokenGate: data.tokenGate ?? null,
       gatekeeper: data.gateKeeper ?? null,
       endSettings: data.endSettings ?? null,
       allowList: data.allowList ?? null,

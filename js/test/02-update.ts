@@ -5,7 +5,6 @@ import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { BN } from 'bn.js';
 import { parseData } from '../src';
-import { CollectionAuthorityDoesNotExistError } from '@metaplex-foundation/mpl-token-metadata';
 
 const API = new InitTransactions();
 
@@ -17,11 +16,11 @@ test('update: enable guards', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: null,
+      startDate: null,
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -41,7 +40,7 @@ test('update: enable guards', async (t) => {
   await transaction.assertSuccess(t);
 
   let accountInfo = await connection.getAccountInfo(payerPair.publicKey);
-  const balance = accountInfo?.lamports!;
+  const balance = accountInfo!.lamports!;
 
   const updateData = {
     default: {
@@ -49,8 +48,8 @@ test('update: enable guards', async (t) => {
         lamports: new BN(100000000),
         lastInstruction: true,
       },
-      liveDate: {
-        date: null,
+      startDate: {
+        date: 1663965742,
       },
       lamports: {
         amount: new BN(100000000),
@@ -58,7 +57,7 @@ test('update: enable guards', async (t) => {
       },
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -85,7 +84,7 @@ test('update: enable guards', async (t) => {
   });
 
   accountInfo = await connection.getAccountInfo(payerPair.publicKey);
-  const updatedBalance = accountInfo?.lamports!;
+  const updatedBalance = accountInfo!.lamports!;
 
   t.true(updatedBalance < balance, 'balance after update must be lower');
 });
@@ -99,16 +98,14 @@ test('update: disable guards', async (t) => {
         lamports: new BN(100000000),
         lastInstruction: true,
       },
-      liveDate: {
-        date: null,
-      },
+      startDate: null,
       lamports: {
         amount: new BN(100000000),
         destination: payerPair.publicKey,
       },
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -120,7 +117,7 @@ test('update: disable guards', async (t) => {
         label: 'VIP',
         guards: {
           botTax: null,
-          liveDate: {
+          startDate: {
             date: 1662394820,
           },
           lamports: {
@@ -129,7 +126,7 @@ test('update: disable guards', async (t) => {
           },
           splToken: null,
           thirdPartySigner: null,
-          whitelist: null,
+          tokenGate: null,
           gatekeeper: null,
           endSettings: null,
           allowList: null,
@@ -141,14 +138,14 @@ test('update: disable guards', async (t) => {
         label: 'OGs',
         guards: {
           botTax: null,
-          liveDate: null,
+          startDate: null,
           lamports: {
             amount: new BN(1000),
             destination: payerPair.publicKey,
           },
           splToken: null,
           thirdPartySigner: null,
-          whitelist: null,
+          tokenGate: null,
           gatekeeper: null,
           endSettings: null,
           allowList: null,
@@ -170,32 +167,32 @@ test('update: disable guards', async (t) => {
 
   // parse the guards configuration
   let accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo?.data.subarray(DATA_OFFSET)!);
+  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
 
   t.true(candyGuardData.groups?.length === 2, 'expected 2 group2');
 
-  const group1 = candyGuardData.groups?.at(0)!;
+  const group1 = candyGuardData.groups!.at(0)!;
   // group 1
   spok(t, group1.label, 'VIP');
-  spok(t, group1.guards.liveDate?.date, spokSameBignum(1662394820));
+  spok(t, group1.guards.startDate?.date, spokSameBignum(1662394820));
   spok(t, group1.guards.lamports?.amount, spokSameBignum(500));
 
-  const group2 = candyGuardData.groups?.at(1)!;
+  const group2 = candyGuardData.groups!.at(1)!;
   // group 2
   spok(t, group2.label, 'OGs');
   spok(t, group2.guards.lamports?.amount, spokSameBignum(1000));
 
   accountInfo = await connection.getAccountInfo(payerPair.publicKey);
-  const balance = accountInfo?.lamports!;
+  const balance = accountInfo!.lamports!;
 
   const updateData = {
     default: {
       botTax: null,
-      liveDate: null,
+      startDate: null,
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: null,
@@ -222,7 +219,7 @@ test('update: disable guards', async (t) => {
   });
 
   accountInfo = await connection.getAccountInfo(payerPair.publicKey);
-  const updatedBalance = accountInfo?.lamports!;
+  const updatedBalance = accountInfo!.lamports!;
 
   t.true(updatedBalance > balance, 'balance after update must be greater');
 });
