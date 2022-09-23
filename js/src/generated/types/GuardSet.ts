@@ -9,9 +9,9 @@ import * as beet from '@metaplex-foundation/beet';
 import { BotTax, botTaxBeet } from './BotTax';
 import { Lamports, lamportsBeet } from './Lamports';
 import { SplToken, splTokenBeet } from './SplToken';
-import { LiveDate, liveDateBeet } from './LiveDate';
+import { StartDate, startDateBeet } from './StartDate';
 import { ThirdPartySigner, thirdPartySignerBeet } from './ThirdPartySigner';
-import { Whitelist, whitelistBeet } from './Whitelist';
+import { TokenGate, tokenGateBeet } from './TokenGate';
 import { Gatekeeper, gatekeeperBeet } from './Gatekeeper';
 import { EndSettings, endSettingsBeet } from './EndSettings';
 import { AllowList, allowListBeet } from './AllowList';
@@ -21,9 +21,9 @@ export type GuardSet = {
   botTax: beet.COption<BotTax>;
   lamports: beet.COption<Lamports>;
   splToken: beet.COption<SplToken>;
-  liveDate: beet.COption<LiveDate>;
+  startDate: beet.COption<StartDate>;
   thirdPartySigner: beet.COption<ThirdPartySigner>;
-  whitelist: beet.COption<Whitelist>;
+  tokenGate: beet.COption<TokenGate>;
   gatekeeper: beet.COption<Gatekeeper>;
   endSettings: beet.COption<EndSettings>;
   allowList: beet.COption<AllowList>;
@@ -40,9 +40,9 @@ export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
     ['botTax', beet.coption(botTaxBeet)],
     ['lamports', beet.coption(lamportsBeet)],
     ['splToken', beet.coption(splTokenBeet)],
-    ['liveDate', beet.coption(liveDateBeet)],
+    ['startDate', beet.coption(startDateBeet)],
     ['thirdPartySigner', beet.coption(thirdPartySignerBeet)],
-    ['whitelist', beet.coption(whitelistBeet)],
+    ['tokenGate', beet.coption(tokenGateBeet)],
     ['gatekeeper', beet.coption(gatekeeperBeet)],
     ['endSettings', beet.coption(endSettingsBeet)],
     ['allowList', beet.coption(allowListBeet)],

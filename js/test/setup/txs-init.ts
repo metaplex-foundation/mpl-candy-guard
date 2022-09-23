@@ -59,7 +59,6 @@ import {
   keypairIdentity,
   Metaplex,
 } from '@metaplex-foundation/js';
-import { coption } from '@metaplex-foundation/beet';
 
 const HELPER = new CandyMachineHelper();
 

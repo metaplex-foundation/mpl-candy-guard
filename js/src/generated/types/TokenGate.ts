@@ -5,16 +5,22 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
+import * as web3 from '@solana/web3.js';
+import * as beetSolana from '@metaplex-foundation/beet-solana';
 import * as beet from '@metaplex-foundation/beet';
-export type LiveDate = {
-  date: beet.COption<beet.bignum>;
+export type TokenGate = {
+  mint: web3.PublicKey;
+  burn: boolean;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const liveDateBeet = new beet.FixableBeetArgsStruct<LiveDate>(
-  [['date', beet.coption(beet.i64)]],
-  'LiveDate',
+export const tokenGateBeet = new beet.BeetArgsStruct<TokenGate>(
+  [
+    ['mint', beetSolana.publicKey],
+    ['burn', beet.bool],
+  ],
+  'TokenGate',
 );

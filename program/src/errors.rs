@@ -48,11 +48,11 @@ pub enum CandyGuardError {
     // third-party signer
     #[msg("A signature was required but not found")]
     MissingRequiredSignature,
-    // whitelist
+    // token gate
     #[msg("Token burn failed")]
     TokenBurnFailed,
-    #[msg("No whitelist token present")]
-    NoWhitelistToken,
+    #[msg("Missing token gate")]
+    MissingTokenGate,
     // gatekeeper
     #[msg("Gateway token is not valid")]
     GatewayTokenInvalid,

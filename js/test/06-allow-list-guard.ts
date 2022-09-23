@@ -36,11 +36,11 @@ test('allowlist', async (t) => {
   const data = {
     default: {
       botTax: null,
-      liveDate: null,
+      startDate: null,
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
-      whitelist: null,
+      tokenGate: null,
       gatekeeper: null,
       endSettings: null,
       allowList: {

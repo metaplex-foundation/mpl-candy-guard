@@ -6,19 +6,12 @@
  */
 
 import * as beet from '@metaplex-foundation/beet';
-/**
- * @category enums
- * @category generated
- */
-export enum WhitelistTokenMode {
-  BurnEveryTime,
-  NeverBurn,
-}
+export type StartDate = {
+  date: beet.bignum;
+};
 
 /**
  * @category userTypes
  * @category generated
  */
-export const whitelistTokenModeBeet = beet.fixedScalarEnum(
-  WhitelistTokenMode,
-) as beet.FixedSizeBeet<WhitelistTokenMode, WhitelistTokenMode>;
+export const startDateBeet = new beet.BeetArgsStruct<StartDate>([['date', beet.i64]], 'StartDate');

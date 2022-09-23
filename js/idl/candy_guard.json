@@ -186,14 +186,14 @@
           "isSigner": false
         },
         {
-          "name": "candyMachineProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "candyMachineAuthority",
           "isMut": false,
           "isSigner": true
+        },
+        {
+          "name": "candyMachineProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
@@ -430,20 +430,6 @@
       }
     },
     {
-      "name": "LiveDate",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "date",
-            "type": {
-              "option": "i64"
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "MintLimit",
       "docs": [
         "Configurations options for mint limit."
@@ -505,6 +491,18 @@
       }
     },
     {
+      "name": "StartDate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "date",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "ThirdPartySigner",
       "type": {
         "kind": "struct",
@@ -517,7 +515,7 @@
       }
     },
     {
-      "name": "Whitelist",
+      "name": "TokenGate",
       "type": {
         "kind": "struct",
         "fields": [
@@ -526,20 +524,8 @@
             "type": "publicKey"
           },
           {
-            "name": "presale",
+            "name": "burn",
             "type": "bool"
-          },
-          {
-            "name": "discountPrice",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "mode",
-            "type": {
-              "defined": "WhitelistTokenMode"
-            }
           }
         ]
       }
@@ -632,13 +618,13 @@
             }
           },
           {
-            "name": "liveDate",
+            "name": "startDate",
             "docs": [
-              "Live data guard (controls when minting is allowed)."
+              "Start data guard (controls when minting is allowed)."
             ],
             "type": {
               "option": {
-                "defined": "LiveDate"
+                "defined": "StartDate"
               }
             }
           },
@@ -654,13 +640,13 @@
             }
           },
           {
-            "name": "whitelist",
+            "name": "tokenGate",
             "docs": [
               "Whitelist guard (whitelist mint settings)."
             ],
             "type": {
               "option": {
-                "defined": "Whitelist"
+                "defined": "TokenGate"
               }
             }
           },
@@ -732,20 +718,6 @@
           },
           {
             "name": "Amount"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WhitelistTokenMode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "BurnEveryTime"
-          },
-          {
-            "name": "NeverBurn"
           }
         ]
       }
@@ -859,8 +831,8 @@
     },
     {
       "code": 6021,
-      "name": "NoWhitelistToken",
-      "msg": "No whitelist token present"
+      "name": "MissingTokenGate",
+      "msg": "Missing token gate"
     },
     {
       "code": 6022,

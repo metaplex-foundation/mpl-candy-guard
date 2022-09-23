@@ -22,8 +22,8 @@ export const unwrapStruct = new beet.BeetArgsStruct<{
  * @property [] candyGuard
  * @property [**signer**] authority
  * @property [_writable_] candyMachine
- * @property [] candyMachineProgram
  * @property [**signer**] candyMachineAuthority
+ * @property [] candyMachineProgram
  * @category Instructions
  * @category Unwrap
  * @category generated
@@ -32,8 +32,8 @@ export type UnwrapInstructionAccounts = {
   candyGuard: web3.PublicKey;
   authority: web3.PublicKey;
   candyMachine: web3.PublicKey;
-  candyMachineProgram: web3.PublicKey;
   candyMachineAuthority: web3.PublicKey;
+  candyMachineProgram: web3.PublicKey;
 };
 
 export const unwrapInstructionDiscriminator = [126, 175, 198, 14, 212, 69, 50, 44];
@@ -70,14 +70,14 @@ export function createUnwrapInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.candyMachineProgram,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
       pubkey: accounts.candyMachineAuthority,
       isWritable: false,
       isSigner: true,
+    },
+    {
+      pubkey: accounts.candyMachineProgram,
+      isWritable: false,
+      isSigner: false,
     },
   ];
 
