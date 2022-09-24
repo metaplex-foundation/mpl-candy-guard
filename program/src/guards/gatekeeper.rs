@@ -43,8 +43,13 @@ impl Condition for Gatekeeper {
         let gateway_token_account = Self::get_account_info(ctx, gateway_index)?;
         // consumes the gatekeeper token account
         evaluation_context.account_cursor += 1;
-        // Splits up verify and burn. We verify everything regardless of whether
-        // it should be burned
+
+        evaluation_context
+            .indices
+            .insert("gateway_index", gateway_index);
+
+        // splits up verify and burn: we verify everything regardless of whether
+        // it should be burned or not
         Gateway::verify_gateway_token_account_info(
             gateway_token_account,
             ctx.accounts.payer.key,
@@ -52,6 +57,7 @@ impl Condition for Gatekeeper {
             None,
         )
         .map_err(|_| error!(CandyGuardError::GatewayTokenInvalid))?;
+
         if self.expire_on_use {
             // if expire on use is true, two more accounts are needed.
             // Ensure they are present and correct
@@ -63,6 +69,7 @@ impl Condition for Gatekeeper {
             let expected_expiry_key = get_expire_address_with_seed(&self.gatekeeper_network).0;
             assert_keys_equal(expiry_key, &expected_expiry_key)?;
         }
+
         Ok(())
     }
 
@@ -74,11 +81,12 @@ impl Condition for Gatekeeper {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         if self.expire_on_use {
-            let gateway_index = evaluation_context.account_cursor;
+            let gateway_index = evaluation_context.indices["gateway_index"];
             // the accounts have already been validated
             let gateway_token_info = Self::get_account_info(ctx, gateway_index)?;
             let gateway_program_info = Self::get_account_info(ctx, gateway_index + 1)?;
             let expiry_info = Self::get_account_info(ctx, gateway_index + 2)?;
+
             invoke(
                 &expire_token(
                     *gateway_token_info.key,
@@ -93,6 +101,7 @@ impl Condition for Gatekeeper {
                 ],
             )?;
         }
+
         Ok(())
     }
 }

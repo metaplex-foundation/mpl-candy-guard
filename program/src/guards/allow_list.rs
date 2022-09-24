@@ -1,6 +1,7 @@
 use super::*;
 
-/// Configurations options for allow list.
+/// Configurations options for allow list. This guard uses
+/// a merkle tree to specify the addresses allowed to mint.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AllowList {
     /// Merkle root of the addresses allowed to mint.

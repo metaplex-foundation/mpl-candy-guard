@@ -13,10 +13,12 @@ import { StartDate, startDateBeet } from './StartDate';
 import { ThirdPartySigner, thirdPartySignerBeet } from './ThirdPartySigner';
 import { TokenGate, tokenGateBeet } from './TokenGate';
 import { Gatekeeper, gatekeeperBeet } from './Gatekeeper';
-import { EndSettings, endSettingsBeet } from './EndSettings';
+import { EndDate, endDateBeet } from './EndDate';
 import { AllowList, allowListBeet } from './AllowList';
 import { MintLimit, mintLimitBeet } from './MintLimit';
 import { NftPayment, nftPaymentBeet } from './NftPayment';
+import { RedemeedAmount, redemeedAmountBeet } from './RedemeedAmount';
+import { AddressGate, addressGateBeet } from './AddressGate';
 export type GuardSet = {
   botTax: beet.COption<BotTax>;
   lamports: beet.COption<Lamports>;
@@ -25,10 +27,12 @@ export type GuardSet = {
   thirdPartySigner: beet.COption<ThirdPartySigner>;
   tokenGate: beet.COption<TokenGate>;
   gatekeeper: beet.COption<Gatekeeper>;
-  endSettings: beet.COption<EndSettings>;
+  endDate: beet.COption<EndDate>;
   allowList: beet.COption<AllowList>;
   mintLimit: beet.COption<MintLimit>;
   nftPayment: beet.COption<NftPayment>;
+  redemeedAmount: beet.COption<RedemeedAmount>;
+  addressGate: beet.COption<AddressGate>;
 };
 
 /**
@@ -44,10 +48,12 @@ export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
     ['thirdPartySigner', beet.coption(thirdPartySignerBeet)],
     ['tokenGate', beet.coption(tokenGateBeet)],
     ['gatekeeper', beet.coption(gatekeeperBeet)],
-    ['endSettings', beet.coption(endSettingsBeet)],
+    ['endDate', beet.coption(endDateBeet)],
     ['allowList', beet.coption(allowListBeet)],
     ['mintLimit', beet.coption(mintLimitBeet)],
     ['nftPayment', beet.coption(nftPaymentBeet)],
+    ['redemeedAmount', beet.coption(redemeedAmountBeet)],
+    ['addressGate', beet.coption(addressGateBeet)],
   ],
   'GuardSet',
 );

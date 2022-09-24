@@ -5,7 +5,6 @@ import {
   splTokenBeet,
   thirdPartySignerBeet,
   gatekeeperBeet,
-  endSettingsBeet,
   allowListBeet,
   startDateBeet,
   tokenGateBeet,
@@ -17,32 +16,41 @@ import { mintLimitBeet } from './generated/types/MintLimit';
 import { GuardSet } from './generated/types/GuardSet';
 import { nftPaymentBeet } from './generated/types/NftPayment';
 import { Group } from './generated/types/Group';
+import { endDateBeet } from './generated/types/EndDate';
+import { redemeedAmountBeet } from './generated/types/RedemeedAmount';
+import { addressGateBeet } from './generated/types/AddressGate';
 
 /**
  * Matching the guards of the related struct in the Rust program.
  * Make sure to update this whenever the Rust struct changes.
  * ```
  * pub struct GuardSet {
- *     /// Last instruction check and bot tax (penalty for invalid transactions).
- *     pub bot_tax: Option<BotTax>,
- *     /// Lamports guard (set the price for the mint in lamports).
- *     pub lamports: Option<Lamports>,
- *     /// Spl-token guard (set the price for the mint in spl-token amount).
- *     pub spl_token: Option<SplToken>,
- *     /// Start data guard (controls when minting is allowed).
- *     pub start_date: Option<StartDate>,
- *     /// Third party signer guard.
- *     pub third_party_signer: Option<ThirdPartySigner>,
- *     /// Whitelist guard (whitelist mint settings).
- *     pub whitelist: Option<Whitelist>,
- *     /// Gatekeeper guard
- *     pub gatekeeper: Option<Gatekeeper>,
- *     /// End settings guard
- *     pub end_settings: Option<EndSettings>,
- *     /// Allow list guard
- *     pub allow_list: Option<AllowList>,
- *     /// Mint limit guard
- *     pub mint_limit: Option<MintLimit>,
+ *   /// Last instruction check and bot tax (penalty for invalid transactions).
+ *   pub bot_tax: Option<BotTax>,
+ *   /// Lamports guard (set the price for the mint in lamports).
+ *   pub lamports: Option<Lamports>,
+ *   /// Spl-token guard (set the price for the mint in spl-token amount).
+ *   pub spl_token: Option<SplToken>,
+ *   /// Start data guard (controls when minting is allowed).
+ *   pub start_date: Option<StartDate>,
+ *   /// Third party signer guard.
+ *   pub third_party_signer: Option<ThirdPartySigner>,
+ *   /// Whitelist guard (whitelist mint settings).
+ *   pub token_gate: Option<TokenGate>,
+ *   /// Gatekeeper guard
+ *   pub gatekeeper: Option<Gatekeeper>,
+ *   /// End date guard
+ *   pub end_date: Option<EndDate>,
+ *   /// Allow list guard
+ *   pub allow_list: Option<AllowList>,
+ *   /// Mint limit guard
+ *   pub mint_limit: Option<MintLimit>,
+ *   /// NFT Payment
+ *   pub nft_payment: Option<NftPayment>,
+ *   /// Redeemed amount guard
+ *   pub redemeed_amount: Option<RedemeedAmount>,
+ *   /// Address gate
+ *   pub address_gate: Option<AddressGate>,
  * }
  * ```
  */
@@ -55,10 +63,12 @@ type Guards = {
   /* 05 */ thirdPartySignerEnabled: boolean;
   /* 06 */ tokenGateEnabled: boolean;
   /* 07 */ gatekeeperEnabled: boolean;
-  /* 08 */ endSettingsEnabled: boolean;
+  /* 08 */ endDateEnabled: boolean;
   /* 09 */ allowListEnabled: boolean;
   /* 10 */ mintLimitEnabled: boolean;
   /* 11 */ nftPaymentEnabled: boolean;
+  /* 12 */ redeemedAmountEnabled: boolean;
+  /* 13 */ addressGateEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -69,10 +79,12 @@ const GUARDS_SIZE = {
   /* 05 */ thirdPartySigner: 32,
   /* 06 */ tokenGate: 33,
   /* 07 */ gatekeeper: 33,
-  /* 08 */ endSettings: 9,
+  /* 08 */ endDate: 8,
   /* 09 */ allowList: 32,
   /* 10 */ mintLimit: 3,
   /* 11 */ nftPayment: 33,
+  /* 12 */ redeemedAmount: 8,
+  /* 13 */ addressGate: 32,
 };
 const GUARDS_COUNT = 11;
 const MAX_LABEL_LENGTH = 6;
@@ -93,10 +105,12 @@ function determineGuards(buffer: Buffer): Guards {
     thirdPartySignerEnabled,
     tokenGateEnabled,
     gatekeeperEnabled,
-    endSettingsEnabled,
+    endDateEnabled,
     allowListEnabled,
     mintLimitEnabled,
     nftPaymentEnabled,
+    redeemedAmountEnabled,
+    addressGateEnabled,
   ] = guards;
 
   return {
@@ -107,10 +121,12 @@ function determineGuards(buffer: Buffer): Guards {
     thirdPartySignerEnabled,
     tokenGateEnabled,
     gatekeeperEnabled,
-    endSettingsEnabled,
+    endDateEnabled,
     allowListEnabled,
     mintLimitEnabled,
     nftPaymentEnabled,
+    redeemedAmountEnabled,
+    addressGateEnabled,
   };
 }
 
@@ -147,10 +163,12 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     thirdPartySignerEnabled,
     tokenGateEnabled,
     gatekeeperEnabled,
-    endSettingsEnabled,
+    endDateEnabled,
     allowListEnabled,
     mintLimitEnabled,
     nftPaymentEnabled,
+    redeemedAmountEnabled,
+    addressGateEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -202,10 +220,10 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.gatekeeper;
   }
 
-  if (endSettingsEnabled) {
-    const [endSettings] = endSettingsBeet.deserialize(buffer, cursor);
-    data.endSettings = endSettings;
-    cursor += GUARDS_SIZE.endSettings;
+  if (endDateEnabled) {
+    const [endDate] = endDateBeet.deserialize(buffer, cursor);
+    data.endDate = endDate;
+    cursor += GUARDS_SIZE.endDate;
   }
 
   if (allowListEnabled) {
@@ -226,6 +244,18 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.nftPayment;
   }
 
+  if (redeemedAmountEnabled) {
+    const [redeemedAmount] = redemeedAmountBeet.deserialize(buffer, cursor);
+    data.redeemedAmount = redeemedAmount;
+    cursor += GUARDS_SIZE.redeemedAmount;
+  }
+
+  if (addressGateEnabled) {
+    const [addressGate] = addressGateBeet.deserialize(buffer, cursor);
+    data.addressGate = addressGate;
+    cursor += GUARDS_SIZE.addressGate;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
@@ -235,10 +265,12 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       thirdPartySigner: data.thirdPartySigner ?? null,
       tokenGate: data.tokenGate ?? null,
       gatekeeper: data.gateKeeper ?? null,
-      endSettings: data.endSettings ?? null,
+      endDate: data.endDate ?? null,
       allowList: data.allowList ?? null,
       mintLimit: data.mintLimit ?? null,
       nftPayment: data.nftPayment ?? null,
+      redemeedAmount: data.redeemedAmount ?? null,
+      addressGate: data.addressGate ?? null,
     },
     offset: cursor,
   };

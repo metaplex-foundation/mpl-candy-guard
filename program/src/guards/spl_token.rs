@@ -5,6 +5,8 @@ use crate::{
     utils::{assert_is_ata, assert_keys_equal, spl_token_transfer, TokenTransferParams},
 };
 
+/// Configurations options for the lamports. This is a payment
+/// guard that charges in a specified spl-token.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct SplToken {
     pub amount: u64,
@@ -51,7 +53,6 @@ impl Condition for SplToken {
             return err!(CandyGuardError::NotEnoughTokens);
         }
 
-        evaluation_context.amount = self.amount;
         evaluation_context
             .indices
             .insert("spl_token_index", token_account_index);
@@ -78,7 +79,7 @@ impl Condition for SplToken {
             authority: transfer_authority_info.to_account_info(),
             authority_signer_seeds: &[],
             token_program: ctx.accounts.token_program.to_account_info(),
-            amount: evaluation_context.amount,
+            amount: self.amount,
         })?;
 
         Ok(())

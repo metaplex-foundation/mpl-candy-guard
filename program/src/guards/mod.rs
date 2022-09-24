@@ -5,24 +5,28 @@ pub use anchor_lang::prelude::*;
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
 pub use self::spl_token::SplToken;
+pub use address_gate::AddressGate;
 pub use allow_list::AllowList;
 pub use bot_tax::BotTax;
-pub use end_settings::EndSettings;
+pub use end_date::EndDate;
 pub use gatekeeper::Gatekeeper;
 pub use lamports::Lamports;
 pub use mint_limit::{MintCounter, MintLimit};
 pub use nft_payment::NftPayment;
+pub use redeemed_amount::RedemeedAmount;
 pub use start_date::StartDate;
 pub use third_party_signer::ThirdPartySigner;
 pub use token_gate::TokenGate;
 
+mod address_gate;
 mod allow_list;
 mod bot_tax;
-mod end_settings;
+mod end_date;
 mod gatekeeper;
 mod lamports;
 mod mint_limit;
 mod nft_payment;
+mod redeemed_amount;
 mod spl_token;
 mod start_date;
 mod third_party_signer;
@@ -130,28 +134,15 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
         }
     }
 }
-// TODO -> this should be a poly morphic btree map
 pub struct EvaluationContext<'a> {
-    /// Indicate whether the transaction was sent by the candy guard authority or not.
-    pub is_authority: bool,
     /// The cursor for the remaining account list. When a guard "consumes" one of the
     /// remaining accounts, it should increment the cursor.
     pub account_cursor: usize,
+
     /// The cursor for the remaining bytes on the mint args. When a guard "consumes" one
     /// argument, it should increment the number of bytes read.
     pub args_cursor: usize,
+
     /// Convenience mapping of remaining account indices.
     pub indices: BTreeMap<&'a str, usize>,
-    // > live_date
-    /// Indicates whether the transaction started before the live date.
-    pub is_presale: bool,
-    // > lamports
-    /// The amount to charge for the mint (this can be updated by guards).
-    pub lamports: u64,
-    // > spl_token
-    /// The amount to charge for the mint (this can be updated by guards).
-    pub amount: u64,
-    // > whitelist
-    /// Indicates whether the user is whitelisted or not.
-    pub whitelist: bool,
 }

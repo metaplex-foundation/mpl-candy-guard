@@ -1,24 +1,22 @@
 use super::*;
 
-/// Configurations options for the start date. This guard determines
-/// the start date of the mint. If this guard is not specified, mint
-/// is enabled.
+/// Configurations options for end date.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct StartDate {
+pub struct EndDate {
     pub date: i64,
 }
 
-impl Guard for StartDate {
+impl Guard for EndDate {
     fn size() -> usize {
         8 // date
     }
 
     fn mask() -> u64 {
-        0b1u64 << 3
+        0b1u64 << 7
     }
 }
 
-impl Condition for StartDate {
+impl Condition for EndDate {
     fn validate<'info>(
         &self,
         _ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
@@ -28,8 +26,8 @@ impl Condition for StartDate {
     ) -> Result<()> {
         let clock = Clock::get()?;
 
-        if clock.unix_timestamp < self.date {
-            return err!(CandyGuardError::MintNotLive);
+        if clock.unix_timestamp >= self.date {
+            return err!(CandyGuardError::AfterEndDate);
         }
 
         Ok(())

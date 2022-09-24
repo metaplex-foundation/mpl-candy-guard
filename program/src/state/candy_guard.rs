@@ -43,6 +43,8 @@ pub struct CandyGuard {
     //  9) allow list
     // 10) mint limit
     // 11) nft payment
+    // 12) redeemed amount
+    // 13) address gate
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -76,14 +78,18 @@ pub struct GuardSet {
     pub token_gate: Option<TokenGate>,
     /// Gatekeeper guard
     pub gatekeeper: Option<Gatekeeper>,
-    /// End settings guard
-    pub end_settings: Option<EndSettings>,
+    /// End date guard
+    pub end_date: Option<EndDate>,
     /// Allow list guard
     pub allow_list: Option<AllowList>,
     /// Mint limit guard
     pub mint_limit: Option<MintLimit>,
     /// NFT Payment
     pub nft_payment: Option<NftPayment>,
+    /// Redeemed amount guard
+    pub redemeed_amount: Option<RedemeedAmount>,
+    /// Address gate
+    pub address_gate: Option<AddressGate>,
 }
 
 impl CandyGuardData {

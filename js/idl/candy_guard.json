@@ -328,9 +328,26 @@
   ],
   "types": [
     {
+      "name": "AddressGate",
+      "docs": [
+        "Configurations options for address gate. This guard only",
+        "allows a specific address to be valid."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
       "name": "AllowList",
       "docs": [
-        "Configurations options for allow list."
+        "Configurations options for allow list. This guard uses",
+        "a merkle tree to specify the addresses allowed to mint."
       ],
       "type": {
         "kind": "struct",
@@ -352,6 +369,14 @@
     },
     {
       "name": "BotTax",
+      "docs": [
+        "Configurations options for bot tax. This guard is used to:",
+        "* charge a penalty for invalid transactions.",
+        "* validate that the mint transaction is the last transaction.",
+        "",
+        "The `bot_tax` is applied to any error that occurs during the",
+        "validation of the guards."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -367,22 +392,16 @@
       }
     },
     {
-      "name": "EndSettings",
+      "name": "EndDate",
       "docs": [
-        "Configurations options for end settings."
+        "Configurations options for end date."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "endSettingType",
-            "type": {
-              "defined": "EndSettingType"
-            }
-          },
-          {
-            "name": "number",
-            "type": "u64"
+            "name": "date",
+            "type": "i64"
           }
         ]
       }
@@ -415,6 +434,10 @@
     },
     {
       "name": "Lamports",
+      "docs": [
+        "Configurations options for the lamports. This is a payment",
+        "guard that charges in SOL."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -456,6 +479,10 @@
     },
     {
       "name": "NftPayment",
+      "docs": [
+        "Configurations options for the nft payment. This is a payment",
+        "guard that charges another NFT (token) from a specific collection."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -471,7 +498,28 @@
       }
     },
     {
+      "name": "RedemeedAmount",
+      "docs": [
+        "Configurations options for redeemed amount settings. This is a",
+        "guard that stop the mint once the specified amount of items",
+        "redeenmed is reached."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "maximum",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "SplToken",
+      "docs": [
+        "Configurations options for the lamports. This is a payment",
+        "guard that charges in a specified spl-token."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -492,6 +540,11 @@
     },
     {
       "name": "StartDate",
+      "docs": [
+        "Configurations options for the start date. This guard determines",
+        "the start date of the mint. If this guard is not specified, mint",
+        "is enabled."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -504,6 +557,10 @@
     },
     {
       "name": "ThirdPartySigner",
+      "docs": [
+        "Configurations options for the third party signer. This guard",
+        "required a specified signer to validate the transaction."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -516,6 +573,10 @@
     },
     {
       "name": "TokenGate",
+      "docs": [
+        "Configurations options for the token gate. This guard only",
+        "allows addresses that hold the specified spl-token."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
@@ -662,13 +723,13 @@
             }
           },
           {
-            "name": "endSettings",
+            "name": "endDate",
             "docs": [
-              "End settings guard"
+              "End date guard"
             ],
             "type": {
               "option": {
-                "defined": "EndSettings"
+                "defined": "EndDate"
               }
             }
           },
@@ -704,20 +765,28 @@
                 "defined": "NftPayment"
               }
             }
-          }
-        ]
-      }
-    },
-    {
-      "name": "EndSettingType",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Date"
           },
           {
-            "name": "Amount"
+            "name": "redemeedAmount",
+            "docs": [
+              "Redeemed amount guard"
+            ],
+            "type": {
+              "option": {
+                "defined": "RedemeedAmount"
+              }
+            }
+          },
+          {
+            "name": "addressGate",
+            "docs": [
+              "Address gate"
+            ],
+            "type": {
+              "option": {
+                "defined": "AddressGate"
+              }
+            }
           }
         ]
       }
@@ -781,73 +850,73 @@
     },
     {
       "code": 6011,
+      "name": "CandyMachineEmpty",
+      "msg": "Candy machine is empty"
+    },
+    {
+      "code": 6012,
       "name": "CollectionKeyMismatch",
       "msg": "Collection public key mismatch"
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "MissingCollectionAccounts",
       "msg": "Missing collection accounts"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "CollectionUpdateAuthorityKeyMismatch",
       "msg": "Collection update authority public key mismatch"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "MintNotLastTransaction",
       "msg": "Mint must be the last instructions of the transaction"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "MintNotLive",
       "msg": "Mint is not live"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "NotEnoughSOL",
       "msg": "Not enough SOL to pay for the mint"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "TokenTransferFailed",
       "msg": "Token transfer failed"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "NotEnoughTokens",
       "msg": "Not enough tokens to pay for this minting"
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "MissingRequiredSignature",
       "msg": "A signature was required but not found"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "TokenBurnFailed",
       "msg": "Token burn failed"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "MissingTokenGate",
       "msg": "Missing token gate"
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "GatewayTokenInvalid",
       "msg": "Gateway token is not valid"
     },
     {
-      "code": 6023,
-      "name": "AfterEndSettingsDate",
-      "msg": "Current time is after the set end settings date"
-    },
-    {
       "code": 6024,
-      "name": "AfterEndSettingsMintAmount",
-      "msg": "Current items minted is at the set end settings amount"
+      "name": "AfterEndDate",
+      "msg": "Current time is after the set end date"
     },
     {
       "code": 6025,
@@ -873,6 +942,16 @@
       "code": 6029,
       "name": "InvalidNFTCollectionPayment",
       "msg": "Invalid NFT Collection Payment"
+    },
+    {
+      "code": 6030,
+      "name": "MaximumRedeemedAmount",
+      "msg": "Current redemeed items is at the set maximum amount"
+    },
+    {
+      "code": 6031,
+      "name": "AddressNotAuthorized",
+      "msg": "Address not authorized"
     }
   ],
   "metadata": {

@@ -6,20 +6,15 @@
  */
 
 import * as beet from '@metaplex-foundation/beet';
-/**
- * @category enums
- * @category generated
- */
-export enum EndSettingType {
-  Date,
-  Amount,
-}
+export type RedemeedAmount = {
+  maximum: beet.bignum;
+};
 
 /**
  * @category userTypes
  * @category generated
  */
-export const endSettingTypeBeet = beet.fixedScalarEnum(EndSettingType) as beet.FixedSizeBeet<
-  EndSettingType,
-  EndSettingType
->;
+export const redemeedAmountBeet = new beet.BeetArgsStruct<RedemeedAmount>(
+  [['maximum', beet.u64]],
+  'RedemeedAmount',
+);

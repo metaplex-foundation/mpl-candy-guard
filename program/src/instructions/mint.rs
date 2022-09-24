@@ -7,7 +7,7 @@ use mpl_candy_machine_core::CandyMachine;
 
 use crate::{
     guards::{CandyGuardError, EvaluationContext},
-    state::{CandyGuard, CandyGuardData, DATA_OFFSET, SEED},
+    state::{CandyGuard, CandyGuardData, GuardSet, DATA_OFFSET, SEED},
     utils::cmp_pubkeys,
 };
 
@@ -18,35 +18,31 @@ pub fn mint<'info>(
 ) -> Result<()> {
     let candy_guard = &ctx.accounts.candy_guard;
     let account_info = &candy_guard.to_account_info();
-    // loads the active guard set
     let account_data = account_info.data.borrow();
-    let guard_set = CandyGuardData::active_set(&account_data[DATA_OFFSET..], label)?;
-
-    let conditions = guard_set.enabled_conditions();
-    let process_error = |error: Error| -> Result<()> {
-        if let Some(bot_tax) = &guard_set.bot_tax {
-            bot_tax.punish_bots(error, &ctx)?;
-            Ok(())
-        } else {
-            Err(error)
+    // loads the active guard set
+    let guard_set = match CandyGuardData::active_set(&account_data[DATA_OFFSET..], label) {
+        Ok(guard_set) => guard_set,
+        Err(error) => {
+            // load the default guard set to look for the bot_tax since errors only occur
+            // when trying to load guard set groups
+            let (default, _) = GuardSet::from_data(&account_data[DATA_OFFSET..])?;
+            return process_error(&ctx, &default, error);
         }
     };
 
+    let conditions = guard_set.enabled_conditions();
+
     // evaluation context for this transaction
     let mut evaluation_context = EvaluationContext {
-        is_authority: cmp_pubkeys(&candy_guard.authority, &ctx.accounts.payer.key()),
         account_cursor: 0,
         args_cursor: 0,
-        is_presale: false,
         indices: BTreeMap::new(),
-        lamports: 0,
-        amount: 0,
-        whitelist: false,
     };
 
     // validates the required transaction data
+
     if let Err(error) = validate(&ctx) {
-        return process_error(error);
+        return process_error(&ctx, &guard_set, error);
     }
 
     // validates enabled guards (any error at this point is subject to bot tax)
@@ -55,24 +51,18 @@ pub fn mint<'info>(
         if let Err(error) =
             condition.validate(&ctx, &mint_args, &guard_set, &mut evaluation_context)
         {
-            return process_error(error);
+            return process_error(&ctx, &guard_set, error);
         }
     }
 
-    // performs guard pre-actions (errors might occur, which will cause the transaction to fail)
-    // no bot tax at this point since the actions must be reverted in case of an error
+    // after this point, errors might occur, which will cause the transaction to fail
+    // no bot tax from this point since the actions must be reverted in case of an error
 
     for condition in &conditions {
         condition.pre_actions(&ctx, &mint_args, &guard_set, &mut evaluation_context)?;
     }
 
-    // we are good to go, forward the transaction to the candy machine (if errors occur, the
-    // actions are reverted and the trasaction fails)
-
     cpi_mint(&ctx)?;
-
-    // performs guard post-actions (errors might occur, which will cause the transaction to fail)
-    // no bot tax at this point since the actions must be reverted in case of an error
 
     for condition in &conditions {
         condition.post_actions(&ctx, &mint_args, &guard_set, &mut evaluation_context)?;
@@ -81,8 +71,28 @@ pub fn mint<'info>(
     Ok(())
 }
 
+// Handles errors + bot tax charge.
+fn process_error<'info>(
+    ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
+    guard_set: &GuardSet,
+    error: Error,
+) -> Result<()> {
+    if let Some(bot_tax) = &guard_set.bot_tax {
+        bot_tax.punish_bots(error, ctx)?;
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
 /// Performs a validation of the transaction before executing the guards.
 fn validate<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>) -> Result<()> {
+    let candy_machine = &ctx.accounts.candy_machine;
+    // are there items to be minted?
+    if candy_machine.items_redeemed >= candy_machine.data.items_available {
+        return err!(CandyGuardError::CandyMachineEmpty);
+    }
+
     if !cmp_pubkeys(
         &ctx.accounts.collection_mint.key(),
         &ctx.accounts.candy_machine.collection_mint,

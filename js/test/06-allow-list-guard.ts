@@ -42,12 +42,14 @@ test('allowlist', async (t) => {
       thirdPartySigner: null,
       tokenGate: null,
       gatekeeper: null,
-      endSettings: null,
+      endDate: null,
       allowList: {
         merkleRoot: [...tree.getRoot()],
       },
       mintLimit: null,
       nftPayment: null,
+      redemeedAmount: null,
+      addressGate: null,
     },
     groups: null,
   };
