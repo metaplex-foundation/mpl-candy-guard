@@ -8,19 +8,21 @@
 import * as beet from '@metaplex-foundation/beet';
 import * as web3 from '@solana/web3.js';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
-export type Lamports = {
+export type TokenPayment = {
   amount: beet.bignum;
-  destination: web3.PublicKey;
+  tokenMint: web3.PublicKey;
+  destinationAta: web3.PublicKey;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const lamportsBeet = new beet.BeetArgsStruct<Lamports>(
+export const tokenPaymentBeet = new beet.BeetArgsStruct<TokenPayment>(
   [
     ['amount', beet.u64],
-    ['destination', beetSolana.publicKey],
+    ['tokenMint', beetSolana.publicKey],
+    ['destinationAta', beetSolana.publicKey],
   ],
-  'Lamports',
+  'TokenPayment',
 );

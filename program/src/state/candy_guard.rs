@@ -33,8 +33,8 @@ pub struct CandyGuard {
     //
     // available guards:
     //  1) bot tax
-    //  2) lamports
-    //  3) spl token
+    //  2) sol payment
+    //  3) token payment
     //  4) start date
     //  5) third party signer
     //  6) token gate
@@ -67,9 +67,9 @@ pub struct GuardSet {
     /// Last instruction check and bot tax (penalty for invalid transactions).
     pub bot_tax: Option<BotTax>,
     /// Lamports guard (set the price for the mint in lamports).
-    pub lamports: Option<Lamports>,
+    pub sol_payment: Option<SolPayment>,
     /// Spl-token guard (set the price for the mint in spl-token amount).
-    pub spl_token: Option<SplToken>,
+    pub token_payment: Option<TokenPayment>,
     /// Start data guard (controls when minting is allowed).
     pub start_date: Option<StartDate>,
     /// Third party signer guard.
@@ -90,6 +90,8 @@ pub struct GuardSet {
     pub redemeed_amount: Option<RedemeedAmount>,
     /// Address gate
     pub address_gate: Option<AddressGate>,
+    /// NFT gate
+    pub nft_gate: Option<NftGate>,
 }
 
 impl CandyGuardData {

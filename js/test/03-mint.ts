@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess } from './setup';
+import { amman, newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess } from './setup';
 import { CandyMachineHelper } from './utils';
 import { AccountMeta } from '@solana/web3.js';
 import { BN } from 'bn.js';
@@ -107,24 +107,7 @@ test('mint (CPI)', async (t) => {
   }
 
   // candy guard
-  const candyGuardData = {
-    default: {
-      botTax: null,
-      lamports: null,
-      splToken: null,
-      startDate: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
-  };
+  const candyGuardData = newCandyGuardData();
 
   const { tx: initializeTxCG, candyGuard: address } = await API.initialize(
     t,
@@ -246,73 +229,39 @@ test('mint from group', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   // date of the 'default' guard is way in the future
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 64091606400,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: [
-      {
-        label: 'VIP',
-        guards: {
-          botTax: null,
-          startDate: {
-            date: 1662394820,
-          },
-          lamports: {
-            amount: new BN(100000000),
-            destination: payerPair.publicKey,
-          },
-          splToken: null,
-          thirdPartySigner: null,
-          tokenGate: null,
-          gatekeeper: null,
-          endDate: null,
-          allowList: null,
-          mintLimit: null,
-          nftPayment: null,
-          redemeedAmount: null,
-          addressGate: null,
-        },
-      },
-      {
-        label: 'OGs',
-        guards: {
-          botTax: null,
-          startDate: {
-            date: 1662394820,
-          },
-          lamports: {
-            amount: new BN(50000000),
-            destination: payerPair.publicKey,
-          },
-          splToken: null,
-          thirdPartySigner: null,
-          tokenGate: null,
-          gatekeeper: null,
-          endDate: null,
-          allowList: null,
-          mintLimit: null,
-          nftPayment: null,
-          redemeedAmount: null,
-          addressGate: null,
-        },
-      },
-    ],
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 64091606400,
   };
+  data.groups = [];
+
+  // VIP
+  const vipGroup = newGuardSet();
+  vipGroup.startDate = {
+    date: 1662394820,
+  };
+  vipGroup.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups.push({
+    label: 'VIP',
+    guards: vipGroup,
+  });
+
+  // OGs
+  const ogGroup = newGuardSet();
+  ogGroup.startDate = {
+    date: 1662394820,
+  };
+  ogGroup.solPayment = {
+    lamports: new BN(50000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups.push({
+    label: 'OGs',
+    guards: ogGroup,
+  });
 
   const { candyGuard, candyMachine } = await API.deploy(
     t,

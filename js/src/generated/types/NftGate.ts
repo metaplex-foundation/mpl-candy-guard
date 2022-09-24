@@ -5,24 +5,18 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as beet from '@metaplex-foundation/beet';
 import * as web3 from '@solana/web3.js';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
-export type SplToken = {
-  amount: beet.bignum;
-  tokenMint: web3.PublicKey;
-  destinationAta: web3.PublicKey;
+import * as beet from '@metaplex-foundation/beet';
+export type NftGate = {
+  requiredCollection: web3.PublicKey;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const splTokenBeet = new beet.BeetArgsStruct<SplToken>(
-  [
-    ['amount', beet.u64],
-    ['tokenMint', beetSolana.publicKey],
-    ['destinationAta', beetSolana.publicKey],
-  ],
-  'SplToken',
+export const nftGateBeet = new beet.BeetArgsStruct<NftGate>(
+  [['requiredCollection', beetSolana.publicKey]],
+  'NftGate',
 );

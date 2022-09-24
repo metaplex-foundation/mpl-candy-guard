@@ -4,17 +4,17 @@ use solana_program::{program::invoke, system_instruction};
 
 use crate::{errors::CandyGuardError, utils::assert_keys_equal};
 
-/// Configurations options for the lamports. This is a payment
-/// guard that charges in SOL.
+/// Configurations options for the sol payment. This is a payment
+/// guard that charges in SOL (lamports).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct Lamports {
-    pub amount: u64,
+pub struct SolPayment {
+    pub lamports: u64,
     pub destination: Pubkey,
 }
 
-impl Guard for Lamports {
+impl Guard for SolPayment {
     fn size() -> usize {
-        8    // amount
+        8    // lamports
         + 32 // destination
     }
 
@@ -23,7 +23,7 @@ impl Guard for Lamports {
     }
 }
 
-impl Condition for Lamports {
+impl Condition for SolPayment {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
@@ -42,10 +42,10 @@ impl Condition for Lamports {
             .indices
             .insert("lamports_destination", index);
 
-        if ctx.accounts.payer.lamports() < self.amount {
+        if ctx.accounts.payer.lamports() < self.lamports {
             msg!(
                 "Require {} lamports, accounts has {} lamports",
-                self.amount,
+                self.lamports,
                 ctx.accounts.payer.lamports(),
             );
             return err!(CandyGuardError::NotEnoughSOL);
@@ -68,7 +68,7 @@ impl Condition for Lamports {
             &system_instruction::transfer(
                 &ctx.accounts.payer.key(),
                 &destination.key(),
-                self.amount,
+                self.lamports,
             ),
             &[
                 ctx.accounts.payer.to_account_info(),

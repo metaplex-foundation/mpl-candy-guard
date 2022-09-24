@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
 
 const API = new InitTransactions();
 
@@ -8,25 +8,9 @@ killStuckProcess();
 test('address gate', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: {
-        maximum: 1,
-      },
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.redemeedAmount = {
+    maximum: 1,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(

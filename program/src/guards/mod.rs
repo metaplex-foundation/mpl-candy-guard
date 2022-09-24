@@ -4,16 +4,17 @@ pub use anchor_lang::prelude::*;
 
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
-pub use self::spl_token::SplToken;
+pub use self::token_payment::TokenPayment;
 pub use address_gate::AddressGate;
 pub use allow_list::AllowList;
 pub use bot_tax::BotTax;
 pub use end_date::EndDate;
 pub use gatekeeper::Gatekeeper;
-pub use lamports::Lamports;
 pub use mint_limit::{MintCounter, MintLimit};
+pub use nft_gate::NftGate;
 pub use nft_payment::NftPayment;
 pub use redeemed_amount::RedemeedAmount;
+pub use sol_payment::SolPayment;
 pub use start_date::StartDate;
 pub use third_party_signer::ThirdPartySigner;
 pub use token_gate::TokenGate;
@@ -23,14 +24,15 @@ mod allow_list;
 mod bot_tax;
 mod end_date;
 mod gatekeeper;
-mod lamports;
 mod mint_limit;
+mod nft_gate;
 mod nft_payment;
 mod redeemed_amount;
-mod spl_token;
+mod sol_payment;
 mod start_date;
 mod third_party_signer;
 mod token_gate;
+mod token_payment;
 
 pub trait Condition {
     /// Validate the condition of the guard. When the guard condition is

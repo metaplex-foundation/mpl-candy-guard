@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
 
 const API = new InitTransactions();
 
@@ -8,25 +8,9 @@ killStuckProcess();
 test('start date (in the past)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 1662479807,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -74,25 +58,9 @@ test('start date (in the past)', async (t) => {
 test('start date (in the future)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1671926400,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 1671926400,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -102,6 +70,20 @@ test('start date (in the future)', async (t) => {
     fstTxHandler,
     connection,
   );
+
+  // mint (as an authority)
+
+  const [, mintForAuthority] = await amman.genLabeledKeypair('Mint Account (authority)');
+  const { tx: authorityMintTx } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    payerPair,
+    mintForAuthority,
+    fstTxHandler,
+    connection,
+  );
+  await authorityMintTx.assertError(t, /Mint is not live/i);
 
   // mint (as a minter)
 

@@ -1,8 +1,35 @@
 import test from 'tape';
+import { CandyGuardData, GuardSet } from '../../src';
 
 export * from './amman';
 export * from './txs-init';
 export * from './log';
+
+export function newCandyGuardData(): CandyGuardData {
+  return {
+    default: newGuardSet(),
+    groups: null,
+  };
+}
+
+export function newGuardSet(): GuardSet {
+  return {
+    botTax: null,
+    startDate: null,
+    solPayment: null,
+    tokenPayment: null,
+    thirdPartySigner: null,
+    tokenGate: null,
+    gatekeeper: null,
+    endDate: null,
+    allowList: null,
+    mintLimit: null,
+    nftPayment: null,
+    redemeedAmount: null,
+    addressGate: null,
+    nftGate: null,
+  };
+}
 
 export function killStuckProcess() {
   test.onFinish(() => process.exit(0));

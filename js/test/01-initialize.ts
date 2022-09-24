@@ -1,7 +1,7 @@
 import test from 'tape';
 import spok from 'spok';
 import { BN } from 'bn.js';
-import { InitTransactions, killStuckProcess } from './setup/';
+import { newCandyGuardData, InitTransactions, killStuckProcess } from './setup/';
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { parseData } from '../src';
@@ -13,24 +13,7 @@ killStuckProcess();
 test('initialize: new candy guard (no guards)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
-  };
+  const data = newCandyGuardData();
 
   const { tx: transaction, candyGuard: address } = await API.initialize(
     t,
@@ -57,33 +40,20 @@ test('initialize: new candy guard (no guards)', async (t) => {
 test('initialize: new candy guard (with guards)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: {
-        lamports: new BN(100000000),
-        lastInstruction: true,
-      },
-      lamports: {
-        amount: new BN(100000000),
-        destination: payerPair.publicKey,
-      },
-      splToken: null,
-      startDate: {
-        date: 1663965742,
-      },
-      thirdPartySigner: {
-        signerKey: payerPair.publicKey,
-      },
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  data.default.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  data.default.startDate = {
+    date: 1663965742,
+  };
+  data.default.thirdPartySigner = {
+    signerKey: payerPair.publicKey,
   };
 
   const { tx: transaction, candyGuard: address } = await API.initialize(
@@ -114,8 +84,8 @@ test('initialize: new candy guard (with guards)', async (t) => {
     date: spokSameBignum(data.default.startDate.date),
   });
 
-  spok(t, candyGuardData.default.lamports, {
-    amount: spokSameBignum(data.default.lamports.amount),
+  spok(t, candyGuardData.default.solPayment, {
+    lamports: spokSameBignum(data.default.solPayment.lamports),
   });
 
   spok(t, candyGuardData.default.thirdPartySigner, {

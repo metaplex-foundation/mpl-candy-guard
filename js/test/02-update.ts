@@ -1,6 +1,6 @@
 import test from 'tape';
 import spok from 'spok';
-import { InitTransactions, killStuckProcess } from './setup';
+import { newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess } from './setup';
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { BN } from 'bn.js';
@@ -13,24 +13,7 @@ killStuckProcess();
 test('update: enable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
-  };
+  const data = newCandyGuardData();
 
   const { tx: transaction, candyGuard: address } = await API.initialize(
     t,
@@ -44,31 +27,17 @@ test('update: enable guards', async (t) => {
   let accountInfo = await connection.getAccountInfo(payerPair.publicKey);
   const balance = accountInfo!.lamports!;
 
-  const updateData = {
-    default: {
-      botTax: {
-        lamports: new BN(100000000),
-        lastInstruction: true,
-      },
-      startDate: {
-        date: 1663965742,
-      },
-      lamports: {
-        amount: new BN(100000000),
-        destination: address,
-      },
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const updateData = newCandyGuardData();
+  updateData.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  updateData.default.startDate = {
+    date: 1663965742,
+  };
+  updateData.default.solPayment = {
+    lamports: new BN(100000000),
+    destination: address,
   };
 
   const { tx: updateTransaction } = await API.update(
@@ -96,75 +65,42 @@ test('update: enable guards', async (t) => {
 test('update: disable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: {
-        lamports: new BN(100000000),
-        lastInstruction: true,
-      },
-      startDate: null,
-      lamports: {
-        amount: new BN(100000000),
-        destination: payerPair.publicKey,
-      },
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: [
-      {
-        label: 'VIP',
-        guards: {
-          botTax: null,
-          startDate: {
-            date: 1662394820,
-          },
-          lamports: {
-            amount: new BN(500),
-            destination: payerPair.publicKey,
-          },
-          splToken: null,
-          thirdPartySigner: null,
-          tokenGate: null,
-          gatekeeper: null,
-          endDate: null,
-          allowList: null,
-          mintLimit: null,
-          nftPayment: null,
-          redemeedAmount: null,
-          addressGate: null,
-        },
-      },
-      {
-        label: 'OGs',
-        guards: {
-          botTax: null,
-          startDate: null,
-          lamports: {
-            amount: new BN(1000),
-            destination: payerPair.publicKey,
-          },
-          splToken: null,
-          thirdPartySigner: null,
-          tokenGate: null,
-          gatekeeper: null,
-          endDate: null,
-          allowList: null,
-          mintLimit: null,
-          nftPayment: null,
-          redemeedAmount: null,
-          addressGate: null,
-        },
-      },
-    ],
+  // default guardSet
+  const data = newCandyGuardData();
+  data.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
   };
+  data.default.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups = [];
+
+  // VIP
+  const vipGroup = newGuardSet();
+  vipGroup.startDate = {
+    date: 1662394820,
+  };
+  vipGroup.solPayment = {
+    lamports: new BN(500),
+    destination: payerPair.publicKey,
+  };
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup,
+  });
+
+  // OGs
+  const ogGroup = newGuardSet();
+  ogGroup.solPayment = {
+    lamports: new BN(1000),
+    destination: payerPair.publicKey,
+  };
+  data.groups?.push({
+    label: 'OGs',
+    guards: ogGroup,
+  });
 
   const { tx: transaction, candyGuard: address } = await API.initialize(
     t,
@@ -185,34 +121,17 @@ test('update: disable guards', async (t) => {
   // group 1
   spok(t, group1.label, 'VIP');
   spok(t, group1.guards.startDate?.date, spokSameBignum(1662394820));
-  spok(t, group1.guards.lamports?.amount, spokSameBignum(500));
+  spok(t, group1.guards.solPayment?.lamports, spokSameBignum(500));
 
   const group2 = candyGuardData.groups!.at(1)!;
   // group 2
   spok(t, group2.label, 'OGs');
-  spok(t, group2.guards.lamports?.amount, spokSameBignum(1000));
+  spok(t, group2.guards.solPayment?.lamports, spokSameBignum(1000));
 
   accountInfo = await connection.getAccountInfo(payerPair.publicKey);
   const balance = accountInfo!.lamports!;
 
-  const updateData = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
-  };
+  const updateData = newCandyGuardData();
 
   const { tx: updateTransaction } = await API.update(
     t,

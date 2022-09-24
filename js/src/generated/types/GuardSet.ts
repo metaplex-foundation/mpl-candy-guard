@@ -7,8 +7,8 @@
 
 import * as beet from '@metaplex-foundation/beet';
 import { BotTax, botTaxBeet } from './BotTax';
-import { Lamports, lamportsBeet } from './Lamports';
-import { SplToken, splTokenBeet } from './SplToken';
+import { SolPayment, solPaymentBeet } from './SolPayment';
+import { TokenPayment, tokenPaymentBeet } from './TokenPayment';
 import { StartDate, startDateBeet } from './StartDate';
 import { ThirdPartySigner, thirdPartySignerBeet } from './ThirdPartySigner';
 import { TokenGate, tokenGateBeet } from './TokenGate';
@@ -19,10 +19,11 @@ import { MintLimit, mintLimitBeet } from './MintLimit';
 import { NftPayment, nftPaymentBeet } from './NftPayment';
 import { RedemeedAmount, redemeedAmountBeet } from './RedemeedAmount';
 import { AddressGate, addressGateBeet } from './AddressGate';
+import { NftGate, nftGateBeet } from './NftGate';
 export type GuardSet = {
   botTax: beet.COption<BotTax>;
-  lamports: beet.COption<Lamports>;
-  splToken: beet.COption<SplToken>;
+  solPayment: beet.COption<SolPayment>;
+  tokenPayment: beet.COption<TokenPayment>;
   startDate: beet.COption<StartDate>;
   thirdPartySigner: beet.COption<ThirdPartySigner>;
   tokenGate: beet.COption<TokenGate>;
@@ -33,6 +34,7 @@ export type GuardSet = {
   nftPayment: beet.COption<NftPayment>;
   redemeedAmount: beet.COption<RedemeedAmount>;
   addressGate: beet.COption<AddressGate>;
+  nftGate: beet.COption<NftGate>;
 };
 
 /**
@@ -42,8 +44,8 @@ export type GuardSet = {
 export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
   [
     ['botTax', beet.coption(botTaxBeet)],
-    ['lamports', beet.coption(lamportsBeet)],
-    ['splToken', beet.coption(splTokenBeet)],
+    ['solPayment', beet.coption(solPaymentBeet)],
+    ['tokenPayment', beet.coption(tokenPaymentBeet)],
     ['startDate', beet.coption(startDateBeet)],
     ['thirdPartySigner', beet.coption(thirdPartySignerBeet)],
     ['tokenGate', beet.coption(tokenGateBeet)],
@@ -54,6 +56,7 @@ export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
     ['nftPayment', beet.coption(nftPaymentBeet)],
     ['redemeedAmount', beet.coption(redemeedAmountBeet)],
     ['addressGate', beet.coption(addressGateBeet)],
+    ['nftGate', beet.coption(nftGateBeet)],
   ],
   'GuardSet',
 );

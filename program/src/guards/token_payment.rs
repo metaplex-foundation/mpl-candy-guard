@@ -5,16 +5,16 @@ use crate::{
     utils::{assert_is_ata, assert_keys_equal, spl_token_transfer, TokenTransferParams},
 };
 
-/// Configurations options for the lamports. This is a payment
-/// guard that charges in a specified spl-token.
+/// Configurations options for the token payment. This is a payment
+/// guard that charges an amount in a specified spl-token.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct SplToken {
+pub struct TokenPayment {
     pub amount: u64,
     pub token_mint: Pubkey,
     pub destination_ata: Pubkey,
 }
 
-impl Guard for SplToken {
+impl Guard for TokenPayment {
     fn size() -> usize {
         8    // amount
         + 32 // token mint
@@ -26,7 +26,7 @@ impl Guard for SplToken {
     }
 }
 
-impl Condition for SplToken {
+impl Condition for TokenPayment {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,

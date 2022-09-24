@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
 
 const API = new InitTransactions();
 
@@ -8,25 +8,9 @@ killStuckProcess();
 test('end date (in the past)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: {
-        date: 1663979606,
-      },
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.endDate = {
+    date: 1663979606,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -55,25 +39,9 @@ test('end date (in the past)', async (t) => {
 test('end date (in the future)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: null,
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: {
-        date: 32534611200,
-      },
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.endDate = {
+    date: 32534611200,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(

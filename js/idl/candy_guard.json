@@ -433,26 +433,6 @@
       }
     },
     {
-      "name": "Lamports",
-      "docs": [
-        "Configurations options for the lamports. This is a payment",
-        "guard that charges in SOL."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "destination",
-            "type": "publicKey"
-          }
-        ]
-      }
-    },
-    {
       "name": "MintLimit",
       "docs": [
         "Configurations options for mint limit."
@@ -473,6 +453,22 @@
               "Limit of mints per individual address."
             ],
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NftGate",
+      "docs": [
+        "Configurations options for the nft gate. This guard restricts",
+        "the transaction to holders of a specified collection."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "requiredCollection",
+            "type": "publicKey"
           }
         ]
       }
@@ -515,24 +511,20 @@
       }
     },
     {
-      "name": "SplToken",
+      "name": "SolPayment",
       "docs": [
-        "Configurations options for the lamports. This is a payment",
-        "guard that charges in a specified spl-token."
+        "Configurations options for the sol payment. This is a payment",
+        "guard that charges in SOL (lamports)."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "amount",
+            "name": "lamports",
             "type": "u64"
           },
           {
-            "name": "tokenMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "destinationAta",
+            "name": "destination",
             "type": "publicKey"
           }
         ]
@@ -587,6 +579,30 @@
           {
             "name": "burn",
             "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenPayment",
+      "docs": [
+        "Configurations options for the token payment. This is a payment",
+        "guard that charges an amount in a specified spl-token."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "tokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "destinationAta",
+            "type": "publicKey"
           }
         ]
       }
@@ -657,24 +673,24 @@
             }
           },
           {
-            "name": "lamports",
+            "name": "solPayment",
             "docs": [
               "Lamports guard (set the price for the mint in lamports)."
             ],
             "type": {
               "option": {
-                "defined": "Lamports"
+                "defined": "SolPayment"
               }
             }
           },
           {
-            "name": "splToken",
+            "name": "tokenPayment",
             "docs": [
               "Spl-token guard (set the price for the mint in spl-token amount)."
             ],
             "type": {
               "option": {
-                "defined": "SplToken"
+                "defined": "TokenPayment"
               }
             }
           },
@@ -785,6 +801,17 @@
             "type": {
               "option": {
                 "defined": "AddressGate"
+              }
+            }
+          },
+          {
+            "name": "nftGate",
+            "docs": [
+              "NFT gate"
+            ],
+            "type": {
+              "option": {
+                "defined": "NftGate"
               }
             }
           }

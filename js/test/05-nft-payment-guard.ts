@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
 import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -14,25 +14,9 @@ killStuckProcess();
 test('nft payment (burn)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 1662479807,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -61,28 +45,13 @@ test('nft payment (burn)', async (t) => {
 
   const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
 
-  const updatedData = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: {
-        burn: true,
-        requiredCollection: candyMachineObject.collectionMint,
-      },
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const updatedData = newCandyGuardData();
+  updatedData.default.startDate = {
+    date: 1662479807,
+  };
+  updatedData.default.nftPayment = {
+    burn: true,
+    requiredCollection: candyMachineObject.collectionMint,
   };
 
   const { tx: updateTx } = await API.update(t, candyGuard, updatedData, payerPair, fstTxHandler);
@@ -177,31 +146,15 @@ test('nft payment (burn)', async (t) => {
   await authorityMintTx2.assertSuccess(t);
 });
 
-test.only('nft payment as minter (burn)', async (t) => {
+test('nft payment as minter (burn)', async (t) => {
   const { fstTxHandler: payerHandler, payerPair, connection: payerConnection } = await API.payer();
 
   // the mint from the first candy machine will be used as the payment
   // in the second candy machine
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 1662479807,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -236,28 +189,13 @@ test.only('nft payment as minter (burn)', async (t) => {
 
   const candyMachineObject = await CandyMachine.fromAccountAddress(payerConnection, candyMachine);
 
-  const secondData = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: {
-        burn: true,
-        requiredCollection: candyMachineObject.collectionMint,
-      },
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const secondData = newCandyGuardData();
+  secondData.default.startDate = {
+    date: 1662479807,
+  };
+  secondData.default.nftPayment = {
+    burn: true,
+    requiredCollection: candyMachineObject.collectionMint,
   };
 
   const { candyGuard: secondCandyGuard, candyMachine: secondCandyMachine } = await API.deploy(
@@ -377,25 +315,9 @@ test.only('nft payment as minter (burn)', async (t) => {
 test('nft payment (transfer)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const data = newCandyGuardData();
+  data.default.startDate = {
+    date: 1662479807,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -429,28 +351,13 @@ test('nft payment (transfer)', async (t) => {
 
   const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
 
-  const updatedData = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: {
-        burn: false,
-        requiredCollection: candyMachineObject.collectionMint,
-      },
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
+  const updatedData = newCandyGuardData();
+  updatedData.default.startDate = {
+    date: 1662479807,
+  };
+  updatedData.default.nftPayment = {
+    burn: false,
+    requiredCollection: candyMachineObject.collectionMint,
   };
 
   const { tx: updateTx } = await API.update(t, candyGuard, updatedData, payerPair, fstTxHandler);

@@ -1,8 +1,6 @@
 import {
   CandyGuardData,
   botTaxBeet,
-  lamportsBeet,
-  splTokenBeet,
   thirdPartySignerBeet,
   gatekeeperBeet,
   allowListBeet,
@@ -19,6 +17,9 @@ import { Group } from './generated/types/Group';
 import { endDateBeet } from './generated/types/EndDate';
 import { redemeedAmountBeet } from './generated/types/RedemeedAmount';
 import { addressGateBeet } from './generated/types/AddressGate';
+import { solPaymentBeet } from './generated/types/SolPayment';
+import { tokenPaymentBeet } from './generated/types/TokenPayment';
+import { nftGateBeet } from './generated/types/NftGate';
 
 /**
  * Matching the guards of the related struct in the Rust program.
@@ -27,10 +28,10 @@ import { addressGateBeet } from './generated/types/AddressGate';
  * pub struct GuardSet {
  *   /// Last instruction check and bot tax (penalty for invalid transactions).
  *   pub bot_tax: Option<BotTax>,
- *   /// Lamports guard (set the price for the mint in lamports).
- *   pub lamports: Option<Lamports>,
- *   /// Spl-token guard (set the price for the mint in spl-token amount).
- *   pub spl_token: Option<SplToken>,
+ *   /// Sol payment guard (set the price for the mint in lamports).
+ *   pub sol_payment: Option<Lamports>,
+ *   /// Token payment guard (set the price for the mint in spl-token amount).
+ *   pub token_payment: Option<SplToken>,
  *   /// Start data guard (controls when minting is allowed).
  *   pub start_date: Option<StartDate>,
  *   /// Third party signer guard.
@@ -51,14 +52,16 @@ import { addressGateBeet } from './generated/types/AddressGate';
  *   pub redemeed_amount: Option<RedemeedAmount>,
  *   /// Address gate
  *   pub address_gate: Option<AddressGate>,
+ *   /// Nft gate
+ *   pub nft_gate: Option<NftGate>,
  * }
  * ```
  */
 
 type Guards = {
   /* 01 */ botTaxEnabled: boolean;
-  /* 02 */ lamportsEnabled: boolean;
-  /* 03 */ splTokenEnabled: boolean;
+  /* 02 */ solPaymentEnabled: boolean;
+  /* 03 */ tokenPaymentEnabled: boolean;
   /* 04 */ startDateEnabled: boolean;
   /* 05 */ thirdPartySignerEnabled: boolean;
   /* 06 */ tokenGateEnabled: boolean;
@@ -69,12 +72,13 @@ type Guards = {
   /* 11 */ nftPaymentEnabled: boolean;
   /* 12 */ redeemedAmountEnabled: boolean;
   /* 13 */ addressGateEnabled: boolean;
+  /* 14 */ nftGateEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
   /* 01 */ botTax: 9,
-  /* 02 */ lamports: 40,
-  /* 03 */ splToken: 72,
+  /* 02 */ solPayment: 40,
+  /* 03 */ tokenPayment: 72,
   /* 04 */ startDate: 8,
   /* 05 */ thirdPartySigner: 32,
   /* 06 */ tokenGate: 33,
@@ -85,6 +89,7 @@ const GUARDS_SIZE = {
   /* 11 */ nftPayment: 33,
   /* 12 */ redeemedAmount: 8,
   /* 13 */ addressGate: 32,
+  /* 14 */ nftGate: 32,
 };
 const GUARDS_COUNT = 11;
 const MAX_LABEL_LENGTH = 6;
@@ -99,8 +104,8 @@ function determineGuards(buffer: Buffer): Guards {
 
   const [
     botTaxEnabled,
-    lamportsEnabled,
-    splTokenEnabled,
+    solPaymentEnabled,
+    tokenPaymentEnabled,
     startDateEnabled,
     thirdPartySignerEnabled,
     tokenGateEnabled,
@@ -111,12 +116,13 @@ function determineGuards(buffer: Buffer): Guards {
     nftPaymentEnabled,
     redeemedAmountEnabled,
     addressGateEnabled,
+    nftGateEnabled,
   ] = guards;
 
   return {
     botTaxEnabled,
-    lamportsEnabled,
-    splTokenEnabled,
+    solPaymentEnabled,
+    tokenPaymentEnabled,
     startDateEnabled,
     thirdPartySignerEnabled,
     tokenGateEnabled,
@@ -127,6 +133,7 @@ function determineGuards(buffer: Buffer): Guards {
     nftPaymentEnabled,
     redeemedAmountEnabled,
     addressGateEnabled,
+    nftGateEnabled,
   };
 }
 
@@ -158,8 +165,8 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   const {
     botTaxEnabled,
     startDateEnabled,
-    lamportsEnabled,
-    splTokenEnabled,
+    solPaymentEnabled,
+    tokenPaymentEnabled,
     thirdPartySignerEnabled,
     tokenGateEnabled,
     gatekeeperEnabled,
@@ -169,6 +176,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     nftPaymentEnabled,
     redeemedAmountEnabled,
     addressGateEnabled,
+    nftGateEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -184,16 +192,16 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.botTax;
   }
 
-  if (lamportsEnabled) {
-    const [lamports] = lamportsBeet.deserialize(buffer, cursor);
-    data.lamports = lamports;
-    cursor += GUARDS_SIZE.lamports;
+  if (solPaymentEnabled) {
+    const [solPayment] = solPaymentBeet.deserialize(buffer, cursor);
+    data.solPayment = solPayment;
+    cursor += GUARDS_SIZE.solPayment;
   }
 
-  if (splTokenEnabled) {
-    const [splToken] = splTokenBeet.deserialize(buffer, cursor);
-    data.splToken = splToken;
-    cursor += GUARDS_SIZE.splToken;
+  if (tokenPaymentEnabled) {
+    const [tokenPayment] = tokenPaymentBeet.deserialize(buffer, cursor);
+    data.tokenPayment = tokenPayment;
+    cursor += GUARDS_SIZE.tokenPayment;
   }
 
   if (startDateEnabled) {
@@ -256,12 +264,18 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.addressGate;
   }
 
+  if (nftGateEnabled) {
+    const [nftGate] = nftGateBeet.deserialize(buffer, cursor);
+    data.nftGate = nftGate;
+    cursor += GUARDS_SIZE.nftGate;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
+      solPayment: data.solPayment ?? null,
+      tokenPayment: data.tokenPayment ?? null,
       startDate: data.startDate ?? null,
-      lamports: data.lamports ?? null,
-      splToken: data.splToken ?? null,
       thirdPartySigner: data.thirdPartySigner ?? null,
       tokenGate: data.tokenGate ?? null,
       gatekeeper: data.gateKeeper ?? null,
@@ -271,6 +285,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       nftPayment: data.nftPayment ?? null,
       redemeedAmount: data.redeemedAmount ?? null,
       addressGate: data.addressGate ?? null,
+      nftGate: data.nftGate ?? null,
     },
     offset: cursor,
   };
