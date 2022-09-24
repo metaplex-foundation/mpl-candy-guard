@@ -24,6 +24,8 @@ pub enum CandyGuardError {
     GroupNotFound,
     #[msg("Group not found")]
     LabelExceededLength,
+    #[msg("Candy machine is empty")]
+    CandyMachineEmpty,
     // collection
     #[msg("Collection public key mismatch")]
     CollectionKeyMismatch,
@@ -56,11 +58,9 @@ pub enum CandyGuardError {
     // gatekeeper
     #[msg("Gateway token is not valid")]
     GatewayTokenInvalid,
-    // end settings
-    #[msg("Current time is after the set end settings date")]
-    AfterEndSettingsDate,
-    #[msg("Current items minted is at the set end settings amount")]
-    AfterEndSettingsMintAmount,
+    // end date
+    #[msg("Current time is after the set end date")]
+    AfterEndDate,
     // allow list
     #[msg("Current time is not within the allowed mint time")]
     InvalidMintTime,
@@ -72,4 +72,10 @@ pub enum CandyGuardError {
     AllowedMintLimitReached,
     #[msg("Invalid NFT Collection Payment")]
     InvalidNFTCollectionPayment,
+    // redeemed amount
+    #[msg("Current redemeed items is at the set maximum amount")]
+    MaximumRedeemedAmount,
+    // authority only
+    #[msg("Address not authorized")]
+    AddressNotAuthorized,
 }

@@ -21,13 +21,15 @@ test('mint limit', async (t) => {
       thirdPartySigner: null,
       tokenGate: null,
       gatekeeper: null,
-      endSettings: null,
+      endDate: null,
       allowList: null,
       mintLimit: {
         id: 0,
         limit: 1,
       },
       nftPayment: null,
+      redemeedAmount: null,
+      addressGate: null,
     },
     groups: null,
   };
@@ -155,13 +157,15 @@ test('mint limit (limit = 2)', async (t) => {
       thirdPartySigner: null,
       tokenGate: null,
       gatekeeper: null,
-      endSettings: null,
+      endDate: null,
       allowList: null,
       mintLimit: {
         id: 0,
         limit: 2,
       },
       nftPayment: null,
+      redemeedAmount: null,
+      addressGate: null,
     },
     groups: null,
   };

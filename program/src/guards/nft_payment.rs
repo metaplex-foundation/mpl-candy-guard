@@ -9,6 +9,8 @@ use mpl_token_metadata::{
 };
 use solana_program::program::invoke;
 
+/// Configurations options for the nft payment. This is a payment
+/// guard that charges another NFT (token) from a specific collection.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct NftPayment {
     pub burn: bool,

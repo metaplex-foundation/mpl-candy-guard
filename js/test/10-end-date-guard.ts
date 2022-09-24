@@ -5,21 +5,21 @@ const API = new InitTransactions();
 
 killStuckProcess();
 
-test('start date (in the past)', async (t) => {
+test('end date (in the past)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = {
     default: {
       botTax: null,
-      startDate: {
-        date: 1662479807,
-      },
+      startDate: null,
       lamports: null,
       splToken: null,
       thirdPartySigner: null,
       tokenGate: null,
       gatekeeper: null,
-      endDate: null,
+      endDate: {
+        date: 1663979606,
+      },
       allowList: null,
       mintLimit: null,
       nftPayment: null,
@@ -37,7 +37,7 @@ test('start date (in the past)', async (t) => {
     connection,
   );
 
-  // mint (as an authority)
+  // mint
 
   const [, mintForAuthority] = await amman.genLabeledKeypair('Mint Account (authority)');
   const { tx: authorityMintTx } = await API.mint(
@@ -49,9 +49,42 @@ test('start date (in the past)', async (t) => {
     fstTxHandler,
     connection,
   );
-  await authorityMintTx.assertSuccess(t);
+  await authorityMintTx.assertError(t, /time is after/i);
+});
 
-  // mint (as a minter)
+test('end date (in the future)', async (t) => {
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  const data = {
+    default: {
+      botTax: null,
+      startDate: null,
+      lamports: null,
+      splToken: null,
+      thirdPartySigner: null,
+      tokenGate: null,
+      gatekeeper: null,
+      endDate: {
+        date: 32534611200,
+      },
+      allowList: null,
+      mintLimit: null,
+      nftPayment: null,
+      redemeedAmount: null,
+      addressGate: null,
+    },
+    groups: null,
+  };
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+    connection,
+  );
+
+  // mint
 
   const {
     fstTxHandler: minterHandler,
@@ -69,56 +102,4 @@ test('start date (in the past)', async (t) => {
     minterConnection,
   );
   await minterMintTx.assertSuccess(t);
-});
-
-test('start date (in the future)', async (t) => {
-  const { fstTxHandler, payerPair, connection } = await API.payer();
-
-  const data = {
-    default: {
-      botTax: null,
-      startDate: {
-        date: 1671926400,
-      },
-      lamports: null,
-      splToken: null,
-      thirdPartySigner: null,
-      tokenGate: null,
-      gatekeeper: null,
-      endDate: null,
-      allowList: null,
-      mintLimit: null,
-      nftPayment: null,
-      redemeedAmount: null,
-      addressGate: null,
-    },
-    groups: null,
-  };
-
-  const { candyGuard, candyMachine } = await API.deploy(
-    t,
-    data,
-    payerPair,
-    fstTxHandler,
-    connection,
-  );
-
-  // mint (as a minter)
-
-  const {
-    fstTxHandler: minterHandler,
-    minterPair: minter,
-    connection: minterConnection,
-  } = await API.minter();
-  const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const { tx: minterMintTx } = await API.mint(
-    t,
-    candyGuard,
-    candyMachine,
-    minter,
-    mintForMinter,
-    minterHandler,
-    minterConnection,
-  );
-  await minterMintTx.assertError(t, /Mint is not live/i);
 });

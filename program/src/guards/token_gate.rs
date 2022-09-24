@@ -2,6 +2,8 @@ use super::*;
 
 use crate::utils::*;
 
+/// Configurations options for the token gate. This guard only
+/// allows addresses that hold the specified spl-token.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TokenGate {
     pub mint: Pubkey,

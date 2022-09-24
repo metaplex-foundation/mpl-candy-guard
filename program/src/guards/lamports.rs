@@ -4,6 +4,8 @@ use solana_program::{program::invoke, system_instruction};
 
 use crate::{errors::CandyGuardError, utils::assert_keys_equal};
 
+/// Configurations options for the lamports. This is a payment
+/// guard that charges in SOL.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct Lamports {
     pub amount: u64,
@@ -49,8 +51,6 @@ impl Condition for Lamports {
             return err!(CandyGuardError::NotEnoughSOL);
         }
 
-        evaluation_context.lamports = self.amount;
-
         Ok(())
     }
 
@@ -61,18 +61,6 @@ impl Condition for Lamports {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        // sanity check: other guards might have updated the price on the
-        // evaluation context. While it would be usually to decrease the
-        // value, we need to check that there is enough balance on the account
-        if ctx.accounts.payer.lamports() < evaluation_context.lamports {
-            msg!(
-                "Require {} lamports, accounts has {} lamports",
-                evaluation_context.lamports,
-                ctx.accounts.payer.lamports(),
-            );
-            return err!(CandyGuardError::NotEnoughSOL);
-        }
-
         let destination =
             Self::get_account_info(ctx, evaluation_context.indices["lamports_destination"])?;
 
@@ -80,7 +68,7 @@ impl Condition for Lamports {
             &system_instruction::transfer(
                 &ctx.accounts.payer.key(),
                 &destination.key(),
-                evaluation_context.lamports,
+                self.amount,
             ),
             &[
                 ctx.accounts.payer.to_account_info(),

@@ -238,13 +238,33 @@ createErrorFromCodeLookup.set(0x177a, () => new LabelExceededLengthError());
 createErrorFromNameLookup.set('LabelExceededLength', () => new LabelExceededLengthError());
 
 /**
+ * CandyMachineEmpty: 'Candy machine is empty'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class CandyMachineEmptyError extends Error {
+  readonly code: number = 0x177b;
+  readonly name: string = 'CandyMachineEmpty';
+  constructor() {
+    super('Candy machine is empty');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, CandyMachineEmptyError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x177b, () => new CandyMachineEmptyError());
+createErrorFromNameLookup.set('CandyMachineEmpty', () => new CandyMachineEmptyError());
+
+/**
  * CollectionKeyMismatch: 'Collection public key mismatch'
  *
  * @category Errors
  * @category generated
  */
 export class CollectionKeyMismatchError extends Error {
-  readonly code: number = 0x177b;
+  readonly code: number = 0x177c;
   readonly name: string = 'CollectionKeyMismatch';
   constructor() {
     super('Collection public key mismatch');
@@ -254,7 +274,7 @@ export class CollectionKeyMismatchError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177b, () => new CollectionKeyMismatchError());
+createErrorFromCodeLookup.set(0x177c, () => new CollectionKeyMismatchError());
 createErrorFromNameLookup.set('CollectionKeyMismatch', () => new CollectionKeyMismatchError());
 
 /**
@@ -264,7 +284,7 @@ createErrorFromNameLookup.set('CollectionKeyMismatch', () => new CollectionKeyMi
  * @category generated
  */
 export class MissingCollectionAccountsError extends Error {
-  readonly code: number = 0x177c;
+  readonly code: number = 0x177d;
   readonly name: string = 'MissingCollectionAccounts';
   constructor() {
     super('Missing collection accounts');
@@ -274,7 +294,7 @@ export class MissingCollectionAccountsError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177c, () => new MissingCollectionAccountsError());
+createErrorFromCodeLookup.set(0x177d, () => new MissingCollectionAccountsError());
 createErrorFromNameLookup.set(
   'MissingCollectionAccounts',
   () => new MissingCollectionAccountsError(),
@@ -287,7 +307,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class CollectionUpdateAuthorityKeyMismatchError extends Error {
-  readonly code: number = 0x177d;
+  readonly code: number = 0x177e;
   readonly name: string = 'CollectionUpdateAuthorityKeyMismatch';
   constructor() {
     super('Collection update authority public key mismatch');
@@ -297,7 +317,7 @@ export class CollectionUpdateAuthorityKeyMismatchError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177d, () => new CollectionUpdateAuthorityKeyMismatchError());
+createErrorFromCodeLookup.set(0x177e, () => new CollectionUpdateAuthorityKeyMismatchError());
 createErrorFromNameLookup.set(
   'CollectionUpdateAuthorityKeyMismatch',
   () => new CollectionUpdateAuthorityKeyMismatchError(),
@@ -310,7 +330,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class MintNotLastTransactionError extends Error {
-  readonly code: number = 0x177e;
+  readonly code: number = 0x177f;
   readonly name: string = 'MintNotLastTransaction';
   constructor() {
     super('Mint must be the last instructions of the transaction');
@@ -320,7 +340,7 @@ export class MintNotLastTransactionError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177e, () => new MintNotLastTransactionError());
+createErrorFromCodeLookup.set(0x177f, () => new MintNotLastTransactionError());
 createErrorFromNameLookup.set('MintNotLastTransaction', () => new MintNotLastTransactionError());
 
 /**
@@ -330,7 +350,7 @@ createErrorFromNameLookup.set('MintNotLastTransaction', () => new MintNotLastTra
  * @category generated
  */
 export class MintNotLiveError extends Error {
-  readonly code: number = 0x177f;
+  readonly code: number = 0x1780;
   readonly name: string = 'MintNotLive';
   constructor() {
     super('Mint is not live');
@@ -340,7 +360,7 @@ export class MintNotLiveError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177f, () => new MintNotLiveError());
+createErrorFromCodeLookup.set(0x1780, () => new MintNotLiveError());
 createErrorFromNameLookup.set('MintNotLive', () => new MintNotLiveError());
 
 /**
@@ -350,7 +370,7 @@ createErrorFromNameLookup.set('MintNotLive', () => new MintNotLiveError());
  * @category generated
  */
 export class NotEnoughSOLError extends Error {
-  readonly code: number = 0x1780;
+  readonly code: number = 0x1781;
   readonly name: string = 'NotEnoughSOL';
   constructor() {
     super('Not enough SOL to pay for the mint');
@@ -360,7 +380,7 @@ export class NotEnoughSOLError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1780, () => new NotEnoughSOLError());
+createErrorFromCodeLookup.set(0x1781, () => new NotEnoughSOLError());
 createErrorFromNameLookup.set('NotEnoughSOL', () => new NotEnoughSOLError());
 
 /**
@@ -370,7 +390,7 @@ createErrorFromNameLookup.set('NotEnoughSOL', () => new NotEnoughSOLError());
  * @category generated
  */
 export class TokenTransferFailedError extends Error {
-  readonly code: number = 0x1781;
+  readonly code: number = 0x1782;
   readonly name: string = 'TokenTransferFailed';
   constructor() {
     super('Token transfer failed');
@@ -380,7 +400,7 @@ export class TokenTransferFailedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1781, () => new TokenTransferFailedError());
+createErrorFromCodeLookup.set(0x1782, () => new TokenTransferFailedError());
 createErrorFromNameLookup.set('TokenTransferFailed', () => new TokenTransferFailedError());
 
 /**
@@ -390,7 +410,7 @@ createErrorFromNameLookup.set('TokenTransferFailed', () => new TokenTransferFail
  * @category generated
  */
 export class NotEnoughTokensError extends Error {
-  readonly code: number = 0x1782;
+  readonly code: number = 0x1783;
   readonly name: string = 'NotEnoughTokens';
   constructor() {
     super('Not enough tokens to pay for this minting');
@@ -400,7 +420,7 @@ export class NotEnoughTokensError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1782, () => new NotEnoughTokensError());
+createErrorFromCodeLookup.set(0x1783, () => new NotEnoughTokensError());
 createErrorFromNameLookup.set('NotEnoughTokens', () => new NotEnoughTokensError());
 
 /**
@@ -410,7 +430,7 @@ createErrorFromNameLookup.set('NotEnoughTokens', () => new NotEnoughTokensError(
  * @category generated
  */
 export class MissingRequiredSignatureError extends Error {
-  readonly code: number = 0x1783;
+  readonly code: number = 0x1784;
   readonly name: string = 'MissingRequiredSignature';
   constructor() {
     super('A signature was required but not found');
@@ -420,7 +440,7 @@ export class MissingRequiredSignatureError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1783, () => new MissingRequiredSignatureError());
+createErrorFromCodeLookup.set(0x1784, () => new MissingRequiredSignatureError());
 createErrorFromNameLookup.set(
   'MissingRequiredSignature',
   () => new MissingRequiredSignatureError(),
@@ -433,7 +453,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class TokenBurnFailedError extends Error {
-  readonly code: number = 0x1784;
+  readonly code: number = 0x1785;
   readonly name: string = 'TokenBurnFailed';
   constructor() {
     super('Token burn failed');
@@ -443,7 +463,7 @@ export class TokenBurnFailedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1784, () => new TokenBurnFailedError());
+createErrorFromCodeLookup.set(0x1785, () => new TokenBurnFailedError());
 createErrorFromNameLookup.set('TokenBurnFailed', () => new TokenBurnFailedError());
 
 /**
@@ -453,7 +473,7 @@ createErrorFromNameLookup.set('TokenBurnFailed', () => new TokenBurnFailedError(
  * @category generated
  */
 export class MissingTokenGateError extends Error {
-  readonly code: number = 0x1785;
+  readonly code: number = 0x1786;
   readonly name: string = 'MissingTokenGate';
   constructor() {
     super('Missing token gate');
@@ -463,7 +483,7 @@ export class MissingTokenGateError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1785, () => new MissingTokenGateError());
+createErrorFromCodeLookup.set(0x1786, () => new MissingTokenGateError());
 createErrorFromNameLookup.set('MissingTokenGate', () => new MissingTokenGateError());
 
 /**
@@ -473,7 +493,7 @@ createErrorFromNameLookup.set('MissingTokenGate', () => new MissingTokenGateErro
  * @category generated
  */
 export class GatewayTokenInvalidError extends Error {
-  readonly code: number = 0x1786;
+  readonly code: number = 0x1787;
   readonly name: string = 'GatewayTokenInvalid';
   constructor() {
     super('Gateway token is not valid');
@@ -483,51 +503,28 @@ export class GatewayTokenInvalidError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1786, () => new GatewayTokenInvalidError());
+createErrorFromCodeLookup.set(0x1787, () => new GatewayTokenInvalidError());
 createErrorFromNameLookup.set('GatewayTokenInvalid', () => new GatewayTokenInvalidError());
 
 /**
- * AfterEndSettingsDate: 'Current time is after the set end settings date'
+ * AfterEndDate: 'Current time is after the set end date'
  *
  * @category Errors
  * @category generated
  */
-export class AfterEndSettingsDateError extends Error {
-  readonly code: number = 0x1787;
-  readonly name: string = 'AfterEndSettingsDate';
-  constructor() {
-    super('Current time is after the set end settings date');
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, AfterEndSettingsDateError);
-    }
-  }
-}
-
-createErrorFromCodeLookup.set(0x1787, () => new AfterEndSettingsDateError());
-createErrorFromNameLookup.set('AfterEndSettingsDate', () => new AfterEndSettingsDateError());
-
-/**
- * AfterEndSettingsMintAmount: 'Current items minted is at the set end settings amount'
- *
- * @category Errors
- * @category generated
- */
-export class AfterEndSettingsMintAmountError extends Error {
+export class AfterEndDateError extends Error {
   readonly code: number = 0x1788;
-  readonly name: string = 'AfterEndSettingsMintAmount';
+  readonly name: string = 'AfterEndDate';
   constructor() {
-    super('Current items minted is at the set end settings amount');
+    super('Current time is after the set end date');
     if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, AfterEndSettingsMintAmountError);
+      Error.captureStackTrace(this, AfterEndDateError);
     }
   }
 }
 
-createErrorFromCodeLookup.set(0x1788, () => new AfterEndSettingsMintAmountError());
-createErrorFromNameLookup.set(
-  'AfterEndSettingsMintAmount',
-  () => new AfterEndSettingsMintAmountError(),
-);
+createErrorFromCodeLookup.set(0x1788, () => new AfterEndDateError());
+createErrorFromNameLookup.set('AfterEndDate', () => new AfterEndDateError());
 
 /**
  * InvalidMintTime: 'Current time is not within the allowed mint time'
@@ -634,6 +631,46 @@ createErrorFromNameLookup.set(
   'InvalidNFTCollectionPayment',
   () => new InvalidNFTCollectionPaymentError(),
 );
+
+/**
+ * MaximumRedeemedAmount: 'Current redemeed items is at the set maximum amount'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class MaximumRedeemedAmountError extends Error {
+  readonly code: number = 0x178e;
+  readonly name: string = 'MaximumRedeemedAmount';
+  constructor() {
+    super('Current redemeed items is at the set maximum amount');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, MaximumRedeemedAmountError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x178e, () => new MaximumRedeemedAmountError());
+createErrorFromNameLookup.set('MaximumRedeemedAmount', () => new MaximumRedeemedAmountError());
+
+/**
+ * AddressNotAuthorized: 'Address not authorized'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AddressNotAuthorizedError extends Error {
+  readonly code: number = 0x178f;
+  readonly name: string = 'AddressNotAuthorized';
+  constructor() {
+    super('Address not authorized');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AddressNotAuthorizedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x178f, () => new AddressNotAuthorizedError());
+createErrorFromNameLookup.set('AddressNotAuthorized', () => new AddressNotAuthorizedError());
 
 /**
  * Attempts to resolve a custom program error from the provided error code.

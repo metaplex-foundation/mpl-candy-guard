@@ -6,20 +6,12 @@
  */
 
 import * as beet from '@metaplex-foundation/beet';
-import { EndSettingType, endSettingTypeBeet } from './EndSettingType';
-export type EndSettings = {
-  endSettingType: EndSettingType;
-  number: beet.bignum;
+export type EndDate = {
+  date: beet.bignum;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const endSettingsBeet = new beet.BeetArgsStruct<EndSettings>(
-  [
-    ['endSettingType', endSettingTypeBeet],
-    ['number', beet.u64],
-  ],
-  'EndSettings',
-);
+export const endDateBeet = new beet.BeetArgsStruct<EndDate>([['date', beet.i64]], 'EndDate');

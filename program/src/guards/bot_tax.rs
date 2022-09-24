@@ -8,8 +8,12 @@ use solana_program::{
 use super::*;
 use crate::{errors::CandyGuardError, utils::cmp_pubkeys};
 
-const A_TOKEN: Pubkey = solana_program::pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-
+/// Configurations options for bot tax. This guard is used to:
+/// * charge a penalty for invalid transactions.
+/// * validate that the mint transaction is the last transaction.
+///
+/// The `bot_tax` is applied to any error that occurs during the
+/// validation of the guards.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct BotTax {
     pub lamports: u64,
@@ -76,7 +80,7 @@ impl Condition for BotTax {
                         &program_id,
                         &anchor_lang::solana_program::system_program::ID,
                     )
-                    && !cmp_pubkeys(&program_id, &A_TOKEN)
+                    && !cmp_pubkeys(&program_id, &spl_associated_token_account::ID)
                 {
                     msg!("Transaction had ix with program id {}", program_id);
                     return err!(CandyGuardError::MintNotLastTransaction);
