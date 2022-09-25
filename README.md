@@ -15,6 +15,8 @@ The access control on a Candy Guard is encapsulated in individuals guards repres
 
 ### How the program works?
 
+![image](https://user-images.githubusercontent.com/729235/192137030-4ee8affa-ee6d-4a56-a273-e17ce64723f9.png)
+
 The main purpose of the Candy Guard program is to hold the configuration of mint **guards** and apply them before a user can mint from a candy machine. If all enabled guard conditions are valid, the mint transaction is forwarded to the Candy Machine.
 
 When a mint transaction is received, the program performs the following steps:
@@ -73,13 +75,13 @@ This instruction creates and initializes a new `CandyGuard` account.
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description |
-| ----------------------------- | :------: | :----: | ----------- |
-| `candy_guard`               | ✅       |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
-| `base`               |        | ✅      | Base public key for the PDA derivation. |
-| `authority`                   |          |        | Public key of the candy guard authority. |
-| `payer`                       |          | ✅     | Payer of the transaction. |
-| `system_program`              |          |        | `SystemProgram` account. |
+| Name                 | Writable | Signer | Description |
+| ---------------------| :------: | :----: | ----------- |
+| `candy_guard`        | ✅       |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
+| `base`               |          | ✅     | Base public key for the PDA derivation. |
+| `authority`          |          |        | Public key of the candy guard authority. |
+| `payer`              |          | ✅     | Payer of the transaction. |
+| `system_program`     |          |        | `SystemProgram` account. |
 </details>
 
 <details>
@@ -101,7 +103,7 @@ This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. O
 | Name                          | Writable | Signer | Description |
 | ----------------------------- | :------: | :----: | ----------- |
 | `candy_guard`                 |          |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
-| `candy_machine_program`       |       |        | `CandyMachine` program ID. |
+| `candy_machine_program`       |          |        | `CandyMachine` program ID. |
 | `candy_machine`               | ✅       |        | The `CandyMachine` account. |
 | `candy_machine_authority_pda` | ✅       |        | Authority PDA key (seeds `["candy_machine", candy_machine pubkey]`). |
 | `payer`                       | ✅       | ✅     | Payer of the transaction. |
@@ -133,7 +135,7 @@ This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. O
 </details>
 
 
-### 📄 `Unwrap`
+### 📄 `unwrap`
 
 This instruction removes a Candy Guard from a Candy Machine, setting the mint authority of the Candy Machine to be the Candy Machine authority. The Candy Gard `public key` must match the Candy Machine `mint_authority` for this instruction to succeed.
 
@@ -146,7 +148,7 @@ This instruction removes a Candy Guard from a Candy Machine, setting the mint au
 | `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
 | `candy_machine`           | ✅       |        | The `CandyMachine` account. |
 | `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
-| `candy_machine_program`    |         |        | `CandyMachine` program ID. |
+| `candy_machine_program`   |          |        | `CandyMachine` program ID. |
 </details>
 
 <details>
@@ -190,7 +192,7 @@ This instruction withdraws the rent lamports from the account and closes it. Aft
 | Name          | Writable | Signer | Description |
 | --------------| :------: | :----: | ----------- |
 | `candy_guard` | ✅       |        | The `CandyGuard` account. |
-| `authority`   | ✅       | ✅      | Public key of the `candy_guard` authority. |
+| `authority`   | ✅       | ✅     | Public key of the `candy_guard` authority. |
 </details>
 
 <details>
@@ -200,7 +202,7 @@ None.
 </details>
 
 
-### 📄 `Wrap`
+### 📄 `wrap`
 
 This instruction adds a Candy Guard to a Candy Machine. After the guard is added, minting is only allowed through the Candy Guard.
 
@@ -213,7 +215,7 @@ This instruction adds a Candy Guard to a Candy Machine. After the guard is added
 | `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
 | `candy_machine`           | ✅       |        | The `CandyMachine` account. |
 | `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
-| `candy_machine_program`    |         |        | `CandyMachine` program ID. |
+| `candy_machine_program`   |          |        | `CandyMachine` program ID. |
 </details>
 
 <details>
