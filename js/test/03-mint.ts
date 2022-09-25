@@ -322,3 +322,109 @@ test('mint from group', async (t) => {
 
   await minterMintTx2.assertSuccess(t);
 });
+
+test('mint from group (bot tax)', async (t) => {
+  // deploys a candy guard with a mint limit
+
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  // date of the 'default' guard is way in the future
+  const data = newCandyGuardData();
+  data.default.botTax = {
+    lamports: 1000000000,
+    lastInstruction: true,
+  };
+  data.default.startDate = {
+    date: 64091606400,
+  };
+  data.groups = [];
+
+  // VIP
+  const vipGroup = newGuardSet();
+  vipGroup.startDate = {
+    date: 1662394820,
+  };
+  vipGroup.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups.push({
+    label: 'VIP',
+    guards: vipGroup,
+  });
+
+  // OGs
+  const ogGroup = newGuardSet();
+  ogGroup.startDate = {
+    date: 1662394820,
+  };
+  ogGroup.solPayment = {
+    lamports: new BN(50000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups.push({
+    label: 'OGs',
+    guards: ogGroup,
+  });
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+    connection,
+  );
+
+  // mint (as a minter)
+
+  const {
+    fstTxHandler: minterHandler,
+    minterPair: minterKeypair,
+    connection: minterConnection,
+  } = await API.minter();
+
+  const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
+
+  const accounts: AccountMeta[] = [];
+  accounts.push({
+    pubkey: payerPair.publicKey,
+    isSigner: false,
+    isWritable: true,
+  });
+
+  // without specifying a group (bot tax apply)
+
+  const { tx: minterMintTx1 } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterKeypair,
+    mintForMinter,
+    minterHandler,
+    minterConnection,
+    accounts,
+    null,
+    null,
+  );
+
+  await minterMintTx1.assertSuccess(t, [/Botting/i]);
+
+  // specifying a group
+
+  const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account 2 (minter)');
+
+  const { tx: minterMintTx2 } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterKeypair,
+    mintForMinter2,
+    minterHandler,
+    minterConnection,
+    accounts,
+    null,
+    'OGs',
+  );
+
+  await minterMintTx2.assertSuccess(t);
+});
