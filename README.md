@@ -8,14 +8,12 @@ The new `Candy Guard` program is designed to take away the **access control** lo
 
 The access control on a Candy Guard is encapsulated in individuals guards representing a specific rule that needs to be satisfied, which can be enabled or disabled. For example, the live date of the mint is represented as the `LiveDate` guard. This guard is satisfied only if the transaction time is on or after the configured start time on the guard. Other guards can validate different aspects of the access control – e.g., ensuring that the user holds a specific token (token gating).
 
-> **Note:**
-> The Candy Guard program can only be used in combination with `Candy Machine Core` (`Candy Machine V3`) accounts.
->
-> When a Candy Guard is used in combination with a Candy Machine, it becomes its mint authority and minting is only possible through the Candy Guard.
+> **Note**
+> The Candy Guard program can only be used in combination with `Candy Machine Core` (`Candy Machine V3`) accounts. When a Candy Guard is used in combination with a Candy Machine, it becomes its mint authority and minting is only possible through the Candy Guard.
 
 ### How the program works?
 
-![image](https://user-images.githubusercontent.com/729235/192137030-4ee8affa-ee6d-4a56-a273-e17ce64723f9.png)
+![image](https://user-images.githubusercontent.com/729235/192138780-9c0574c6-109a-4b65-8184-cdeeb024af75.png)
 
 The main purpose of the Candy Guard program is to hold the configuration of mint **guards** and apply them before a user can mint from a candy machine. If all enabled guard conditions are valid, the mint transaction is forwarded to the Candy Machine.
 
@@ -29,21 +27,22 @@ When a mint transaction is received, the program performs the following steps:
 
 A **guard** is a modular piece of code that can be easily added to the Candy Guard program, providing great flexibility and simplicity to support specific features without having to modify directly the Candy Machine program. Adding new guards is supported by conforming to specific interfaces, with changes isolated to the individual guard – e.g., each guard can be created and modified in isolation. This architecture also provides the flexibility to enable/disable guards without requiring code changes, as each guard has an enable/disable "switch".
 
-### Guards
-
 The Candy Guard program contains a set of core access control guards that can be enabled/disabled:
 
-- `BotTax`: configurable tax (amount) to charge invalid transactions
-- `Lamports`: set the price of the mint in SOL
-- `SplToken`: set the price of the mint in spl-token amount
-- `LiveDate`: controls when the mint is allowed
-- `ThirdPartySigner`: requires an additional signer on the transaction 
-- `Whitelist`: allows the creation of a whitelist with specific mint date and discount price
-- `Gatekeeper`: captcha integration
-- `EndSettings`: determines a rule to end the mint period based on date or amount
+- `AddressGate`: restricts the mint to a single address
 - `AllowList`: uses a wallet address list to determine who is allowed to mint
-- `MintLimit`: enforces mint limits on wallet addresses
-- `NftPayment`: requires an NFT as a payment method
+- `BotTax`: configurable tax (amount) to charge invalid transactions
+- `EndDate`: determines a date to end the mint
+- `Gatekeeper`: captcha integration
+- `MintLimit`: specified a limit on the number of mints per wallet
+- `NftGate`: restricts the mint to holders of a specified collection
+- `NftPayment`: set the price of the mint as an NFT of a specified collection
+- `RedeemedAmount`: determines the end of the mint based on a total amount minted
+- `SolPayment`: set the price of the mint in SOL
+- `StartDate`: determines the start date of the mint
+- `ThirdPartySigner`: requires an additional signer on the transaction 
+- `TokenGate`: restricts the mint to holders of a specified spl-token
+- `TokenPayment`: set the price of the mint in spl-token amount
 
 ## Account
 
@@ -60,8 +59,8 @@ The Candy Guard configuration is stored in a single account. The information reg
 | - *guard set*     | 81     | ~     | (optional) A sequence of serialized guard structs. |
 | - *group counter* | ~      | 4     | `u32` specifying the number of groups in use. |
 | - *groups*        | ~      | ~     | (optional) A variable number of `Group` structs representing different guard sets. Each groups is defined by:  |
-| -- *label*        | ~      | 6     | A sequence of serialized guard structs. |
-| -- *features*     | ~      | 8     |  Feature flags indicating which guards are serialized for the group. |
+| -- *label*        | ~      | 6     | The label of the group. |
+| -- *features*     | ~      | 8     | Feature flags indicating which guards are serialized for the group. |
 | -- *guard set*    | ~      | ~     | (optional) A sequence of serialized guard structs. |
 
 Since the number of guards enabled and groups is variable, the account size is dynamically resized during the `update` instruction to accommodate the updated configuration.
@@ -216,6 +215,111 @@ This instruction adds a Candy Guard to a Candy Machine. After the guard is added
 | `candy_machine`           | ✅       |        | The `CandyMachine` account. |
 | `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
 | `candy_machine_program`   |          |        | `CandyMachine` program ID. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+None.
+</details>
+
+## Guards
+
+### `AddressGate`
+```rust
+pub struct AddressGate {
+    address: Pubkey,
+}
+```
+The `AddressGate` guard restricts the mint to a single `address` &mdash; the `address` must match the payer's address of the mint transaction.
+
+### `AllowList`
+```rust
+pub struct AllowList {
+    pub merkle_root: [u8; 32],
+}
+```
+The `AllowList` guard validates the payer's address against a merkle tree-based allow list of addresses. It required the root of the merkle tree as a configuration and the mint transaction must include the information of the merkle proof leaves &mdash; the proof is passed to the mint transaction using the `mint_args` parameter. The transaction will fail if either the address is not part on the merkle tree or no proof arguments is specified.
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument                      | Size | Description               |
+| ----------------------------- | ---- | ------------------------- |
+| `merkle_proof`                | ~    | `Vec` of the hash values. |
+</details>
+
+
+### `BotTax`
+```rust
+pub struct BotTax {
+    pub lamports: u64,
+    pub last_instruction: bool,
+}
+```
+The `BotTax` guard is used to:
+- charge a penalty for invalid transactions. The value of the penalty is specified by the `lamports` configuration.
+- validate that the mint transaction is the last transaction (`last_instruction = true`).
+
+The `bot_tax` is applied to any error that occurs during the validation of the guards.
+
+### `EndDate`
+```rust
+pub struct EndDate {
+    pub date: i64,
+}
+```
+The `EndDate` guard is used to specify a date to end the mint. Any transaction received after the end date will fail.
+
+### `Gatekeeper`
+```rust
+pub struct Gatekeeper {
+    pub gatekeeper_network: Pubkey,
+    pub expire_on_use: bool,
+}
+```
+The `Gatekeeper` guard validates if the payer of the transaction has a *token* from a specified gateway network &mdash; in most cases, a *token* after completing a captcha challenge. The `expeire_on_use` configuration is used to indicate whether or not the token should expire after minting.
+
+### `MintLimit`
+```rust
+pub struct MintLimit {
+    pub id: u8,
+    pub limit: u16,
+}
+```
+The `MintLimit` guard allows to specify a limit on the number of mints for each individual address. The `id` configuration represents the unique identification for the limit &mdash; changing the `id` has the effect of restarting the limit, since a different tracking account will be created. The `limit` indicated the maximum number of mints allowed.
+
+### `NftGate`
+```rust
+pub struct NftGate {
+    pub required_collection: Pubkey,
+}
+```
+The `NftGate` guard restricts the mint to holders of a specified `required_collection` NFT collection. The payer is required to hold at least one NFT of the collection.
+
+### `NftPayment`
+```rust
+pub struct NftPayment {
+    pub burn: bool,
+    pub required_collection: Pubkey,
+}
+```
+The `NftPayment` guard is a payment guard that charges nother NFT (token) from a specific collection for the mint. The NFT can either be burned (`burn = true`) or transfered (`burn = false`).
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `token_account`            | ✅      |        | Token account of the NFT. |
+| `token_metadata`           | ✅      |        | Metadata account of the NFT. |
+| *only if burn*             |         |        |             |
+| `token_edition`            | ✅      |        | Master Edition account of the NFT. |
+| `mint_account`             | ✅      |        | Mint account of the NFT. |
+| `mint_collection_metadata` | ✅      |        | Collection metadata account of the NFT. |
+| *only if transfer*         |         |        |             |
+| `transfer_authority`       |         | ✅     | Transfer authority. |
+| `destination_ata`          | ✅      |        | Token account for the transfer of the NFT. |
 </details>
 
 <details>
