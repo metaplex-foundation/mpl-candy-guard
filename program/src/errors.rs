@@ -42,19 +42,18 @@ pub enum CandyGuardError {
     // native price
     #[msg("Not enough SOL to pay for the mint")]
     NotEnoughSOL,
-    // spl-token price
+    // token burn
+    #[msg("Token burn failed")]
+    TokenBurnFailed,
+    // token burn/gate/payment
+    #[msg("Not enough tokens on the account")]
+    NotEnoughTokens,
+    // token payment
     #[msg("Token transfer failed")]
     TokenTransferFailed,
-    #[msg("Not enough tokens to pay for this minting")]
-    NotEnoughTokens,
     // third-party signer
     #[msg("A signature was required but not found")]
     MissingRequiredSignature,
-    // token gate
-    #[msg("Token burn failed")]
-    TokenBurnFailed,
-    #[msg("Missing token gate")]
-    MissingToken,
     // gatekeeper
     #[msg("Gateway token is not valid")]
     GatewayTokenInvalid,
@@ -70,8 +69,12 @@ pub enum CandyGuardError {
     MissingAllowedListProof,
     #[msg("The maximum number of allowed mints was reached")]
     AllowedMintLimitReached,
-    #[msg("Invalid NFT Collection Payment")]
-    InvalidNFTCollectionPayment,
+    // nft burn/gate/payment
+    #[msg("Invalid NFT collection")]
+    InvalidNftCollection,
+    // nft burn/gate/payment
+    #[msg("Missing NFT on the account")]
+    MissingNft,
     // redeemed amount
     #[msg("Current redemeed items is at the set maximum amount")]
     MaximumRedeemedAmount,

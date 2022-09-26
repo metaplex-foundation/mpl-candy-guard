@@ -53,19 +53,19 @@ impl NftGate {
         owner: &Pubkey,
     ) -> Result<()> {
         let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
-        // validates the account information
+        // validates the metadata information
         assert_keys_equal(nft_metadata.owner, &mpl_token_metadata::id())?;
+
+        match metadata.collection {
+            Some(c) if c.verified && c.key == *collection => Ok(()),
+            _ => Err(CandyGuardError::InvalidNftCollection),
+        }?;
 
         let account = assert_is_token_account(nft_account, owner, &metadata.mint)?;
 
         if account.amount < 1 {
-            return err!(CandyGuardError::NotEnoughTokens);
+            return err!(CandyGuardError::MissingNft);
         }
-
-        match metadata.collection {
-            Some(c) if c.verified && c.key == *collection => Ok(()),
-            _ => Err(CandyGuardError::InvalidNFTCollectionPayment),
-        }?;
 
         Ok(())
     }

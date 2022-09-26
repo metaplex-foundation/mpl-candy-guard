@@ -384,27 +384,27 @@ createErrorFromCodeLookup.set(0x1781, () => new NotEnoughSOLError());
 createErrorFromNameLookup.set('NotEnoughSOL', () => new NotEnoughSOLError());
 
 /**
- * TokenTransferFailed: 'Token transfer failed'
+ * TokenBurnFailed: 'Token burn failed'
  *
  * @category Errors
  * @category generated
  */
-export class TokenTransferFailedError extends Error {
+export class TokenBurnFailedError extends Error {
   readonly code: number = 0x1782;
-  readonly name: string = 'TokenTransferFailed';
+  readonly name: string = 'TokenBurnFailed';
   constructor() {
-    super('Token transfer failed');
+    super('Token burn failed');
     if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, TokenTransferFailedError);
+      Error.captureStackTrace(this, TokenBurnFailedError);
     }
   }
 }
 
-createErrorFromCodeLookup.set(0x1782, () => new TokenTransferFailedError());
-createErrorFromNameLookup.set('TokenTransferFailed', () => new TokenTransferFailedError());
+createErrorFromCodeLookup.set(0x1782, () => new TokenBurnFailedError());
+createErrorFromNameLookup.set('TokenBurnFailed', () => new TokenBurnFailedError());
 
 /**
- * NotEnoughTokens: 'Not enough tokens to pay for this minting'
+ * NotEnoughTokens: 'Not enough tokens on the account'
  *
  * @category Errors
  * @category generated
@@ -413,7 +413,7 @@ export class NotEnoughTokensError extends Error {
   readonly code: number = 0x1783;
   readonly name: string = 'NotEnoughTokens';
   constructor() {
-    super('Not enough tokens to pay for this minting');
+    super('Not enough tokens on the account');
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, NotEnoughTokensError);
     }
@@ -424,13 +424,33 @@ createErrorFromCodeLookup.set(0x1783, () => new NotEnoughTokensError());
 createErrorFromNameLookup.set('NotEnoughTokens', () => new NotEnoughTokensError());
 
 /**
+ * TokenTransferFailed: 'Token transfer failed'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class TokenTransferFailedError extends Error {
+  readonly code: number = 0x1784;
+  readonly name: string = 'TokenTransferFailed';
+  constructor() {
+    super('Token transfer failed');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, TokenTransferFailedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1784, () => new TokenTransferFailedError());
+createErrorFromNameLookup.set('TokenTransferFailed', () => new TokenTransferFailedError());
+
+/**
  * MissingRequiredSignature: 'A signature was required but not found'
  *
  * @category Errors
  * @category generated
  */
 export class MissingRequiredSignatureError extends Error {
-  readonly code: number = 0x1784;
+  readonly code: number = 0x1785;
   readonly name: string = 'MissingRequiredSignature';
   constructor() {
     super('A signature was required but not found');
@@ -440,51 +460,11 @@ export class MissingRequiredSignatureError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1784, () => new MissingRequiredSignatureError());
+createErrorFromCodeLookup.set(0x1785, () => new MissingRequiredSignatureError());
 createErrorFromNameLookup.set(
   'MissingRequiredSignature',
   () => new MissingRequiredSignatureError(),
 );
-
-/**
- * TokenBurnFailed: 'Token burn failed'
- *
- * @category Errors
- * @category generated
- */
-export class TokenBurnFailedError extends Error {
-  readonly code: number = 0x1785;
-  readonly name: string = 'TokenBurnFailed';
-  constructor() {
-    super('Token burn failed');
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, TokenBurnFailedError);
-    }
-  }
-}
-
-createErrorFromCodeLookup.set(0x1785, () => new TokenBurnFailedError());
-createErrorFromNameLookup.set('TokenBurnFailed', () => new TokenBurnFailedError());
-
-/**
- * MissingToken: 'Missing token gate'
- *
- * @category Errors
- * @category generated
- */
-export class MissingTokenError extends Error {
-  readonly code: number = 0x1786;
-  readonly name: string = 'MissingToken';
-  constructor() {
-    super('Missing token gate');
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, MissingTokenError);
-    }
-  }
-}
-
-createErrorFromCodeLookup.set(0x1786, () => new MissingTokenError());
-createErrorFromNameLookup.set('MissingToken', () => new MissingTokenError());
 
 /**
  * GatewayTokenInvalid: 'Gateway token is not valid'
@@ -493,7 +473,7 @@ createErrorFromNameLookup.set('MissingToken', () => new MissingTokenError());
  * @category generated
  */
 export class GatewayTokenInvalidError extends Error {
-  readonly code: number = 0x1787;
+  readonly code: number = 0x1786;
   readonly name: string = 'GatewayTokenInvalid';
   constructor() {
     super('Gateway token is not valid');
@@ -503,7 +483,7 @@ export class GatewayTokenInvalidError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1787, () => new GatewayTokenInvalidError());
+createErrorFromCodeLookup.set(0x1786, () => new GatewayTokenInvalidError());
 createErrorFromNameLookup.set('GatewayTokenInvalid', () => new GatewayTokenInvalidError());
 
 /**
@@ -513,7 +493,7 @@ createErrorFromNameLookup.set('GatewayTokenInvalid', () => new GatewayTokenInval
  * @category generated
  */
 export class AfterEndDateError extends Error {
-  readonly code: number = 0x1788;
+  readonly code: number = 0x1787;
   readonly name: string = 'AfterEndDate';
   constructor() {
     super('Current time is after the set end date');
@@ -523,7 +503,7 @@ export class AfterEndDateError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1788, () => new AfterEndDateError());
+createErrorFromCodeLookup.set(0x1787, () => new AfterEndDateError());
 createErrorFromNameLookup.set('AfterEndDate', () => new AfterEndDateError());
 
 /**
@@ -533,7 +513,7 @@ createErrorFromNameLookup.set('AfterEndDate', () => new AfterEndDateError());
  * @category generated
  */
 export class InvalidMintTimeError extends Error {
-  readonly code: number = 0x1789;
+  readonly code: number = 0x1788;
   readonly name: string = 'InvalidMintTime';
   constructor() {
     super('Current time is not within the allowed mint time');
@@ -543,7 +523,7 @@ export class InvalidMintTimeError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1789, () => new InvalidMintTimeError());
+createErrorFromCodeLookup.set(0x1788, () => new InvalidMintTimeError());
 createErrorFromNameLookup.set('InvalidMintTime', () => new InvalidMintTimeError());
 
 /**
@@ -553,7 +533,7 @@ createErrorFromNameLookup.set('InvalidMintTime', () => new InvalidMintTimeError(
  * @category generated
  */
 export class AddressNotFoundInAllowedListError extends Error {
-  readonly code: number = 0x178a;
+  readonly code: number = 0x1789;
   readonly name: string = 'AddressNotFoundInAllowedList';
   constructor() {
     super('Address not found on the allowed list');
@@ -563,7 +543,7 @@ export class AddressNotFoundInAllowedListError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178a, () => new AddressNotFoundInAllowedListError());
+createErrorFromCodeLookup.set(0x1789, () => new AddressNotFoundInAllowedListError());
 createErrorFromNameLookup.set(
   'AddressNotFoundInAllowedList',
   () => new AddressNotFoundInAllowedListError(),
@@ -576,7 +556,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class MissingAllowedListProofError extends Error {
-  readonly code: number = 0x178b;
+  readonly code: number = 0x178a;
   readonly name: string = 'MissingAllowedListProof';
   constructor() {
     super('Missing allowed list proof');
@@ -586,7 +566,7 @@ export class MissingAllowedListProofError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178b, () => new MissingAllowedListProofError());
+createErrorFromCodeLookup.set(0x178a, () => new MissingAllowedListProofError());
 createErrorFromNameLookup.set('MissingAllowedListProof', () => new MissingAllowedListProofError());
 
 /**
@@ -596,7 +576,7 @@ createErrorFromNameLookup.set('MissingAllowedListProof', () => new MissingAllowe
  * @category generated
  */
 export class AllowedMintLimitReachedError extends Error {
-  readonly code: number = 0x178c;
+  readonly code: number = 0x178b;
   readonly name: string = 'AllowedMintLimitReached';
   constructor() {
     super('The maximum number of allowed mints was reached');
@@ -606,31 +586,48 @@ export class AllowedMintLimitReachedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178c, () => new AllowedMintLimitReachedError());
+createErrorFromCodeLookup.set(0x178b, () => new AllowedMintLimitReachedError());
 createErrorFromNameLookup.set('AllowedMintLimitReached', () => new AllowedMintLimitReachedError());
 
 /**
- * InvalidNFTCollectionPayment: 'Invalid NFT Collection Payment'
+ * InvalidNftCollection: 'Invalid NFT collection'
  *
  * @category Errors
  * @category generated
  */
-export class InvalidNFTCollectionPaymentError extends Error {
-  readonly code: number = 0x178d;
-  readonly name: string = 'InvalidNFTCollectionPayment';
+export class InvalidNftCollectionError extends Error {
+  readonly code: number = 0x178c;
+  readonly name: string = 'InvalidNftCollection';
   constructor() {
-    super('Invalid NFT Collection Payment');
+    super('Invalid NFT collection');
     if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, InvalidNFTCollectionPaymentError);
+      Error.captureStackTrace(this, InvalidNftCollectionError);
     }
   }
 }
 
-createErrorFromCodeLookup.set(0x178d, () => new InvalidNFTCollectionPaymentError());
-createErrorFromNameLookup.set(
-  'InvalidNFTCollectionPayment',
-  () => new InvalidNFTCollectionPaymentError(),
-);
+createErrorFromCodeLookup.set(0x178c, () => new InvalidNftCollectionError());
+createErrorFromNameLookup.set('InvalidNftCollection', () => new InvalidNftCollectionError());
+
+/**
+ * MissingNft: 'Missing NFT on the account'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class MissingNftError extends Error {
+  readonly code: number = 0x178d;
+  readonly name: string = 'MissingNft';
+  constructor() {
+    super('Missing NFT on the account');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, MissingNftError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x178d, () => new MissingNftError());
+createErrorFromNameLookup.set('MissingNft', () => new MissingNftError());
 
 /**
  * MaximumRedeemedAmount: 'Current redemeed items is at the set maximum amount'

@@ -970,63 +970,63 @@
     },
     {
       "code": 6018,
-      "name": "TokenTransferFailed",
-      "msg": "Token transfer failed"
-    },
-    {
-      "code": 6019,
-      "name": "NotEnoughTokens",
-      "msg": "Not enough tokens to pay for this minting"
-    },
-    {
-      "code": 6020,
-      "name": "MissingRequiredSignature",
-      "msg": "A signature was required but not found"
-    },
-    {
-      "code": 6021,
       "name": "TokenBurnFailed",
       "msg": "Token burn failed"
     },
     {
-      "code": 6022,
-      "name": "MissingToken",
-      "msg": "Missing token gate"
+      "code": 6019,
+      "name": "NotEnoughTokens",
+      "msg": "Not enough tokens on the account"
     },
     {
-      "code": 6023,
+      "code": 6020,
+      "name": "TokenTransferFailed",
+      "msg": "Token transfer failed"
+    },
+    {
+      "code": 6021,
+      "name": "MissingRequiredSignature",
+      "msg": "A signature was required but not found"
+    },
+    {
+      "code": 6022,
       "name": "GatewayTokenInvalid",
       "msg": "Gateway token is not valid"
     },
     {
-      "code": 6024,
+      "code": 6023,
       "name": "AfterEndDate",
       "msg": "Current time is after the set end date"
     },
     {
-      "code": 6025,
+      "code": 6024,
       "name": "InvalidMintTime",
       "msg": "Current time is not within the allowed mint time"
     },
     {
-      "code": 6026,
+      "code": 6025,
       "name": "AddressNotFoundInAllowedList",
       "msg": "Address not found on the allowed list"
     },
     {
-      "code": 6027,
+      "code": 6026,
       "name": "MissingAllowedListProof",
       "msg": "Missing allowed list proof"
     },
     {
-      "code": 6028,
+      "code": 6027,
       "name": "AllowedMintLimitReached",
       "msg": "The maximum number of allowed mints was reached"
     },
     {
+      "code": 6028,
+      "name": "InvalidNftCollection",
+      "msg": "Invalid NFT collection"
+    },
+    {
       "code": 6029,
-      "name": "InvalidNFTCollectionPayment",
-      "msg": "Invalid NFT Collection Payment"
+      "name": "MissingNft",
+      "msg": "Missing NFT on the account"
     },
     {
       "code": 6030,
