@@ -35,12 +35,14 @@ The Candy Guard program contains a set of core access control guards that can be
 - `EndDate`: determines a date to end the mint
 - `Gatekeeper`: captcha integration
 - `MintLimit`: specified a limit on the number of mints per wallet
+- `NftBurn`: restricts the mint to holders of a specified collection, requiring a burn of the NFT
 - `NftGate`: restricts the mint to holders of a specified collection
 - `NftPayment`: set the price of the mint as an NFT of a specified collection
 - `RedeemedAmount`: determines the end of the mint based on a total amount minted
 - `SolPayment`: set the price of the mint in SOL
 - `StartDate`: determines the start date of the mint
 - `ThirdPartySigner`: requires an additional signer on the transaction 
+- `TokenBurn`: restricts the mint to holders of a specified spl-token, requiring a burn of the tokens
 - `TokenGate`: restricts the mint to holders of a specified spl-token
 - `TokenPayment`: set the price of the mint in spl-token amount
 
@@ -280,6 +282,16 @@ pub struct Gatekeeper {
 ```
 The `Gatekeeper` guard validates if the payer of the transaction has a *token* from a specified gateway network &mdash; in most cases, a *token* after completing a captcha challenge. The `expeire_on_use` configuration is used to indicate whether or not the token should expire after minting.
 
+<details>
+  <summary>Accounts</summary>
+
+| Name                       | Writable | Signer | Description |
+| -------------------------- | :------: | :----: | ----------- |
+| `gatekeeper_token_account` | ✅       |        | Gatekeeper token account. |
+| `gatekeeper_program`       |          | ✅     | Gatekeeper program account. |
+| `network_expire_feature`   | ✅       |        | Gatekeeper expire account. |
+</details>
+
 ### `MintLimit`
 ```rust
 pub struct MintLimit {
@@ -289,22 +301,21 @@ pub struct MintLimit {
 ```
 The `MintLimit` guard allows to specify a limit on the number of mints for each individual address. The `id` configuration represents the unique identification for the limit &mdash; changing the `id` has the effect of restarting the limit, since a different tracking account will be created. The `limit` indicated the maximum number of mints allowed.
 
-### `NftGate`
-```rust
-pub struct NftGate {
-    pub required_collection: Pubkey,
-}
-```
-The `NftGate` guard restricts the mint to holders of a specified `required_collection` NFT collection. The payer is required to hold at least one NFT of the collection.
+<details>
+  <summary>Accounts</summary>
 
-### `NftPayment`
+| Name         | Writable | Signer | Description |
+| ------------ | :------: | :----: | ----------- |
+| `mint_count` | ✅       |        | Mint counter PDA. The PDA is derived using the seed `[mint guard id, payer key, candy guard pubkey, candy machine pubkey]` |
+</details>
+
+### `NftBurn`
 ```rust
-pub struct NftPayment {
-    pub burn: bool,
+pub struct NftBurn {
     pub required_collection: Pubkey,
 }
 ```
-The `NftPayment` guard is a payment guard that charges nother NFT (token) from a specific collection for the mint. The NFT can either be burned (`burn = true`) or transfered (`burn = false`).
+The `NftBurn` guard restricts the mint to holders of another NFT (token), requiring that the NFT is burn in exchange of being allowed to mint.
 
 <details>
   <summary>Accounts</summary>
@@ -313,11 +324,44 @@ The `NftPayment` guard is a payment guard that charges nother NFT (token) from a
 | ------------------------- | :------: | :----: | ----------- |
 | `token_account`            | ✅      |        | Token account of the NFT. |
 | `token_metadata`           | ✅      |        | Metadata account of the NFT. |
-| *only if burn*             |         |        |             |
 | `token_edition`            | ✅      |        | Master Edition account of the NFT. |
 | `mint_account`             | ✅      |        | Mint account of the NFT. |
 | `mint_collection_metadata` | ✅      |        | Collection metadata account of the NFT. |
-| *only if transfer*         |         |        |             |
+</details>
+
+### `NftGate`
+```rust
+pub struct NftGate {
+    pub required_collection: Pubkey,
+}
+```
+The `NftGate` guard restricts the mint to holders of a specified `required_collection` NFT collection. The payer is required to hold at least one NFT of the collection.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `token_account`           |          |        | Token account of the NFT. |
+| `token_metadata`          |          |        | Metadata account of the NFT. |
+</details>
+
+### `NftPayment`
+```rust
+pub struct NftPayment {
+    pub required_collection: Pubkey,
+    pub destination_ata: Pubkey,
+}
+```
+The `NftPayment` guard is a payment guard that charges another NFT (token) from a specific collection for the mint. As a requirement of the mint, the specified NFT is transferred to the `destination_ata` address.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `token_account`            | ✅      |        | Token account of the NFT. |
+| `token_metadata`           | ✅      |        | Metadata account of the NFT. |
 | `transfer_authority`       |         | ✅     | Transfer authority. |
 | `destination_ata`          | ✅      |        | Token account for the transfer of the NFT. |
 </details>
@@ -356,3 +400,77 @@ pub struct StartDate {
 }
 ```
 The `StartDate` guard determines the start date of the mint. If this guard is not specified, mint is allowed &mdash; similar to say any date is valid.
+
+
+### `ThirdPartySigner`
+```rust
+pub struct ThirdPartySigner {
+    pub signer_key: Pubkey,
+}
+```
+The `ThirdPartySigner` guard required an extra signer on the transaction.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name           | Writable | Signer | Description |
+| ---------------| :------: | :----: | ----------- |
+| `signer_key`  |          | ✅     | Signer of the transaction. |
+</details>
+
+
+### `TokenBurn`
+```rust
+pub struct TokenBurn {
+    pub amount: u64,
+    pub mint: Pubkey,
+}
+```
+The `TokenBurn` restrict the mint to holder of a specified spl-token and required the burn of the tokens. The `amount` determines how many tokens are required.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                   | Writable | Signer | Description |
+| -----------------------| :------: | :----: | ----------- |
+| `token_account`        | ✅       |        | Token account. |
+| `token_mint`           |          |        | Token mint account. |
+| `token_burn_authority` |          | ✅     | Token butn authority. |
+</details>
+
+### `TokenGate`
+```rust
+pub struct TokenGate {
+    pub amount: u64,
+    pub mint: Pubkey,
+}
+```
+The `TokenGate` restrict the mint to holder of a specified spl-token. The `amount` determines how many tokens are required.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                   | Writable | Signer | Description |
+| -----------------------| :------: | :----: | ----------- |
+| `token_account`        | ✅       |        | Token account. |
+</details>
+
+### `TokenPayment`
+```rust
+pub struct TokenPayment {
+    pub amount: u64,
+    pub token_mint: Pubkey,
+    pub destination_ata: Pubkey,
+}
+```
+The `TokenGate` restrict the mint to holder of a specified spl-token, transferring the required amount to the `destination_ata` address. The `amount` determines how many tokens are required.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `token_account`           | ✅       |        | Token account. |
+| `transfer_authority_info` |          | ✅     | Token transfer authority. |
+| `destination_ata`         | ✅       |        | Address to receive the tokens. |
+</details>
