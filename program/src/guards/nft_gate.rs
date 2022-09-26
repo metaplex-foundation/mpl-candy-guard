@@ -36,22 +36,34 @@ impl Condition for NftGate {
         let token_metadata = Self::get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
-        let metadata: Metadata = Metadata::from_account_info(token_metadata)?;
-        // validates the account information
-        assert_keys_equal(token_metadata.owner, &mpl_token_metadata::id())?;
-
-        let token_account = assert_is_token_account(
+        Self::verify_collection(
             token_account_info,
-            &ctx.accounts.payer.key(),
-            &metadata.mint,
-        )?;
+            token_metadata,
+            &self.required_collection,
+            ctx.accounts.payer.key,
+        )
+    }
+}
 
-        if token_account.amount < 1 {
+impl NftGate {
+    pub fn verify_collection(
+        nft_account: &AccountInfo,
+        nft_metadata: &AccountInfo,
+        collection: &Pubkey,
+        owner: &Pubkey,
+    ) -> Result<()> {
+        let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
+        // validates the account information
+        assert_keys_equal(nft_metadata.owner, &mpl_token_metadata::id())?;
+
+        let account = assert_is_token_account(nft_account, owner, &metadata.mint)?;
+
+        if account.amount < 1 {
             return err!(CandyGuardError::NotEnoughTokens);
         }
 
         match metadata.collection {
-            Some(c) if c.verified && c.key == self.required_collection => Ok(()),
+            Some(c) if c.verified && c.key == *collection => Ok(()),
             _ => Err(CandyGuardError::InvalidNFTCollectionPayment),
         }?;
 

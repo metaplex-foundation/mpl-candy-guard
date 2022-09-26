@@ -45,6 +45,9 @@ pub struct CandyGuard {
     // 11) nft payment
     // 12) redeemed amount
     // 13) address gate
+    // 14) nft gate
+    // 15) nft burn
+    // 16) token burn
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -66,15 +69,15 @@ pub struct Group {
 pub struct GuardSet {
     /// Last instruction check and bot tax (penalty for invalid transactions).
     pub bot_tax: Option<BotTax>,
-    /// Lamports guard (set the price for the mint in lamports).
+    /// Sol payment guard (set the price for the mint in lamports).
     pub sol_payment: Option<SolPayment>,
-    /// Spl-token guard (set the price for the mint in spl-token amount).
+    /// Token payment guard (set the price for the mint in spl-token amount).
     pub token_payment: Option<TokenPayment>,
     /// Start data guard (controls when minting is allowed).
     pub start_date: Option<StartDate>,
     /// Third party signer guard.
     pub third_party_signer: Option<ThirdPartySigner>,
-    /// Whitelist guard (whitelist mint settings).
+    /// Token gate guard (restricrt access to holders of a specific token).
     pub token_gate: Option<TokenGate>,
     /// Gatekeeper guard
     pub gatekeeper: Option<Gatekeeper>,
@@ -87,11 +90,15 @@ pub struct GuardSet {
     /// NFT Payment
     pub nft_payment: Option<NftPayment>,
     /// Redeemed amount guard
-    pub redemeed_amount: Option<RedemeedAmount>,
-    /// Address gate
+    pub redeemed_amount: Option<RedeemedAmount>,
+    /// Address gate (check access against a specified address)
     pub address_gate: Option<AddressGate>,
-    /// NFT gate
+    /// NFT gate guard (check access based on holding a specified NFT)
     pub nft_gate: Option<NftGate>,
+    /// NFT burn guard (burn a specified NFT)
+    pub nft_burn: Option<NftBurn>,
+    /// Token burn guard (burn a specified amount of spl-token)
+    pub token_burn: Option<TokenBurn>,
 }
 
 impl CandyGuardData {
@@ -132,7 +139,7 @@ impl CandyGuardData {
 
     /// Deserializes the guards. Only attempts the deserialization of individuals guards
     /// if the data slice is large enough.
-    pub fn load(data: &[u8]) -> Result<Self> {
+    pub fn load(data: &[u8]) -> Result<Box<Self>> {
         let (default, _) = GuardSet::from_data(data)?;
         let mut cursor = default.size();
 
@@ -157,10 +164,10 @@ impl CandyGuardData {
             None
         };
 
-        Ok(Self { default, groups })
+        Ok(Box::new(Self { default, groups }))
     }
 
-    pub fn active_set(data: &[u8], label: Option<String>) -> Result<GuardSet> {
+    pub fn active_set(data: &[u8], label: Option<String>) -> Result<Box<GuardSet>> {
         // default guard set
         let (mut default, _) = GuardSet::from_data(data)?;
         let mut cursor = default.size();
@@ -179,7 +186,7 @@ impl CandyGuardData {
                         let (guards, _) = GuardSet::from_data(&data[cursor..])?;
                         default.merge(guards);
                         // we found our group
-                        return Ok(default);
+                        return Ok(Box::new(default));
                     } else {
                         cursor += MAX_LABEL_SIZE;
                         let features = u64::from_le_bytes(*arrayref::array_ref![data, cursor, 8]);
@@ -194,7 +201,7 @@ impl CandyGuardData {
             return err!(CandyGuardError::GroupNotFound);
         }
 
-        Ok(default)
+        Ok(Box::new(default))
     }
 
     pub fn size(&self) -> usize {

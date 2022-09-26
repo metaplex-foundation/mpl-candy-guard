@@ -4,11 +4,11 @@ use super::*;
 /// guard that stop the mint once the specified amount of items
 /// redeenmed is reached.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct RedemeedAmount {
+pub struct RedeemedAmount {
     pub maximum: u64,
 }
 
-impl Guard for RedemeedAmount {
+impl Guard for RedeemedAmount {
     fn size() -> usize {
         8 // maximum
     }
@@ -18,7 +18,7 @@ impl Guard for RedemeedAmount {
     }
 }
 
-impl Condition for RedemeedAmount {
+impl Condition for RedeemedAmount {
     fn validate<'info>(
         &self,
         ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,

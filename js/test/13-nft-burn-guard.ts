@@ -3,15 +3,15 @@ import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './
 import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { METAPLEX_PROGRAM_ID, spokSamePubkey } from './utils';
 import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import spok from 'spok';
-import { spokSamePubkey } from './utils';
 
 const API = new InitTransactions();
 
 killStuckProcess();
 
-test('nft gate (authority)', async (t) => {
+test('nft burn (authority)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
@@ -41,7 +41,7 @@ test('nft gate (authority)', async (t) => {
   );
   await authorityMintTx.assertSuccess(t);
 
-  // enables the nft_gate guard
+  // enables the nft_payment guard
 
   const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
 
@@ -49,7 +49,7 @@ test('nft gate (authority)', async (t) => {
   updatedData.default.startDate = {
     date: 1662479807,
   };
-  updatedData.default.nftGate = {
+  updatedData.default.nftBurn = {
     requiredCollection: candyMachineObject.collectionMint,
   };
 
@@ -77,7 +77,11 @@ test('nft gate (authority)', async (t) => {
 
   const metaplex = Metaplex.make(connection).use(keypairIdentity(payerPair));
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintForAuthority.publicKey }).run();
-  const nftGateAccounts: AccountMeta[] = [];
+  const collection = await metaplex
+    .nfts()
+    .findByMint({ mintAddress: candyMachineObject.collectionMint })
+    .run();
+  const paymentGuardAccounts: AccountMeta[] = [];
 
   // token account
   const [tokenAccount] = await PublicKey.findProgramAddress(
@@ -88,16 +92,43 @@ test('nft gate (authority)', async (t) => {
     ],
     ASSOCIATED_TOKEN_PROGRAM_ID,
   );
-  nftGateAccounts.push({
+  paymentGuardAccounts.push({
     pubkey: tokenAccount,
     isSigner: false,
-    isWritable: false,
+    isWritable: true,
   });
-  // token metadata
-  nftGateAccounts.push({
+  // tokent metadata
+  paymentGuardAccounts.push({
     pubkey: nft.metadataAddress,
     isSigner: false,
-    isWritable: false,
+    isWritable: true,
+  });
+  // token edition
+  const [tokenEdition] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from('metadata'),
+      METAPLEX_PROGRAM_ID.toBuffer(),
+      mintForAuthority.publicKey.toBuffer(),
+      Buffer.from('edition'),
+    ],
+    METAPLEX_PROGRAM_ID,
+  );
+  paymentGuardAccounts.push({
+    pubkey: tokenEdition,
+    isSigner: false,
+    isWritable: true,
+  });
+  // mint account
+  paymentGuardAccounts.push({
+    pubkey: nft.address,
+    isSigner: false,
+    isWritable: true,
+  });
+  // mint collection
+  paymentGuardAccounts.push({
+    pubkey: collection.metadataAddress,
+    isSigner: false,
+    isWritable: true,
   });
 
   const [, mintForAuthority2] = await amman.genLabeledKeypair('Mint Account 2 (authority)');
@@ -109,15 +140,15 @@ test('nft gate (authority)', async (t) => {
     mintForAuthority2,
     fstTxHandler,
     connection,
-    nftGateAccounts,
+    paymentGuardAccounts,
   );
   await authorityMintTx2.assertSuccess(t);
 });
 
-test('nft gate (minter)', async (t) => {
+test('nft burn (minter)', async (t) => {
   const { fstTxHandler: payerHandler, payerPair, connection: payerConnection } = await API.payer();
 
-  // the mint from the first candy machine will be used as the gate
+  // the mint from the first candy machine will be used as the payment
   // in the second candy machine
 
   const data = newCandyGuardData();
@@ -152,7 +183,7 @@ test('nft gate (minter)', async (t) => {
   );
   await minterMintTx.assertSuccess(t);
 
-  // enables the nft_gate guard on a second candy machine using the
+  // enables the nft_payment guard on a second candy machine using the
   // collectin info of the first
 
   const candyMachineObject = await CandyMachine.fromAccountAddress(payerConnection, candyMachine);
@@ -161,7 +192,7 @@ test('nft gate (minter)', async (t) => {
   secondData.default.startDate = {
     date: 1662479807,
   };
-  secondData.default.nftGate = {
+  secondData.default.nftBurn = {
     requiredCollection: candyMachineObject.collectionMint,
   };
 
@@ -177,26 +208,57 @@ test('nft gate (minter)', async (t) => {
 
   const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey }).run();
+  const collection = await metaplex
+    .nfts()
+    .findByMint({ mintAddress: candyMachineObject.collectionMint })
+    .run();
 
   spok(t, nft.collection?.address, spokSamePubkey(candyMachineObject.collectionMint));
 
-  const nftGateAccounts: AccountMeta[] = [];
+  const paymentGuardAccounts: AccountMeta[] = [];
 
   // token account
   const [tokenAccount] = await PublicKey.findProgramAddress(
     [minter.publicKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintForMinter.publicKey.toBuffer()],
     ASSOCIATED_TOKEN_PROGRAM_ID,
   );
-  nftGateAccounts.push({
+  paymentGuardAccounts.push({
     pubkey: tokenAccount,
     isSigner: false,
-    isWritable: false,
+    isWritable: true,
   });
   // tokent metadata
-  nftGateAccounts.push({
+  paymentGuardAccounts.push({
     pubkey: nft.metadataAddress,
     isSigner: false,
-    isWritable: false,
+    isWritable: true,
+  });
+  // token edition
+  const [tokenEdition] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from('metadata'),
+      METAPLEX_PROGRAM_ID.toBuffer(),
+      mintForMinter.publicKey.toBuffer(),
+      Buffer.from('edition'),
+    ],
+    METAPLEX_PROGRAM_ID,
+  );
+  paymentGuardAccounts.push({
+    pubkey: tokenEdition,
+    isSigner: false,
+    isWritable: true,
+  });
+  // mint account
+  paymentGuardAccounts.push({
+    pubkey: nft.address,
+    isSigner: false,
+    isWritable: true,
+  });
+  // mint collection
+  paymentGuardAccounts.push({
+    pubkey: collection.metadataAddress,
+    isSigner: false,
+    isWritable: true,
   });
 
   const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account 2 (minter)');
@@ -208,7 +270,7 @@ test('nft gate (minter)', async (t) => {
     mintForMinter2,
     minterHandler,
     minterConnection,
-    nftGateAccounts,
+    paymentGuardAccounts,
   );
   await minterMintTx2.assertSuccess(t);
 
@@ -225,7 +287,14 @@ test('nft gate (minter)', async (t) => {
     address: spokSamePubkey(secondCandyMachineObject.collectionMint),
   });
 
-  // trying to mint again with the same gate nft
+  try {
+    await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey }).run();
+    t.error('failed to burn gate NFT');
+  } catch {
+    t.pass('gate NFT was not found');
+  }
+
+  // trying to mint again without a valid NFT
 
   const [, mintForMinter3] = await amman.genLabeledKeypair('Mint Account 3 (minter)');
   const { tx: minterMintTx3 } = await API.mint(
@@ -236,7 +305,7 @@ test('nft gate (minter)', async (t) => {
     mintForMinter3,
     minterHandler,
     minterConnection,
-    nftGateAccounts,
+    paymentGuardAccounts,
   );
-  await minterMintTx3.assertSuccess(t);
+  await minterMintTx3.assertError(t);
 });

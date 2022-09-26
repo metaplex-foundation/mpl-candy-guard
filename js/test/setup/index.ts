@@ -25,9 +25,11 @@ export function newGuardSet(): GuardSet {
     allowList: null,
     mintLimit: null,
     nftPayment: null,
-    redemeedAmount: null,
+    redeemedAmount: null,
     addressGate: null,
     nftGate: null,
+    nftBurn: null,
+    tokenBurn: null,
   };
 }
 

@@ -1,26 +1,18 @@
 use super::*;
-use crate::{
-    errors::CandyGuardError,
-    utils::{assert_is_token_account, assert_keys_equal, spl_token_transfer, TokenTransferParams},
-};
-use mpl_token_metadata::{
-    instruction::burn_nft,
-    state::{Metadata, TokenMetadataAccount},
-};
-use solana_program::program::invoke;
+use crate::utils::{assert_keys_equal, spl_token_transfer, TokenTransferParams};
 
 /// Configurations options for the nft payment. This is a payment
 /// guard that charges another NFT (token) from a specific collection.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct NftPayment {
-    pub burn: bool,
     pub required_collection: Pubkey,
+    pub destination_ata: Pubkey,
 }
 
 impl Guard for NftPayment {
     fn size() -> usize {
-        1    // burn or transfer
-        + 32 // required_collection
+        32   // required_collection
+        + 32 // destination
     }
 
     fn mask() -> u64 {
@@ -42,40 +34,18 @@ impl Condition for NftPayment {
         let token_metadata = Self::get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
-        let metadata: Metadata = Metadata::from_account_info(token_metadata)?;
-        // validates the account information
-        assert_keys_equal(token_metadata.owner, &mpl_token_metadata::id())?;
-
-        let token_account = assert_is_token_account(
+        NftGate::verify_collection(
             token_account_info,
-            &ctx.accounts.payer.key(),
-            &metadata.mint,
+            token_metadata,
+            &self.required_collection,
+            ctx.accounts.payer.key,
         )?;
 
-        if token_account.amount < 1 {
-            return err!(CandyGuardError::NotEnoughTokens);
-        }
+        let _transfer_authority = Self::get_account_info(ctx, index + 2)?;
+        let destination_ata = Self::get_account_info(ctx, index + 3)?;
+        evaluation_context.account_cursor += 2;
 
-        match metadata.collection {
-            Some(c) if c.verified && c.key == self.required_collection => Ok(()),
-            _ => Err(CandyGuardError::InvalidNFTCollectionPayment),
-        }?;
-
-        if self.burn {
-            let _token_edition = Self::get_account_info(ctx, index + 2)?;
-            let mint_account = Self::get_account_info(ctx, index + 3)?;
-            let _mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
-            evaluation_context.account_cursor += 3;
-
-            let metadata: Metadata = Metadata::from_account_info(token_metadata)?;
-            // validates the account information
-            assert_keys_equal(token_metadata.owner, &mpl_token_metadata::id())?;
-            assert_keys_equal(&metadata.mint, mint_account.key)?;
-        } else {
-            let _transfer_authority = Self::get_account_info(ctx, index + 2)?;
-            let _destination_ata = Self::get_account_info(ctx, index + 3)?;
-            evaluation_context.account_cursor += 2;
-        }
+        assert_keys_equal(destination_ata.key, &self.destination_ata)?;
 
         evaluation_context
             .indices
@@ -94,48 +64,17 @@ impl Condition for NftPayment {
         let index = evaluation_context.indices["nft_payment_index"];
         let token_account = Self::get_account_info(ctx, index)?;
 
-        if self.burn {
-            let token_metadata = Self::get_account_info(ctx, index + 1)?;
-            let token_edition = Self::get_account_info(ctx, index + 2)?;
-            let mint_account = Self::get_account_info(ctx, index + 3)?;
-            let mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
+        let transfer_authority = Self::get_account_info(ctx, index + 2)?;
+        let destination_ata = Self::get_account_info(ctx, index + 3)?;
 
-            let burn_nft_infos = vec![
-                token_metadata.to_account_info(),
-                ctx.accounts.payer.to_account_info(),
-                mint_account.to_account_info(),
-                token_account.to_account_info(),
-                token_edition.to_account_info(),
-                ctx.accounts.token_program.to_account_info(),
-                mint_collection_metadata.to_account_info(),
-            ];
-
-            invoke(
-                &burn_nft(
-                    mpl_token_metadata::ID,
-                    token_metadata.key(),
-                    ctx.accounts.payer.key(),
-                    mint_account.key(),
-                    token_account.key(),
-                    token_edition.key(),
-                    ::spl_token::ID,
-                    Some(mint_collection_metadata.key()),
-                ),
-                burn_nft_infos.as_slice(),
-            )?;
-        } else {
-            let transfer_authority = Self::get_account_info(ctx, index + 2)?;
-            let destination_ata = Self::get_account_info(ctx, index + 3)?;
-
-            spl_token_transfer(TokenTransferParams {
-                source: token_account.to_account_info(),
-                destination: destination_ata.to_account_info(),
-                authority: transfer_authority.to_account_info(),
-                authority_signer_seeds: &[],
-                token_program: ctx.accounts.token_program.to_account_info(),
-                amount: 1, // fixed to always require 1 NFT
-            })?;
-        }
+        spl_token_transfer(TokenTransferParams {
+            source: token_account.to_account_info(),
+            destination: destination_ata.to_account_info(),
+            authority: transfer_authority.to_account_info(),
+            authority_signer_seeds: &[],
+            token_program: ctx.accounts.token_program.to_account_info(),
+            amount: 1, // fixed to always require 1 NFT
+        })?;
 
         Ok(())
     }

@@ -54,7 +54,7 @@ pub enum CandyGuardError {
     #[msg("Token burn failed")]
     TokenBurnFailed,
     #[msg("Missing token gate")]
-    MissingTokenGate,
+    MissingToken,
     // gatekeeper
     #[msg("Gateway token is not valid")]
     GatewayTokenInvalid,

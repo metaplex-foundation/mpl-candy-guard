@@ -5,16 +5,18 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
+import * as web3 from '@solana/web3.js';
+import * as beetSolana from '@metaplex-foundation/beet-solana';
 import * as beet from '@metaplex-foundation/beet';
-export type RedemeedAmount = {
-  maximum: beet.bignum;
+export type NftBurn = {
+  requiredCollection: web3.PublicKey;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const redemeedAmountBeet = new beet.BeetArgsStruct<RedemeedAmount>(
-  [['maximum', beet.u64]],
-  'RedemeedAmount',
+export const nftBurnBeet = new beet.BeetArgsStruct<NftBurn>(
+  [['requiredCollection', beetSolana.publicKey]],
+  'NftBurn',
 );

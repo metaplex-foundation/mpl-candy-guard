@@ -458,6 +458,22 @@
       }
     },
     {
+      "name": "NftBurn",
+      "docs": [
+        "Configurations options for the nft payment. This is a payment",
+        "guard that charges another NFT (token) from a specific collection."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "requiredCollection",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
       "name": "NftGate",
       "docs": [
         "Configurations options for the nft gate. This guard restricts",
@@ -483,18 +499,18 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "burn",
-            "type": "bool"
+            "name": "requiredCollection",
+            "type": "publicKey"
           },
           {
-            "name": "requiredCollection",
+            "name": "destinationAta",
             "type": "publicKey"
           }
         ]
       }
     },
     {
-      "name": "RedemeedAmount",
+      "name": "RedeemedAmount",
       "docs": [
         "Configurations options for redeemed amount settings. This is a",
         "guard that stop the mint once the specified amount of items",
@@ -564,6 +580,26 @@
       }
     },
     {
+      "name": "TokenBurn",
+      "docs": [
+        "Configurations options for the token gate. This guard only",
+        "allows addresses that hold the specified spl-token."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
       "name": "TokenGate",
       "docs": [
         "Configurations options for the token gate. This guard only",
@@ -573,12 +609,12 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "mint",
-            "type": "publicKey"
+            "name": "amount",
+            "type": "u64"
           },
           {
-            "name": "burn",
-            "type": "bool"
+            "name": "mint",
+            "type": "publicKey"
           }
         ]
       }
@@ -675,7 +711,7 @@
           {
             "name": "solPayment",
             "docs": [
-              "Lamports guard (set the price for the mint in lamports)."
+              "Sol payment guard (set the price for the mint in lamports)."
             ],
             "type": {
               "option": {
@@ -686,7 +722,7 @@
           {
             "name": "tokenPayment",
             "docs": [
-              "Spl-token guard (set the price for the mint in spl-token amount)."
+              "Token payment guard (set the price for the mint in spl-token amount)."
             ],
             "type": {
               "option": {
@@ -719,7 +755,7 @@
           {
             "name": "tokenGate",
             "docs": [
-              "Whitelist guard (whitelist mint settings)."
+              "Token gate guard (restricrt access to holders of a specific token)."
             ],
             "type": {
               "option": {
@@ -783,20 +819,20 @@
             }
           },
           {
-            "name": "redemeedAmount",
+            "name": "redeemedAmount",
             "docs": [
               "Redeemed amount guard"
             ],
             "type": {
               "option": {
-                "defined": "RedemeedAmount"
+                "defined": "RedeemedAmount"
               }
             }
           },
           {
             "name": "addressGate",
             "docs": [
-              "Address gate"
+              "Address gate (check access against a specified address)"
             ],
             "type": {
               "option": {
@@ -807,11 +843,33 @@
           {
             "name": "nftGate",
             "docs": [
-              "NFT gate"
+              "NFT gate guard (check access based on holding a specified NFT)"
             ],
             "type": {
               "option": {
                 "defined": "NftGate"
+              }
+            }
+          },
+          {
+            "name": "nftBurn",
+            "docs": [
+              "NFT burn guard (burn a specified NFT)"
+            ],
+            "type": {
+              "option": {
+                "defined": "NftBurn"
+              }
+            }
+          },
+          {
+            "name": "tokenBurn",
+            "docs": [
+              "Token burn guard (burn a specified amount of spl-token)"
+            ],
+            "type": {
+              "option": {
+                "defined": "TokenBurn"
               }
             }
           }
@@ -932,7 +990,7 @@
     },
     {
       "code": 6022,
-      "name": "MissingTokenGate",
+      "name": "MissingToken",
       "msg": "Missing token gate"
     },
     {

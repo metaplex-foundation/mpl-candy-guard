@@ -1,25 +1,27 @@
-import {
-  CandyGuardData,
-  botTaxBeet,
-  thirdPartySignerBeet,
-  gatekeeperBeet,
-  allowListBeet,
-  startDateBeet,
-  tokenGateBeet,
-} from './generated/types';
 import { BN } from 'bn.js';
 import * as beet from '@metaplex-foundation/beet';
 import { logDebug } from './utils/log';
-import { mintLimitBeet } from './generated/types/MintLimit';
-import { GuardSet } from './generated/types/GuardSet';
-import { nftPaymentBeet } from './generated/types/NftPayment';
-import { Group } from './generated/types/Group';
-import { endDateBeet } from './generated/types/EndDate';
-import { redemeedAmountBeet } from './generated/types/RedemeedAmount';
-import { addressGateBeet } from './generated/types/AddressGate';
+import {
+  allowListBeet,
+  botTaxBeet,
+  CandyGuardData,
+  gatekeeperBeet,
+  Group,
+  GuardSet,
+  mintLimitBeet,
+  nftPaymentBeet,
+  startDateBeet,
+  thirdPartySignerBeet,
+  tokenGateBeet,
+} from './generated';
 import { solPaymentBeet } from './generated/types/SolPayment';
 import { tokenPaymentBeet } from './generated/types/TokenPayment';
+import { endDateBeet } from './generated/types/EndDate';
+import { redeemedAmountBeet } from './generated/types/RedeemedAmount';
+import { addressGateBeet } from './generated/types/AddressGate';
 import { nftGateBeet } from './generated/types/NftGate';
+import { nftBurnBeet } from './generated/types/NftBurn';
+import { tokenBurnBeet } from './generated/types/TokenBurn';
 
 /**
  * Matching the guards of the related struct in the Rust program.
@@ -29,14 +31,14 @@ import { nftGateBeet } from './generated/types/NftGate';
  *   /// Last instruction check and bot tax (penalty for invalid transactions).
  *   pub bot_tax: Option<BotTax>,
  *   /// Sol payment guard (set the price for the mint in lamports).
- *   pub sol_payment: Option<Lamports>,
+ *   pub sol_payment: Option<SolPayment>,
  *   /// Token payment guard (set the price for the mint in spl-token amount).
- *   pub token_payment: Option<SplToken>,
+ *   pub token_payment: Option<TokenPayment>,
  *   /// Start data guard (controls when minting is allowed).
  *   pub start_date: Option<StartDate>,
  *   /// Third party signer guard.
  *   pub third_party_signer: Option<ThirdPartySigner>,
- *   /// Whitelist guard (whitelist mint settings).
+ *   /// Token gate guard (restricrt access to holders of a specific token).
  *   pub token_gate: Option<TokenGate>,
  *   /// Gatekeeper guard
  *   pub gatekeeper: Option<Gatekeeper>,
@@ -50,10 +52,14 @@ import { nftGateBeet } from './generated/types/NftGate';
  *   pub nft_payment: Option<NftPayment>,
  *   /// Redeemed amount guard
  *   pub redemeed_amount: Option<RedemeedAmount>,
- *   /// Address gate
+ *   /// Address gate (check access against a specified address)
  *   pub address_gate: Option<AddressGate>,
- *   /// Nft gate
+ *   /// NFT gate guard (check access based on holding a specified NFT)
  *   pub nft_gate: Option<NftGate>,
+ *   /// NFT burn guard (burn a specified NFT)
+ *   pub nft_burn: Option<NftBurn>,
+ *   /// Token burn guard (burn a specified amount of spl-token)
+ *   pub token_burn: Option<NftBurn>,
  * }
  * ```
  */
@@ -73,6 +79,8 @@ type Guards = {
   /* 12 */ redeemedAmountEnabled: boolean;
   /* 13 */ addressGateEnabled: boolean;
   /* 14 */ nftGateEnabled: boolean;
+  /* 15 */ nftBurnEnabled: boolean;
+  /* 16 */ tokenBurnEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -81,17 +89,19 @@ const GUARDS_SIZE = {
   /* 03 */ tokenPayment: 72,
   /* 04 */ startDate: 8,
   /* 05 */ thirdPartySigner: 32,
-  /* 06 */ tokenGate: 33,
+  /* 06 */ tokenGate: 40,
   /* 07 */ gatekeeper: 33,
   /* 08 */ endDate: 8,
   /* 09 */ allowList: 32,
   /* 10 */ mintLimit: 3,
-  /* 11 */ nftPayment: 33,
+  /* 11 */ nftPayment: 64,
   /* 12 */ redeemedAmount: 8,
   /* 13 */ addressGate: 32,
   /* 14 */ nftGate: 32,
+  /* 15 */ nftBurn: 32,
+  /* 16 */ tokenBurn: 40,
 };
-const GUARDS_COUNT = 11;
+const GUARDS_COUNT = 16;
 const MAX_LABEL_LENGTH = 6;
 
 function determineGuards(buffer: Buffer): Guards {
@@ -117,6 +127,8 @@ function determineGuards(buffer: Buffer): Guards {
     redeemedAmountEnabled,
     addressGateEnabled,
     nftGateEnabled,
+    nftBurnEnabled,
+    tokenBurnEnabled,
   ] = guards;
 
   return {
@@ -134,6 +146,8 @@ function determineGuards(buffer: Buffer): Guards {
     redeemedAmountEnabled,
     addressGateEnabled,
     nftGateEnabled,
+    nftBurnEnabled,
+    tokenBurnEnabled,
   };
 }
 
@@ -177,6 +191,8 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     redeemedAmountEnabled,
     addressGateEnabled,
     nftGateEnabled,
+    nftBurnEnabled,
+    tokenBurnEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -253,7 +269,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   }
 
   if (redeemedAmountEnabled) {
-    const [redeemedAmount] = redemeedAmountBeet.deserialize(buffer, cursor);
+    const [redeemedAmount] = redeemedAmountBeet.deserialize(buffer, cursor);
     data.redeemedAmount = redeemedAmount;
     cursor += GUARDS_SIZE.redeemedAmount;
   }
@@ -270,6 +286,18 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.nftGate;
   }
 
+  if (nftBurnEnabled) {
+    const [nftBurn] = nftBurnBeet.deserialize(buffer, cursor);
+    data.nftBurn = nftBurn;
+    cursor += GUARDS_SIZE.nftBurn;
+  }
+
+  if (tokenBurnEnabled) {
+    const [tokenBurn] = tokenBurnBeet.deserialize(buffer, cursor);
+    data.tokenBurn = tokenBurn;
+    cursor += GUARDS_SIZE.tokenBurn;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
@@ -283,9 +311,11 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       allowList: data.allowList ?? null,
       mintLimit: data.mintLimit ?? null,
       nftPayment: data.nftPayment ?? null,
-      redemeedAmount: data.redeemedAmount ?? null,
+      redeemedAmount: data.redeemedAmount ?? null,
       addressGate: data.addressGate ?? null,
       nftGate: data.nftGate ?? null,
+      nftBurn: data.nftBurn ?? null,
+      tokenBurn: data.tokenBurn ?? null,
     },
     offset: cursor,
   };

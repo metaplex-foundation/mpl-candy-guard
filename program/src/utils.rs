@@ -131,7 +131,6 @@ pub fn spl_token_burn(params: TokenBurnParams) -> Result<()> {
     result.map_err(|_| CandyGuardError::TokenBurnFailed.into())
 }
 
-#[inline(always)]
 pub fn spl_token_transfer(params: TokenTransferParams<'_, '_>) -> Result<()> {
     let TokenTransferParams {
         source,

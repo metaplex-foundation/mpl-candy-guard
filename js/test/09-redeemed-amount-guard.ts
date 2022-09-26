@@ -5,11 +5,11 @@ const API = new InitTransactions();
 
 killStuckProcess();
 
-test('address gate', async (t) => {
+test('redeemed amount', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
-  data.default.redemeedAmount = {
+  data.default.redeemedAmount = {
     maximum: 1,
   };
 

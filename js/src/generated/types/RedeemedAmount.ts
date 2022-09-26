@@ -6,21 +6,15 @@
  */
 
 import * as beet from '@metaplex-foundation/beet';
-import * as web3 from '@solana/web3.js';
-import * as beetSolana from '@metaplex-foundation/beet-solana';
-export type TokenGate = {
-  amount: beet.bignum;
-  mint: web3.PublicKey;
+export type RedeemedAmount = {
+  maximum: beet.bignum;
 };
 
 /**
  * @category userTypes
  * @category generated
  */
-export const tokenGateBeet = new beet.BeetArgsStruct<TokenGate>(
-  [
-    ['amount', beet.u64],
-    ['mint', beetSolana.publicKey],
-  ],
-  'TokenGate',
+export const redeemedAmountBeet = new beet.BeetArgsStruct<RedeemedAmount>(
+  [['maximum', beet.u64]],
+  'RedeemedAmount',
 );

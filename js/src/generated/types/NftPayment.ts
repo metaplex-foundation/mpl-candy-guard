@@ -6,11 +6,11 @@
  */
 
 import * as web3 from '@solana/web3.js';
-import * as beet from '@metaplex-foundation/beet';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
+import * as beet from '@metaplex-foundation/beet';
 export type NftPayment = {
-  burn: boolean;
   requiredCollection: web3.PublicKey;
+  destinationAta: web3.PublicKey;
 };
 
 /**
@@ -19,8 +19,8 @@ export type NftPayment = {
  */
 export const nftPaymentBeet = new beet.BeetArgsStruct<NftPayment>(
   [
-    ['burn', beet.bool],
     ['requiredCollection', beetSolana.publicKey],
+    ['destinationAta', beetSolana.publicKey],
   ],
   'NftPayment',
 );

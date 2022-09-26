@@ -55,7 +55,7 @@ impl Condition for TokenPayment {
 
         evaluation_context
             .indices
-            .insert("spl_token_index", token_account_index);
+            .insert("token_payment_index", token_account_index);
 
         Ok(())
     }
@@ -67,7 +67,7 @@ impl Condition for TokenPayment {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let index = evaluation_context.indices["spl_token_index"];
+        let index = evaluation_context.indices["token_payment_index"];
         // the accounts have already been validated
         let token_account_info = Self::get_account_info(ctx, index)?;
         let transfer_authority_info = Self::get_account_info(ctx, index + 1)?;
