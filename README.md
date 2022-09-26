@@ -434,8 +434,8 @@ The `TokenBurn` restrict the mint to holder of a specified spl-token and require
 | Name                   | Writable | Signer | Description |
 | -----------------------| :------: | :----: | ----------- |
 | `token_account`        | ✅       |        | Token account. |
-| `token_mint`           |          |        | Token mint account. |
-| `token_burn_authority` |          | ✅     | Token butn authority. |
+| `token_mint`           | ✅       |        | Token mint account. |
+| `token_burn_authority` |          | ✅     | Token burn authority. |
 </details>
 
 ### `TokenGate`
@@ -452,7 +452,7 @@ The `TokenGate` restrict the mint to holder of a specified spl-token. The `amoun
 
 | Name                   | Writable | Signer | Description |
 | -----------------------| :------: | :----: | ----------- |
-| `token_account`        | ✅       |        | Token account. |
+| `token_account`        |          |        | Token account. |
 </details>
 
 ### `TokenPayment`
@@ -463,7 +463,7 @@ pub struct TokenPayment {
     pub destination_ata: Pubkey,
 }
 ```
-The `TokenGate` restrict the mint to holder of a specified spl-token, transferring the required amount to the `destination_ata` address. The `amount` determines how many tokens are required.
+The `TokenPayment` restrict the mint to holder of a specified spl-token, transferring the required amount to the `destination_ata` address. The `amount` determines how many tokens are required.
 
 <details>
   <summary>Accounts</summary>
