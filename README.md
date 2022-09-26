@@ -322,8 +322,37 @@ The `NftPayment` guard is a payment guard that charges nother NFT (token) from a
 | `destination_ata`          | ✅      |        | Token account for the transfer of the NFT. |
 </details>
 
+
+### `RedeemedAmount`
+```rust
+pub struct RedemeedAmount {
+    pub maximum: u64,
+}
+```
+The `RedeemedAmount` guard stops the mint when the number of `items_redeemed` of the Candy Machine reaches the configured `maximum` amount.
+
+### `SolPayment`
+```rust
+pub struct SolPayment {
+    pub lamports: u64,
+    pub destination: Pubkey,
+}
+```
+The `SolPayment` guard is used to charge an amount in SOL (lamports) for the mint. The funds are transferred to the configured `destination` address.
+
 <details>
-  <summary>Arguments</summary>
-  
-None.
+  <summary>Accounts</summary>
+
+| Name           | Writable | Signer | Description |
+| ---------------| :------: | :----: | ----------- |
+| `destination`  | ✅       |        | Address to receive the funds. |
 </details>
+
+
+### `StartDate`
+```rust
+pub struct StartDate {
+    pub date: i64,
+}
+```
+The `StartDate` guard determines the start date of the mint. If this guard is not specified, mint is allowed &mdash; similar to say any date is valid.
