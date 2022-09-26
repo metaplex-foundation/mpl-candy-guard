@@ -13,7 +13,7 @@ The access control on a Candy Guard is encapsulated in individuals guards repres
 
 ### How the program works?
 
-![image](https://user-images.githubusercontent.com/729235/192138780-9c0574c6-109a-4b65-8184-cdeeb024af75.png)
+![image](https://user-images.githubusercontent.com/729235/192335006-d4f2c573-165f-4c5a-aef7-7428cd74bb2b.png)
 
 The main purpose of the Candy Guard program is to hold the configuration of mint **guards** and apply them before a user can mint from a candy machine. If all enabled guard conditions are valid, the mint transaction is forwarded to the Candy Machine.
 
