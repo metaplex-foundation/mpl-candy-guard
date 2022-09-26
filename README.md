@@ -369,7 +369,7 @@ The `NftPayment` guard is a payment guard that charges another NFT (token) from 
 
 ### `RedeemedAmount`
 ```rust
-pub struct RedemeedAmount {
+pub struct RedeemedAmount {
     pub maximum: u64,
 }
 ```
