@@ -288,8 +288,8 @@ The `Gatekeeper` guard validates if the payer of the transaction has a *token* f
 | Name                       | Writable | Signer | Description |
 | -------------------------- | :------: | :----: | ----------- |
 | `gatekeeper_token_account` | ✅       |        | Gatekeeper token account. |
-| `gatekeeper_program`       |          | ✅     | Gatekeeper program account. |
-| `network_expire_feature`   | ✅       |        | Gatekeeper expire account. |
+| `gatekeeper_program`       |          |        | Gatekeeper program account. |
+| `network_expire_feature`   |          |        | Gatekeeper expire account. |
 </details>
 
 ### `MintLimit`
