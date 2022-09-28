@@ -364,7 +364,7 @@ The `NftPayment` guard is a payment guard that charges another NFT (token) from 
 | `nft_metadata`            | ✅      |        | Metadata account of the NFT. |
 | `nft_mint`                |         |        | Metadata account of the NFT. |
 | `transfer_authority`      |         | ✅     | Transfer authority. |
-| `destination`             |         |        | Address of the destination. |
+| `destination`             |         |        | Account to receive the NFT. |
 | `destination_ata`         | ✅      |        | Destination PDA key (seeds `[destination pubkey, token program id, nft_mint pubkey]`). |
 | `atoken_progam`            |         |        | `spl-associate-token` program ID. |
 </details>
