@@ -59,7 +59,7 @@ test('nft payment', async (t) => {
   };
   updatedData.default.nftPayment = {
     requiredCollection: candyMachineObject.collectionMint,
-    destinationAta: tokenAccount,
+    destination: payerPair.publicKey,
   };
 
   const { tx: updateTx } = await API.update(t, candyGuard, updatedData, payerPair, fstTxHandler);
@@ -83,29 +83,55 @@ test('nft payment', async (t) => {
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey }).run();
   const paymentGuardAccounts: AccountMeta[] = [];
 
-  // token account
+  // nft account
   paymentGuardAccounts.push({
     pubkey: tokenAccount,
     isSigner: false,
     isWritable: true,
   });
-  // tokent metadata
+  // nft metadata
   paymentGuardAccounts.push({
     pubkey: nft.metadataAddress,
     isSigner: false,
     isWritable: true,
   });
+  // nft mint
+  paymentGuardAccounts.push({
+    pubkey: mintForMinter.publicKey,
+    isSigner: false,
+    isWritable: false,
+  });
   // transfer authority
   paymentGuardAccounts.push({
     pubkey: minter.publicKey,
-    isSigner: false,
+    isSigner: true,
     isWritable: false,
   });
   // destination
   paymentGuardAccounts.push({
-    pubkey: tokenAccount,
+    pubkey: updatedData.default.nftPayment.destination,
+    isSigner: false,
+    isWritable: false,
+  });
+  // destination ATA
+  const [destinationAta] = await PublicKey.findProgramAddress(
+    [
+      updatedData.default.nftPayment.destination.toBuffer(),
+      TOKEN_PROGRAM_ID.toBuffer(),
+      mintForMinter.publicKey.toBuffer(),
+    ],
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+  );
+  paymentGuardAccounts.push({
+    pubkey: destinationAta,
     isSigner: false,
     isWritable: true,
+  });
+  // associate token program
+  paymentGuardAccounts.push({
+    pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+    isSigner: false,
+    isWritable: false,
   });
 
   const [, mintForMinter3] = await amman.genLabeledKeypair('Mint Account 3 (minter)');

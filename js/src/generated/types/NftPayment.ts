@@ -10,7 +10,7 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
 import * as beet from '@metaplex-foundation/beet';
 export type NftPayment = {
   requiredCollection: web3.PublicKey;
-  destinationAta: web3.PublicKey;
+  destination: web3.PublicKey;
 };
 
 /**
@@ -20,7 +20,7 @@ export type NftPayment = {
 export const nftPaymentBeet = new beet.BeetArgsStruct<NftPayment>(
   [
     ['requiredCollection', beetSolana.publicKey],
-    ['destinationAta', beetSolana.publicKey],
+    ['destination', beetSolana.publicKey],
   ],
   'NftPayment',
 );

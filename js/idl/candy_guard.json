@@ -503,7 +503,7 @@
             "type": "publicKey"
           },
           {
-            "name": "destinationAta",
+            "name": "destination",
             "type": "publicKey"
           }
         ]
