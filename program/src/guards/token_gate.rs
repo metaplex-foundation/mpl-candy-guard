@@ -2,8 +2,11 @@ use super::*;
 
 use crate::utils::*;
 
-/// Configurations options for the token gate. This guard only
-/// allows addresses that hold the specified spl-token.
+/// Guard that restricts access to addresses that hold the specified spl-token.
+///
+/// List of accounts required:
+///
+///   0. `[]` Token account holding the required amount.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TokenGate {
     pub amount: u64,

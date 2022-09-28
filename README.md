@@ -322,11 +322,11 @@ The `NftBurn` guard restricts the mint to holders of another NFT (token), requir
 
 | Name                           | Writable | Signer | Description |
 | ------------------------------ | :------: | :----: | ----------- |
-| `nft_account`                  | ✅      |         | Token account of the NFT. |
-| `nft_metadata`                 | ✅      |         | Metadata account of the NFT. |
-| `nft_edition`                  | ✅      |         | Master Edition account of the NFT. |
-| `nft_mint_account`             | ✅      |         | Mint account of the NFT. |
-| `nft_mint_collection_metadata` | ✅      |         | Collection metadata account of the NFT. |
+| `nft_account`                  | ✅       |        | Token account of the NFT. |
+| `nft_metadata`                 | ✅       |        | Metadata account of the NFT. |
+| `nft_edition`                  | ✅       |        | Master Edition account of the NFT. |
+| `nft_mint_account`             | ✅       |        | Mint account of the NFT. |
+| `nft_mint_collection_metadata` | ✅       |        | Collection metadata account of the NFT. |
 </details>
 
 ### `NftGate`
@@ -435,9 +435,8 @@ The `TokenBurn` restrict the mint to holder of a specified spl-token and require
 
 | Name                   | Writable | Signer | Description |
 | -----------------------| :------: | :----: | ----------- |
-| `token_account`        | ✅       |        | Token account. |
+| `token_account`        | ✅       |        | Token account holding the required amount. |
 | `token_mint`           | ✅       |        | Token mint account. |
-| `token_burn_authority` |          | ✅     | Token burn authority. |
 </details>
 
 ### `TokenGate`
@@ -454,7 +453,7 @@ The `TokenGate` restrict the mint to holder of a specified spl-token. The `amoun
 
 | Name                   | Writable | Signer | Description |
 | -----------------------| :------: | :----: | ----------- |
-| `token_account`        |          |        | Token account. |
+| `token_account`        |          |        | oken account holding the required amount. |
 </details>
 
 ### `TokenPayment`
@@ -472,7 +471,6 @@ The `TokenPayment` restrict the mint to holder of a specified spl-token, transfe
 
 | Name                      | Writable | Signer | Description |
 | ------------------------- | :------: | :----: | ----------- |
-| `token_account`           | ✅       |        | Token account. |
-| `transfer_authority_info` |          | ✅     | Token transfer authority. |
-| `destination_ata`         | ✅       |        | Address to receive the tokens. |
+| `token_account`           | ✅       |        | Token account holding the required amount. |
+| `destination_ata`         | ✅       |        | Address of the ATA to receive the tokens. |
 </details>

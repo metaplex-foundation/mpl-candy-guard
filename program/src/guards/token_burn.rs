@@ -2,8 +2,13 @@ use super::*;
 
 use crate::utils::*;
 
-/// Configurations options for the token gate. This guard only
-/// allows addresses that hold the specified spl-token.
+/// Guard that requires addresses that hold an amount of a specified spl-token
+/// and burns them.
+///
+/// List of accounts required:
+///
+///   0. `[writable]` Token account holding the required amount.
+///   1. `[writable]` Token mint account.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TokenBurn {
     pub amount: u64,
@@ -39,10 +44,8 @@ impl Condition for TokenBurn {
 
         if account.amount >= self.amount {
             let token_gate_mint = Self::get_account_info(ctx, token_gate_index + 1)?;
-            // validates that we have the token_burn_authority account
-            let _token_burn_authority = Self::get_account_info(ctx, token_gate_index + 2)?;
             // consumes the remaning account
-            evaluation_context.account_cursor += 2;
+            evaluation_context.account_cursor += 1;
 
             // is the mint account the one expected?
             assert_keys_equal(&token_gate_mint.key(), &self.mint)?;
@@ -68,13 +71,12 @@ impl Condition for TokenBurn {
         // the accounts have already being validated
         let token_gate_account = Self::get_account_info(ctx, token_gate_index)?;
         let token_gate_mint = Self::get_account_info(ctx, token_gate_index + 1)?;
-        let token_burn_authority = Self::get_account_info(ctx, token_gate_index + 2)?;
 
         spl_token_burn(TokenBurnParams {
             mint: token_gate_mint.to_account_info(),
             source: token_gate_account.to_account_info(),
             amount: self.amount,
-            authority: token_burn_authority.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
             authority_signer_seeds: None,
             token_program: ctx.accounts.token_program.to_account_info(),
         })?;
