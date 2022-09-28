@@ -1,7 +1,6 @@
 use super::*;
 
-/// Configurations options for redeemed amount settings. This is a
-/// guard that stop the mint once the specified amount of items
+/// Guard that stop the mint once the specified amount of items
 /// redeenmed is reached.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct RedeemedAmount {

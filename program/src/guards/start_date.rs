@@ -1,8 +1,6 @@
 use super::*;
 
-/// Configurations options for the start date. This guard determines
-/// the start date of the mint. If this guard is not specified, mint
-/// is enabled.
+/// Guard that sets a specific start date for the mint.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct StartDate {
     pub date: i64,

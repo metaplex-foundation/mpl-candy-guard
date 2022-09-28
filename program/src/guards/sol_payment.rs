@@ -4,8 +4,11 @@ use solana_program::{program::invoke, system_instruction};
 
 use crate::{errors::CandyGuardError, utils::assert_keys_equal};
 
-/// Configurations options for the sol payment. This is a payment
-/// guard that charges in SOL (lamports).
+/// Guard that charges an amount in SOL (lamports) for the mint.
+/// 
+/// List of accounts required:
+///
+///   0. `[]` Account to receive the funds.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct SolPayment {
     pub lamports: u64,

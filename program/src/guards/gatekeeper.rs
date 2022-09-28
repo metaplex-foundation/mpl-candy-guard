@@ -5,11 +5,12 @@ use crate::utils::assert_keys_equal;
 
 use super::*;
 
-// the program ID is not exported from the gateway integration crate, so we hard code it here.
+// The program ID (not exported from the gateway integration crate).
 const GATEWAY_PROGRAM_ID: Pubkey =
     solana_program::pubkey!("gatem74V238djXdzWnJf94Wo1DcnuGkfijbf3AuBhfs");
 
-/// Configurations options for the gatekeeper.
+/// Guard that validates if the payer of the transaction has a token from a specified
+/// gateway network — in most cases, a token after completing a captcha challenge. 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct Gatekeeper {
     /// The network for the gateway token required

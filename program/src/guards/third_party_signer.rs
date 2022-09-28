@@ -1,8 +1,7 @@
 use super::*;
 use crate::utils::cmp_pubkeys;
 
-/// Configurations options for the third party signer. This guard
-/// required a specified signer to validate the transaction.
+/// Guard that requires a specified signer to validate the transaction.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ThirdPartySigner {
     pub signer_key: Pubkey,

@@ -3,7 +3,13 @@ use solana_program::{program::invoke_signed, system_instruction};
 use super::*;
 use crate::utils::assert_keys_equal;
 
-/// Configurations options for mint limit.
+/// Gaurd to set a limit of mints per wallet.
+/// 
+/// List of accounts required:
+///
+///   0. `[writable]` Mint counter PDA. The PDA is derived
+///                   using the seed [mint guard id, payer key,
+///                   candy guard pubkey, candy machine pubkey]
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct MintLimit {
     /// Unique identifier of the mint limit.

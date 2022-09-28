@@ -8,7 +8,7 @@ use solana_program::{
 use super::*;
 use crate::{errors::CandyGuardError, utils::cmp_pubkeys};
 
-/// Configurations options for bot tax. This guard is used to:
+/// Guard is used to:
 /// * charge a penalty for invalid transactions.
 /// * validate that the mint transaction is the last transaction.
 ///

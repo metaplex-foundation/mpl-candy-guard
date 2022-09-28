@@ -2,8 +2,7 @@ use crate::utils::cmp_pubkeys;
 
 use super::*;
 
-/// Configurations options for address gate. This guard only
-/// allows a specific address to be valid.
+/// Guard that restricts access to a specific address.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AddressGate {
     address: Pubkey,

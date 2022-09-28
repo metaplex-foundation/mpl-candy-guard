@@ -198,33 +198,4 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::instructions::id())]
     pub instruction_sysvar_account: UncheckedAccount<'info>,
-    // remaining accounts:
-    // > needed if lamports guard enabled
-    // destination
-    // > needed if spl_token guard enabled
-    // token_account_info
-    // transfer_authority_info
-    // destination_ata
-    // > needed if third_party_signer guard enabled
-    // signer
-    // > needed if whitelist guard enabled
-    // whitelist_token_account
-    // > needed if whitelist guard enabled and mode is "BurnEveryTime"
-    // whitelist_token_mint
-    // whitelist_burn_authority
-    // > needed if gatekeeper guard enabled
-    // gateway_token
-    // > needed if gatekeeper guard enabled and expire_on_use is true
-    // gateway program
-    // network_expire_feature
-    // > needed if nft_payment guard enabled
-    // token_account
-    // token_metadata
-    // > needed if nft_payment guard enabled and burn is true
-    // token_edition
-    // mint_account
-    // mint_collection_metadata
-    // > needed if nft_payment guard enabled and burn is false (transfer)
-    // transfer_authority
-    // destination_ata
 }

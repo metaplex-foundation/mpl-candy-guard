@@ -1,6 +1,6 @@
 use super::*;
 
-/// Configurations options for end date.
+/// Guard that sets a specific date for the mint to stop.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct EndDate {
     pub date: i64,
