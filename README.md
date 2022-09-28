@@ -320,13 +320,13 @@ The `NftBurn` guard restricts the mint to holders of another NFT (token), requir
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `token_account`            | ✅      |        | Token account of the NFT. |
-| `token_metadata`           | ✅      |        | Metadata account of the NFT. |
-| `token_edition`            | ✅      |        | Master Edition account of the NFT. |
-| `mint_account`             | ✅      |        | Mint account of the NFT. |
-| `mint_collection_metadata` | ✅      |        | Collection metadata account of the NFT. |
+| Name                           | Writable | Signer | Description |
+| ------------------------------ | :------: | :----: | ----------- |
+| `nft_account`                  | ✅      |         | Token account of the NFT. |
+| `nft_metadata`                 | ✅      |         | Metadata account of the NFT. |
+| `nft_edition`                  | ✅      |         | Master Edition account of the NFT. |
+| `nft_mint_account`             | ✅      |         | Mint account of the NFT. |
+| `nft_mint_collection_metadata` | ✅      |         | Collection metadata account of the NFT. |
 </details>
 
 ### `NftGate`
@@ -342,8 +342,8 @@ The `NftGate` guard restricts the mint to holders of a specified `required_colle
 
 | Name                      | Writable | Signer | Description |
 | ------------------------- | :------: | :----: | ----------- |
-| `token_account`           |          |        | Token account of the NFT. |
-| `token_metadata`          |          |        | Metadata account of the NFT. |
+| `nft_account`           |          |        | Token account of the NFT. |
+| `nft_metadata`          |          |        | Metadata account of the NFT. |
 </details>
 
 ### `NftPayment`
@@ -360,10 +360,13 @@ The `NftPayment` guard is a payment guard that charges another NFT (token) from 
 
 | Name                      | Writable | Signer | Description |
 | ------------------------- | :------: | :----: | ----------- |
-| `token_account`            | ✅      |        | Token account of the NFT. |
-| `token_metadata`           | ✅      |        | Metadata account of the NFT. |
-| `transfer_authority`       |         | ✅     | Transfer authority. |
-| `destination_ata`          | ✅      |        | Token account for the transfer of the NFT. |
+| `nft_account`             | ✅      |        | Token account of the NFT. |
+| `nft_metadata`            | ✅      |        | Metadata account of the NFT. |
+| `nft_mint`                |         |        | Metadata account of the NFT. |
+| `transfer_authority`      |         | ✅     | Transfer authority. |
+| `destination`             |         |        | Address of the destination. |
+| `destination_ata`         | ✅      |        | Destination PDA key (seeds `[destination pubkey, token program id, nft_mint pubkey]`). |
+| `atoken_progam`            |         |        | `spl-associate-token` program ID. |
 </details>
 
 
