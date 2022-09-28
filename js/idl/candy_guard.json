@@ -460,8 +460,15 @@
     {
       "name": "NftBurn",
       "docs": [
-        "Configurations options for the nft payment. This is a payment",
-        "guard that charges another NFT (token) from a specific collection."
+        "Guard that requires another NFT (token) from a specific collection to be burned.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writeable]` Token account of the NFT.",
+        "1. `[writeable]` Metadata account of the NFT.",
+        "2. `[writeable]` Master Edition account of the NFT.",
+        "3. `[writeable]` Mint account of the NFT.",
+        "4. `[writeable]` Collection metadata account of the NFT."
       ],
       "type": {
         "kind": "struct",
@@ -476,8 +483,12 @@
     {
       "name": "NftGate",
       "docs": [
-        "Configurations options for the nft gate. This guard restricts",
-        "the transaction to holders of a specified collection."
+        "Guard that restricts the transaction to holders of a specified collection.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[]` Token account of the NFT.",
+        "1. `[]` Metadata account of the NFT."
       ],
       "type": {
         "kind": "struct",
@@ -492,8 +503,17 @@
     {
       "name": "NftPayment",
       "docs": [
-        "Configurations options for the nft payment. This is a payment",
-        "guard that charges another NFT (token) from a specific collection."
+        "Guard that charges another NFT (token) from a specific collection as payment",
+        "for the mint.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writeable]` Token account of the NFT.",
+        "1. `[writeable]` Metadata account of the NFT.",
+        "2. `[]` Mint account of the NFT.",
+        "3. `[]` Account to receive the NFT.",
+        "4. `[writeable]` Destination PDA key (seeds [destination pubkey, token program id, nft mint pubkey]).",
+        "5. `[]` spl-associate-token program ID."
       ],
       "type": {
         "kind": "struct",

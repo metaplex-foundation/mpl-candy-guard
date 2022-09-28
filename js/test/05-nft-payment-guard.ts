@@ -101,12 +101,6 @@ test('nft payment', async (t) => {
     isSigner: false,
     isWritable: false,
   });
-  // transfer authority
-  paymentGuardAccounts.push({
-    pubkey: minter.publicKey,
-    isSigner: true,
-    isWritable: false,
-  });
   // destination
   paymentGuardAccounts.push({
     pubkey: updatedData.default.nftPayment.destination,

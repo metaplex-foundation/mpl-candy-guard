@@ -5,8 +5,12 @@ use crate::{
 };
 use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
 
-/// Configurations options for the nft gate. This guard restricts
-/// the transaction to holders of a specified collection.
+/// Guard that restricts the transaction to holders of a specified collection.
+///
+/// List of accounts required:
+///
+///   0. `[]` Token account of the NFT.
+///   1. `[]` Metadata account of the NFT.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct NftGate {
     pub required_collection: Pubkey,
@@ -32,13 +36,13 @@ impl Condition for NftGate {
     ) -> Result<()> {
         let index = evaluation_context.account_cursor;
         // validates that we received all required accounts
-        let token_account_info = Self::get_account_info(ctx, index)?;
-        let token_metadata = Self::get_account_info(ctx, index + 1)?;
+        let nft_account = Self::get_account_info(ctx, index)?;
+        let nft_metadata = Self::get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
         Self::verify_collection(
-            token_account_info,
-            token_metadata,
+            nft_account,
+            nft_metadata,
             &self.required_collection,
             ctx.accounts.payer.key,
         )

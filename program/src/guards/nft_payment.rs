@@ -4,8 +4,17 @@ use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
 use solana_program::program::invoke;
 use spl_associated_token_account::instruction::create_associated_token_account;
 
-/// Configurations options for the nft payment. This is a payment
-/// guard that charges another NFT (token) from a specific collection.
+/// Guard that charges another NFT (token) from a specific collection as payment
+/// for the mint.
+///
+/// List of accounts required:
+///
+///   0. `[writeable]` Token account of the NFT.
+///   1. `[writeable]` Metadata account of the NFT.
+///   2. `[]` Mint account of the NFT.
+///   3. `[]` Account to receive the NFT.
+///   4. `[writeable]` Destination PDA key (seeds [destination pubkey, token program id, nft mint pubkey]).
+///   5. `[]` spl-associate-token program ID.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct NftPayment {
     pub required_collection: Pubkey,
@@ -50,9 +59,9 @@ impl Condition for NftPayment {
         let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
         assert_keys_equal(&metadata.mint, nft_mint.key)?;
 
-        let _transfer_authority = Self::get_account_info(ctx, index + 3)?;
-        let destination = Self::get_account_info(ctx, index + 4)?;
-        let destination_ata = Self::get_account_info(ctx, index + 5)?;
+        let destination = Self::get_account_info(ctx, index + 3)?;
+        let destination_ata = Self::get_account_info(ctx, index + 4)?;
+        let _atoken_program = Self::get_account_info(ctx, index + 5)?;
         evaluation_context.account_cursor += 3;
 
         assert_keys_equal(destination.key, &self.destination)?;
@@ -85,12 +94,10 @@ impl Condition for NftPayment {
         let index = evaluation_context.indices["nft_payment_index"];
         let nft_account = Self::get_account_info(ctx, index)?;
         let nft_mint = Self::get_account_info(ctx, index + 2)?;
+        let destination = Self::get_account_info(ctx, index + 3)?;
+        let destination_ata = Self::get_account_info(ctx, index + 4)?;
 
-        let transfer_authority = Self::get_account_info(ctx, index + 3)?;
-        let destination = Self::get_account_info(ctx, index + 4)?;
-        let destination_ata = Self::get_account_info(ctx, index + 5)?;
-
-        // creates the ATA to received the NFT
+        // creates the ATA to receive the NFT
 
         invoke(
             &create_associated_token_account(
@@ -113,7 +120,7 @@ impl Condition for NftPayment {
         spl_token_transfer(TokenTransferParams {
             source: nft_account.to_account_info(),
             destination: destination_ata.to_account_info(),
-            authority: transfer_authority.to_account_info(),
+            authority: ctx.accounts.payer.to_account_info(),
             authority_signer_seeds: &[],
             token_program: ctx.accounts.token_program.to_account_info(),
             // fixed to always require 1 NFT

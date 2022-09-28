@@ -8,8 +8,15 @@ use solana_program::program::invoke;
 
 use crate::utils::assert_keys_equal;
 
-/// Configurations options for the nft payment. This is a payment
-/// guard that charges another NFT (token) from a specific collection.
+/// Guard that requires another NFT (token) from a specific collection to be burned.
+///
+/// List of accounts required:
+///
+///   0. `[writeable]` Token account of the NFT.
+///   1. `[writeable]` Metadata account of the NFT.
+///   2. `[writeable]` Master Edition account of the NFT.
+///   3. `[writeable]` Mint account of the NFT.
+///   4. `[writeable]` Collection metadata account of the NFT.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct NftBurn {
     pub required_collection: Pubkey,
@@ -35,26 +42,26 @@ impl Condition for NftBurn {
     ) -> Result<()> {
         let index = evaluation_context.account_cursor;
         // validates that we received all required accounts
-        let token_account_info = Self::get_account_info(ctx, index)?;
-        let token_metadata = Self::get_account_info(ctx, index + 1)?;
+        let nft_account = Self::get_account_info(ctx, index)?;
+        let nft_metadata = Self::get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
         NftGate::verify_collection(
-            token_account_info,
-            token_metadata,
+            nft_account,
+            nft_metadata,
             &self.required_collection,
             ctx.accounts.payer.key,
         )?;
 
         let _token_edition = Self::get_account_info(ctx, index + 2)?;
-        let mint_account = Self::get_account_info(ctx, index + 3)?;
-        let _mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
+        let nft_mint_account = Self::get_account_info(ctx, index + 3)?;
+        let _nft_mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
         evaluation_context.account_cursor += 3;
 
-        let metadata: Metadata = Metadata::from_account_info(token_metadata)?;
+        let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
         // validates the account information
-        assert_keys_equal(token_metadata.owner, &mpl_token_metadata::id())?;
-        assert_keys_equal(&metadata.mint, mint_account.key)?;
+        assert_keys_equal(nft_metadata.owner, &mpl_token_metadata::id())?;
+        assert_keys_equal(&metadata.mint, nft_mint_account.key)?;
 
         evaluation_context.indices.insert("nft_burn_index", index);
 
@@ -69,33 +76,33 @@ impl Condition for NftBurn {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let index = evaluation_context.indices["nft_burn_index"];
-        let token_account = Self::get_account_info(ctx, index)?;
+        let nft_account = Self::get_account_info(ctx, index)?;
 
-        let token_metadata = Self::get_account_info(ctx, index + 1)?;
-        let token_edition = Self::get_account_info(ctx, index + 2)?;
-        let mint_account = Self::get_account_info(ctx, index + 3)?;
-        let mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
+        let nft_metadata = Self::get_account_info(ctx, index + 1)?;
+        let nft_edition = Self::get_account_info(ctx, index + 2)?;
+        let nft_mint_account = Self::get_account_info(ctx, index + 3)?;
+        let nft_mint_collection_metadata = Self::get_account_info(ctx, index + 4)?;
 
         let burn_nft_infos = vec![
-            token_metadata.to_account_info(),
+            nft_metadata.to_account_info(),
             ctx.accounts.payer.to_account_info(),
-            mint_account.to_account_info(),
-            token_account.to_account_info(),
-            token_edition.to_account_info(),
+            nft_mint_account.to_account_info(),
+            nft_account.to_account_info(),
+            nft_edition.to_account_info(),
             ctx.accounts.token_program.to_account_info(),
-            mint_collection_metadata.to_account_info(),
+            nft_mint_collection_metadata.to_account_info(),
         ];
 
         invoke(
             &burn_nft(
                 mpl_token_metadata::ID,
-                token_metadata.key(),
+                nft_metadata.key(),
                 ctx.accounts.payer.key(),
-                mint_account.key(),
-                token_account.key(),
-                token_edition.key(),
+                nft_mint_account.key(),
+                nft_account.key(),
+                nft_edition.key(),
                 ::spl_token::ID,
-                Some(mint_collection_metadata.key()),
+                Some(nft_mint_collection_metadata.key()),
             ),
             burn_nft_infos.as_slice(),
         )?;
