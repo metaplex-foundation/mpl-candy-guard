@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use anchor_lang::{prelude::*, solana_program::sysvar};
-use anchor_spl::token::Token;
 
 use mpl_candy_machine_core::CandyMachine;
 
@@ -142,6 +141,15 @@ fn cpi_mint<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>) -> Result<()> 
     let cpi_ctx = CpiContext::new_with_signer(candy_machine_program, mint_ix, &signer);
 
     mpl_candy_machine_core::cpi::mint(cpi_ctx)
+}
+
+#[derive(Debug, Clone)]
+pub struct Token;
+
+impl anchor_lang::Id for Token {
+    fn id() -> Pubkey {
+        spl_token::id()
+    }
 }
 
 #[derive(Accounts)]
