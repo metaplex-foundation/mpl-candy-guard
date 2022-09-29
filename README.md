@@ -60,7 +60,7 @@ The Candy Guard configuration is stored in a single account. The information reg
 | - *features*      | 73     | 8     | Feature flags indicating which guards are serialized. |
 | - *guard set*     | 81     | ~     | (optional) A sequence of serialized guard structs. |
 | - *group counter* | ~      | 4     | `u32` specifying the number of groups in use. |
-| - *groups*        | ~      | ~     | (optional) A variable number of `Group` structs representing different guard sets. Each groups is defined by:  |
+| - *groups*        | ~      | ~     | (optional) A variable number of `Group` structs representing different guard sets. Each group is defined by:  |
 | -- *label*        | ~      | 6     | The label of the group. |
 | -- *features*     | ~      | 8     | Feature flags indicating which guards are serialized for the group. |
 | -- *guard set*    | ~      | ~     | (optional) A sequence of serialized guard structs. |
@@ -350,10 +350,10 @@ The `NftGate` guard restricts the mint to holders of a specified `required_colle
 ```rust
 pub struct NftPayment {
     pub required_collection: Pubkey,
-    pub destination_ata: Pubkey,
+    pub destination: Pubkey,
 }
 ```
-The `NftPayment` guard is a payment guard that charges another NFT (token) from a specific collection for the mint. As a requirement of the mint, the specified NFT is transferred to the `destination_ata` address.
+The `NftPayment` guard is a payment guard that charges another NFT (token) from a specific collection for the mint. As a requirement of the mint, the specified NFT is transferred to the `destination` address.
 
 <details>
   <summary>Accounts</summary>
