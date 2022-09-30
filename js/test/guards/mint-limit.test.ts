@@ -1,7 +1,7 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 import { PublicKey } from '@solana/web3.js';
-import { PROGRAM_ID } from '../src/generated';
+import { PROGRAM_ID } from '../../src/generated';
 
 const API = new InitTransactions();
 

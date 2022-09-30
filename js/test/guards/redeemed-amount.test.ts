@@ -1,16 +1,16 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 
 const API = new InitTransactions();
 
 killStuckProcess();
 
-test('address gate', async (t) => {
+test('redeemed amount', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
-  data.default.addressGate = {
-    address: payerPair.publicKey,
+  data.default.redeemedAmount = {
+    maximum: 1,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
@@ -36,7 +36,7 @@ test('address gate', async (t) => {
 
   await payerMintTx.assertSuccess(t);
 
-  // trying to mint as another minter
+  // trying to mint another one (should fail)
 
   const {
     fstTxHandler: minterHandler,
@@ -55,5 +55,5 @@ test('address gate', async (t) => {
     minterConnection,
   );
 
-  await minterMintTx.assertError(t, /Address not authorized/i);
+  await minterMintTx.assertError(t, /maximum amount/i);
 });

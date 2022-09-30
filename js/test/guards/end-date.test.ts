@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 
 const API = new InitTransactions();
 

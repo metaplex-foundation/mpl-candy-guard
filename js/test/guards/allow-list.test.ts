@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 import { MerkleTree } from 'merkletreejs';
 import { keccak_256 } from '@noble/hashes/sha3';
 import { u32 } from '@metaplex-foundation/beet';

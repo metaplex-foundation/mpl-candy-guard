@@ -1,5 +1,5 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';

@@ -1,14 +1,18 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from './setup';
+import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 
 const API = new InitTransactions();
 
 killStuckProcess();
 
-test('start date (in the past)', async (t) => {
+test('bot tax (transaction successful)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
+  data.default.botTax = {
+    lamports: 1000000000,
+    lastInstruction: false,
+  };
   data.default.startDate = {
     date: 1662479807,
   };
@@ -55,10 +59,14 @@ test('start date (in the past)', async (t) => {
   await minterMintTx.assertSuccess(t);
 });
 
-test('start date (in the future)', async (t) => {
+test('bot tax (transaction failed)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
+  data.default.botTax = {
+    lamports: 1000000000,
+    lastInstruction: false,
+  };
   data.default.startDate = {
     date: 1671926400,
   };
@@ -83,7 +91,7 @@ test('start date (in the future)', async (t) => {
     fstTxHandler,
     connection,
   );
-  await authorityMintTx.assertError(t, /Mint is not live/i);
+  await authorityMintTx.assertSuccess(t, [/Mint is not live/i, /Botting/i]);
 
   // mint (as a minter)
 
@@ -102,5 +110,5 @@ test('start date (in the future)', async (t) => {
     minterHandler,
     minterConnection,
   );
-  await minterMintTx.assertError(t, /Mint is not live/i);
+  await minterMintTx.assertSuccess(t, [/Mint is not live/i, /Botting/i]);
 });

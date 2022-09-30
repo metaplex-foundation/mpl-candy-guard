@@ -1,7 +1,7 @@
 import test from 'tape';
 import spok from 'spok';
 import { BN } from 'bn.js';
-import { newCandyGuardData, InitTransactions, killStuckProcess } from './setup/';
+import { newCandyGuardData, InitTransactions, killStuckProcess } from './setup';
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { parseData } from '../src';
