@@ -1,10 +1,10 @@
-name: SDK Candy Guard
+name: JS SDK
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   changes:
