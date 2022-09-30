@@ -8,8 +8,8 @@ use crate::utils::assert_keys_equal;
 /// List of accounts required:
 ///
 ///   0. `[writable]` Mint counter PDA. The PDA is derived
-///                   using the seed [mint guard id, payer key,
-///                   candy guard pubkey, candy machine pubkey]
+///                   using the seed `[mint guard id, payer key,
+///                   candy guard pubkey, candy machine pubkey]`.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct MintLimit {
     /// Unique identifier of the mint limit.
@@ -47,7 +47,7 @@ impl Condition for MintLimit {
         let counter = Self::get_account_info(ctx, evaluation_context.account_cursor)?;
         evaluation_context
             .indices
-            .insert("mintlimit_index", evaluation_context.account_cursor);
+            .insert("mint_limit_index", evaluation_context.account_cursor);
         evaluation_context.account_cursor += 1;
 
         let user = ctx.accounts.payer.key();
@@ -86,7 +86,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter = Self::get_account_info(ctx, evaluation_context.indices["mintlimit_index"])?;
+        let counter = Self::get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
 
         let user = ctx.accounts.payer.key();
         let candy_guard_key = &ctx.accounts.candy_guard.key();

@@ -11,6 +11,12 @@ const GATEWAY_PROGRAM_ID: Pubkey =
 
 /// Guard that validates if the payer of the transaction has a token from a specified
 /// gateway network — in most cases, a token after completing a captcha challenge. 
+/// 
+/// List of accounts required:
+///
+///   0. `[writeable]` Gatekeeper token account.
+///   1. `[]` Gatekeeper program account.
+///   2. `[]` Gatekeeper expire account.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct Gatekeeper {
     /// The network for the gateway token required
