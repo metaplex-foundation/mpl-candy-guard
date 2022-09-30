@@ -153,7 +153,10 @@ impl anchor_lang::Id for Token {
 
 #[derive(Accounts)]
 pub struct Mint<'info> {
-    #[account(seeds = [SEED, candy_guard.base.key().as_ref()], bump)]
+    #[account(
+        seeds = [SEED, candy_guard.base.key().as_ref()],
+        bump = candy_guard.bump
+    )]
     pub candy_guard: Account<'info, CandyGuard>,
     /// CHECK: account constraints checked in account trait
     #[account(address = mpl_candy_machine_core::id())]
@@ -198,7 +201,6 @@ pub struct Mint<'info> {
     pub token_metadata_program: UncheckedAccount<'info>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::slot_hashes::id())]
     pub recent_slothashes: UncheckedAccount<'info>,
