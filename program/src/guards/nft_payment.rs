@@ -104,6 +104,7 @@ impl Condition for NftPayment {
                 ctx.accounts.payer.key,
                 &self.destination,
                 nft_mint.key,
+                &spl_token::id()
             ),
             &[
                 ctx.accounts.payer.to_account_info(),
