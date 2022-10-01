@@ -10,7 +10,6 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
-  SYSVAR_RENT_PUBKEY,
   SYSVAR_SLOT_HASHES_PUBKEY,
   Transaction,
   TransactionInstruction,
@@ -270,7 +269,6 @@ export class InitTransactions {
       tokenMetadataProgram: METAPLEX_PROGRAM_ID,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
       recentSlothashes: SYSVAR_SLOT_HASHES_PUBKEY,
       instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
     };

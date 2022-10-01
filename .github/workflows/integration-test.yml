@@ -30,7 +30,7 @@ jobs:
             - 'program/**'
           workflow:
             - '.github/workflows/integration-test.yml'
-  build-and-integration-test-candy-machine-core:
+  build-and-integration-test:
     runs-on: ubuntu-latest
     env:
       cache_id: program-candy-guard 

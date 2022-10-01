@@ -22,7 +22,7 @@ jobs:
           package:
             - './js/**'
 
-  build-lint-and-test-candy-machine-core:
+  build-lint-and-test:
     needs: changes
     if: ${{ needs.changes.outputs.package == 'true' }}
     runs-on: ubuntu-latest
