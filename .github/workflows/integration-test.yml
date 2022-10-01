@@ -67,7 +67,18 @@ jobs:
           cache_id: sdk-candy-guard
           working_dir: ./js
 
-      # Run integration test
+      # Start local validator
       - name: start-local-test-validator
         working-directory: ./js
-        run: yarn run api:gen && yarn run build && DEBUG=amman* yarn amman:start& && DEBUG=mpl* yarn test && yarn run amman:stop
+        run: DEBUG=amman* yarn amman:start&
+      
+      # Run integration test
+      - name: integration-test-candy-guard-program
+        id: run_integration_test
+        working-directory: ./js
+        run: DEBUG=mpl* yarn test
+
+      # Stop local validator
+      - name: stop-local-test-validator
+        working-directory: ./js
+        run: yarn amman:stop
