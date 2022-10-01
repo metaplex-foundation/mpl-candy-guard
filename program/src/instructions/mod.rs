@@ -1,3 +1,4 @@
+pub use dispatch::*;
 pub use initialize::*;
 pub use mint::*;
 pub use unwrap::*;
@@ -5,6 +6,7 @@ pub use update::*;
 pub use withdraw::*;
 pub use wrap::*;
 
+pub mod dispatch;
 pub mod initialize;
 pub mod mint;
 pub mod unwrap;
