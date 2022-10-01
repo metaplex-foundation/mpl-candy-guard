@@ -70,4 +70,4 @@ jobs:
       # Run integration test
       - name: start-local-test-validator
         working-directory: ./js
-        run: yarn run api:gen && yarn run build && DEBUG=amman* yarn amman:start && DEBUG=mpl* yarn test && yarn run amman:stop
+        run: yarn run api:gen && yarn run build && DEBUG=amman* yarn amman:start& && DEBUG=mpl* yarn test && yarn run amman:stop
