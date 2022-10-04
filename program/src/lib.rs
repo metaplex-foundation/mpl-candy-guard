@@ -16,8 +16,12 @@ pub mod candy_guard {
     use super::*;
 
     /// Route the transaction to a guard instruction.
-    pub fn dispatch(ctx: Context<Dispatch>) -> Result<()> {
-        instructions::dispatch(ctx)
+    pub fn route<'info>(
+        ctx: Context<'_, '_, '_, 'info, Route<'info>>,
+        args: RouteArgs,
+        label: Option<String>,
+    ) -> Result<()> {
+        instructions::route(ctx, args, label)
     }
 
     /// Create a new candy guard account.

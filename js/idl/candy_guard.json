@@ -3,6 +3,43 @@
   "name": "candy_guard",
   "instructions": [
     {
+      "name": "route",
+      "docs": [
+        "Route the transaction to a guard instruction."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "candyMachine",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "RouteArgs"
+          }
+        },
+        {
+          "name": "label",
+          "type": {
+            "option": "string"
+          }
+        }
+      ]
+    },
+    {
       "name": "initialize",
       "docs": [
         "Create a new candy guard account."
@@ -285,6 +322,21 @@
     }
   ],
   "accounts": [
+    {
+      "name": "AllowListProof",
+      "docs": [
+        "PDA to track whether an address has been validated or not."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "MintCounter",
       "docs": [
@@ -685,6 +737,24 @@
       }
     },
     {
+      "name": "RouteArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "guard",
+            "type": {
+              "defined": "GuardType"
+            }
+          },
+          {
+            "name": "data",
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
       "name": "CandyGuardData",
       "type": {
         "kind": "struct",
@@ -981,101 +1051,111 @@
     },
     {
       "code": 6012,
+      "name": "InstructionNotFound",
+      "msg": "No instruction was found"
+    },
+    {
+      "code": 6013,
       "name": "CollectionKeyMismatch",
       "msg": "Collection public key mismatch"
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "MissingCollectionAccounts",
       "msg": "Missing collection accounts"
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "CollectionUpdateAuthorityKeyMismatch",
       "msg": "Collection update authority public key mismatch"
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "MintNotLastTransaction",
       "msg": "Mint must be the last instructions of the transaction"
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "MintNotLive",
       "msg": "Mint is not live"
     },
     {
-      "code": 6017,
+      "code": 6018,
       "name": "NotEnoughSOL",
       "msg": "Not enough SOL to pay for the mint"
     },
     {
-      "code": 6018,
+      "code": 6019,
       "name": "TokenBurnFailed",
       "msg": "Token burn failed"
     },
     {
-      "code": 6019,
+      "code": 6020,
       "name": "NotEnoughTokens",
       "msg": "Not enough tokens on the account"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "TokenTransferFailed",
       "msg": "Token transfer failed"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "MissingRequiredSignature",
       "msg": "A signature was required but not found"
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "GatewayTokenInvalid",
       "msg": "Gateway token is not valid"
     },
     {
-      "code": 6023,
+      "code": 6024,
       "name": "AfterEndDate",
       "msg": "Current time is after the set end date"
     },
     {
-      "code": 6024,
+      "code": 6025,
       "name": "InvalidMintTime",
       "msg": "Current time is not within the allowed mint time"
     },
     {
-      "code": 6025,
+      "code": 6026,
       "name": "AddressNotFoundInAllowedList",
       "msg": "Address not found on the allowed list"
     },
     {
-      "code": 6026,
+      "code": 6027,
       "name": "MissingAllowedListProof",
       "msg": "Missing allowed list proof"
     },
     {
-      "code": 6027,
+      "code": 6028,
+      "name": "AllowedListNotEnabled",
+      "msg": "Allow list guard is not enabled"
+    },
+    {
+      "code": 6029,
       "name": "AllowedMintLimitReached",
       "msg": "The maximum number of allowed mints was reached"
     },
     {
-      "code": 6028,
+      "code": 6030,
       "name": "InvalidNftCollection",
       "msg": "Invalid NFT collection"
     },
     {
-      "code": 6029,
+      "code": 6031,
       "name": "MissingNft",
       "msg": "Missing NFT on the account"
     },
     {
-      "code": 6030,
+      "code": 6032,
       "name": "MaximumRedeemedAmount",
       "msg": "Current redemeed items is at the set maximum amount"
     },
     {
-      "code": 6031,
+      "code": 6033,
       "name": "AddressNotAuthorized",
       "msg": "Address not authorized"
     }
