@@ -4,7 +4,7 @@ use super::*;
 use crate::utils::assert_keys_equal;
 
 /// Gaurd to set a limit of mints per wallet.
-/// 
+///
 /// List of accounts required:
 ///
 ///   0. `[writable]` Mint counter PDA. The PDA is derived
