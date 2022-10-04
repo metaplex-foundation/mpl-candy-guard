@@ -37,6 +37,7 @@ mod third_party_signer;
 mod token_burn;
 mod token_gate;
 mod token_payment;
+mod rate_limit;
 
 pub trait Condition {
     /// Validate the condition of the guard. When the guard condition is
