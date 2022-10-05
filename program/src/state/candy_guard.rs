@@ -101,6 +101,26 @@ pub struct GuardSet {
     pub token_burn: Option<TokenBurn>,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub enum GuardType {
+    BotTax,
+    SolPayment,
+    TokenPayment,
+    StartDate,
+    ThirdPartySigner,
+    TokenGate,
+    Gatekeeper,
+    EndDate,
+    AllowList,
+    MintLimit,
+    NftPayment,
+    RedeemedAmount,
+    AddressGate,
+    NftGate,
+    NftBurn,
+    TokenBurn,
+}
+
 impl CandyGuardData {
     /// Serialize the candy guard data into the specified data array.
     pub fn save(&self, data: &mut [u8]) -> Result<()> {

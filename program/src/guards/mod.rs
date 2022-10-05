@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 pub use anchor_lang::prelude::*;
 
+use crate::instructions::Route;
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
 pub use self::token_payment::TokenPayment;
@@ -91,6 +92,16 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
 
     /// Return the feature mask for the guard.
     fn mask() -> u64;
+
+    /// Executes an instruction. This function is called from the [`route`] instruction
+    /// handler.
+    fn instruction<'info>(
+        _ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
+        _guard_set: &GuardSet,
+        _data: Vec<u8>,
+    ) -> Result<()> {
+        err!(CandyGuardError::InstructionNotFound)
+    }
 
     /// Returns whether the guards is enabled or not on the specified features.
     fn is_enabled(features: u64) -> bool {

@@ -15,6 +15,15 @@ declare_id!("CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ");
 pub mod candy_guard {
     use super::*;
 
+    /// Route the transaction to a guard instruction.
+    pub fn route<'info>(
+        ctx: Context<'_, '_, '_, 'info, Route<'info>>,
+        args: RouteArgs,
+        label: Option<String>,
+    ) -> Result<()> {
+        instructions::route(ctx, args, label)
+    }
+
     /// Create a new candy guard account.
     pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> {
         instructions::initialize(ctx, data)

@@ -2,7 +2,7 @@ use super::*;
 use crate::utils::cmp_pubkeys;
 
 /// Guard that requires a specified signer to validate the transaction.
-/// 
+///
 /// List of accounts required:
 ///
 ///   0. `[signer]` Signer of the transaction.

@@ -5,7 +5,7 @@ use solana_program::{program::invoke, system_instruction};
 use crate::{errors::CandyGuardError, utils::assert_keys_equal};
 
 /// Guard that charges an amount in SOL (lamports) for the mint.
-/// 
+///
 /// List of accounts required:
 ///
 ///   0. `[]` Account to receive the funds.

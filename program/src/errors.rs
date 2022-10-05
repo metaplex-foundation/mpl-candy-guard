@@ -26,6 +26,8 @@ pub enum CandyGuardError {
     LabelExceededLength,
     #[msg("Candy machine is empty")]
     CandyMachineEmpty,
+    #[msg("No instruction was found")]
+    InstructionNotFound,
     // collection
     #[msg("Collection public key mismatch")]
     CollectionKeyMismatch,
@@ -67,6 +69,9 @@ pub enum CandyGuardError {
     AddressNotFoundInAllowedList,
     #[msg("Missing allowed list proof")]
     MissingAllowedListProof,
+    #[msg("Allow list guard is not enabled")]
+    AllowedListNotEnabled,
+    // mint limit
     #[msg("The maximum number of allowed mints was reached")]
     AllowedMintLimitReached,
     // nft burn/gate/payment

@@ -3,12 +3,20 @@ import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '..
 import { MerkleTree } from 'merkletreejs';
 import { keccak_256 } from '@noble/hashes/sha3';
 import { u32 } from '@metaplex-foundation/beet';
+import {
+  createRouteInstruction,
+  GuardType,
+  PROGRAM_ID,
+  RouteInstructionAccounts,
+  RouteInstructionArgs,
+} from '../../src';
+import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 
 const API = new InitTransactions();
 
 killStuckProcess();
 
-test('allowlist', async (t) => {
+test('allowlist (mint without proof)', async (t) => {
   const addresses: string[] = [];
 
   // list of addresses in the allow list
@@ -48,6 +56,97 @@ test('allowlist', async (t) => {
 
   // mint (as a minter)
 
+  const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
+  const { tx: minterMintTx } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterKeypair,
+    mintForMinter,
+    minterHandler,
+    minterConnection,
+  );
+
+  await minterMintTx.assertError(t, /Missing expected remaining account/i);
+
+  // create the pda address
+  const [proofPda] = await PublicKey.findProgramAddress(
+    [
+      tree.getRoot(),
+      minterKeypair.publicKey.toBuffer(),
+      candyGuard.toBuffer(),
+      candyMachine.toBuffer(),
+    ],
+    PROGRAM_ID,
+  );
+
+  const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account 2 (minter)');
+  const { tx: minterMintTx2 } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterKeypair,
+    mintForMinter2,
+    minterHandler,
+    minterConnection,
+    [
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  await minterMintTx2.assertError(t, /Account does not have correct owner/i);
+});
+
+test('allowlist (with proof)', async (t) => {
+  const addresses: string[] = [];
+
+  // list of addresses in the allow list
+
+  for (let i = 0; i < 9; i++) {
+    const [address] = await amman.genLabeledKeypair(`Wallet ${i}`);
+    addresses.push(address.toString());
+  }
+
+  const {
+    fstTxHandler: minterHandler,
+    minterPair: minterKeypair,
+    connection: minterConnection,
+  } = await API.minter();
+  addresses.push(minterKeypair.publicKey.toString());
+
+  // creates the merkle tree
+  const tree = new MerkleTree(addresses.map(keccak_256), keccak_256, { sortPairs: true });
+
+  // deploys a candy guard with the allow list – the allowList guard is configured
+  // with the root of the merkle tree
+
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  const data = newCandyGuardData();
+  data.default.allowList = {
+    merkleRoot: [...tree.getRoot()],
+  };
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+    connection,
+  );
+
+  // route instruction
+
+  const accounts: RouteInstructionAccounts = {
+    candyGuard: candyGuard,
+    candyMachine: candyMachine,
+    payer: minterKeypair.publicKey,
+  };
+
   // the proof will be empty if the address is not found in the merkle tree
   const proof = tree.getProof(Buffer.from(keccak_256(minterKeypair.publicKey.toString())));
 
@@ -58,6 +157,48 @@ test('allowlist', async (t) => {
   // prepares the mint arguments with the merkle proof
   const mintArgs = Buffer.concat([vectorSizeBuffer, ...leafBuffers]);
 
+  const args: RouteInstructionArgs = {
+    args: {
+      guard: GuardType.AllowList,
+      data: mintArgs,
+    },
+    label: null,
+  };
+
+  const [proofPda] = await PublicKey.findProgramAddress(
+    [
+      tree.getRoot(),
+      minterKeypair.publicKey.toBuffer(),
+      candyGuard.toBuffer(),
+      candyMachine.toBuffer(),
+    ],
+    PROGRAM_ID,
+  );
+
+  const routeIx = createRouteInstruction(accounts, args);
+  routeIx.keys.push(
+    ...[
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  const tx = new Transaction().add(routeIx);
+
+  const h = minterHandler.sendAndConfirmTransaction(tx, [minterKeypair], 'tx: Route');
+
+  await h.assertSuccess(t);
+
+  // mint (as a minter)
+
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
   const { tx: minterMintTx } = await API.mint(
     t,
@@ -67,15 +208,117 @@ test('allowlist', async (t) => {
     mintForMinter,
     minterHandler,
     minterConnection,
-    null,
-    mintArgs,
+    [
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
   );
 
   await minterMintTx.assertSuccess(t);
+});
 
-  // trying to mint (as a authority) reusing the proof of another wallet
+test('allowlist (with wrong proof pda)', async (t) => {
+  const addresses: string[] = [];
 
-  const [, mintForPayer] = await amman.genLabeledKeypair('Mint Account (authority)');
+  // list of addresses in the allow list
+
+  for (let i = 0; i < 9; i++) {
+    const [address] = await amman.genLabeledKeypair(`Wallet ${i}`);
+    addresses.push(address.toString());
+  }
+
+  const {
+    fstTxHandler: minterHandler,
+    minterPair: minterKeypair,
+    connection: minterConnection,
+  } = await API.minter();
+  addresses.push(minterKeypair.publicKey.toString());
+
+  // creates the merkle tree
+  const tree = new MerkleTree(addresses.map(keccak_256), keccak_256, { sortPairs: true });
+
+  // deploys a candy guard with the allow list – the allowList guard is configured
+  // with the root of the merkle tree
+
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  const data = newCandyGuardData();
+  data.default.allowList = {
+    merkleRoot: [...tree.getRoot()],
+  };
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+    connection,
+  );
+
+  // route instruction
+
+  const accounts: RouteInstructionAccounts = {
+    candyGuard: candyGuard,
+    candyMachine: candyMachine,
+    payer: minterKeypair.publicKey,
+  };
+
+  // the proof will be empty if the address is not found in the merkle tree
+  const proof = tree.getProof(Buffer.from(keccak_256(minterKeypair.publicKey.toString())));
+
+  const vectorSizeBuffer = Buffer.alloc(4);
+  u32.write(vectorSizeBuffer, 0, proof.length);
+
+  const leafBuffers = proof.map((leaf) => leaf.data);
+  // prepares the mint arguments with the merkle proof
+  const mintArgs = Buffer.concat([vectorSizeBuffer, ...leafBuffers]);
+
+  const args: RouteInstructionArgs = {
+    args: {
+      guard: GuardType.AllowList,
+      data: mintArgs,
+    },
+    label: null,
+  };
+
+  const [proofPda] = await PublicKey.findProgramAddress(
+    [
+      tree.getRoot(),
+      minterKeypair.publicKey.toBuffer(),
+      candyGuard.toBuffer(),
+      candyMachine.toBuffer(),
+    ],
+    PROGRAM_ID,
+  );
+
+  const routeIx = createRouteInstruction(accounts, args);
+  routeIx.keys.push(
+    ...[
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  const tx = new Transaction().add(routeIx);
+
+  const h = minterHandler.sendAndConfirmTransaction(tx, [minterKeypair], 'tx: Route');
+
+  await h.assertSuccess(t);
+
+  // mint (as a minter)
+
+  const [, mintForPayer] = await amman.genLabeledKeypair('Mint Account (payer)');
   const { tx: payerMintTx } = await API.mint(
     t,
     candyGuard,
@@ -84,9 +327,135 @@ test('allowlist', async (t) => {
     mintForPayer,
     fstTxHandler,
     connection,
-    null,
-    mintArgs,
+    [
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
   );
 
-  await payerMintTx.assertError(t, /Address not found/i);
+  await payerMintTx.assertError(t, /Public key mismatch/i);
+});
+
+test('allowlist (large)', async (t) => {
+  const addresses: string[] = [];
+
+  // list of addresses in the allow list
+
+  console.log("Creating merkle tree...");
+
+  for (let i = 0; i < 1999; i++) {
+    const [address] = await amman.genLabeledKeypair(`Wallet ${i}`);
+    addresses.push(address.toString());
+  }
+
+  const {
+    fstTxHandler: minterHandler,
+    minterPair: minterKeypair,
+    connection: minterConnection,
+  } = await API.minter();
+  addresses.push(minterKeypair.publicKey.toString());
+
+  // creates the merkle tree
+  const tree = new MerkleTree(addresses.map(keccak_256), keccak_256, { sortPairs: true });
+
+  // deploys a candy guard with the allow list – the allowList guard is configured
+  // with the root of the merkle tree
+
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  const data = newCandyGuardData();
+  data.default.allowList = {
+    merkleRoot: [...tree.getRoot()],
+  };
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+    connection,
+  );
+
+  // route instruction
+
+  const accounts: RouteInstructionAccounts = {
+    candyGuard: candyGuard,
+    candyMachine: candyMachine,
+    payer: minterKeypair.publicKey,
+  };
+
+  // the proof will be empty if the address is not found in the merkle tree
+  const proof = tree.getProof(Buffer.from(keccak_256(minterKeypair.publicKey.toString())));
+
+  const vectorSizeBuffer = Buffer.alloc(4);
+  u32.write(vectorSizeBuffer, 0, proof.length);
+
+  const leafBuffers = proof.map((leaf) => leaf.data);
+  // prepares the mint arguments with the merkle proof
+  const mintArgs = Buffer.concat([vectorSizeBuffer, ...leafBuffers]);
+
+  const args: RouteInstructionArgs = {
+    args: {
+      guard: GuardType.AllowList,
+      data: mintArgs,
+    },
+    label: null,
+  };
+
+  const [proofPda] = await PublicKey.findProgramAddress(
+    [
+      tree.getRoot(),
+      minterKeypair.publicKey.toBuffer(),
+      candyGuard.toBuffer(),
+      candyMachine.toBuffer(),
+    ],
+    PROGRAM_ID,
+  );
+
+  const routeIx = createRouteInstruction(accounts, args);
+  routeIx.keys.push(
+    ...[
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  const tx = new Transaction().add(routeIx);
+
+  const h = minterHandler.sendAndConfirmTransaction(tx, [minterKeypair], 'tx: Route');
+
+  await h.assertSuccess(t);
+
+  // mint (as a minter)
+
+  const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
+  const { tx: minterMintTx } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterKeypair,
+    mintForMinter,
+    minterHandler,
+    minterConnection,
+    [
+      {
+        pubkey: proofPda,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  await minterMintTx.assertSuccess(t);
 });

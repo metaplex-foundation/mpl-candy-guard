@@ -1240,7 +1240,7 @@
 
 "@metaplex-foundation/mpl-candy-machine-core@https://github.com/febo/candy-core":
   version "0.0.1"
-  resolved "https://github.com/febo/candy-core#317554671d0e2b9ba161bd3d0952b20906a7b9db"
+  resolved "https://github.com/febo/candy-core#fd91303e46fe6f87b2656a3fc117b6b994bfe99e"
   dependencies:
     "@metaplex-foundation/beet" "^0.4.0"
     "@metaplex-foundation/beet-solana" "^0.3.0"

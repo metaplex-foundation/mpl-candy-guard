@@ -10,8 +10,8 @@ const GATEWAY_PROGRAM_ID: Pubkey =
     solana_program::pubkey!("gatem74V238djXdzWnJf94Wo1DcnuGkfijbf3AuBhfs");
 
 /// Guard that validates if the payer of the transaction has a token from a specified
-/// gateway network — in most cases, a token after completing a captcha challenge. 
-/// 
+/// gateway network — in most cases, a token after completing a captcha challenge.
+///
 /// List of accounts required:
 ///
 ///   0. `[writeable]` Gatekeeper token account.
