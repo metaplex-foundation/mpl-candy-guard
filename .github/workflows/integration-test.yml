@@ -66,6 +66,11 @@ jobs:
           cache_id: sdk-candy-guard
           working_dir: ./js
 
+      # Check CI variable
+      - name: check-ci-variable
+        working-directory: ./js
+        run: echo "Value of CI='$CI'"
+
       # Start local validator
       - name: start-local-test-validator
         working-directory: ./js
