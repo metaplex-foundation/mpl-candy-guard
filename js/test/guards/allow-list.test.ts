@@ -3,14 +3,14 @@ import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '..
 import { MerkleTree } from 'merkletreejs';
 import { keccak_256 } from '@noble/hashes/sha3';
 import { u32 } from '@metaplex-foundation/beet';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { PROGRAM_ID } from '../../src';
 import {
   createRouteInstruction,
-  GuardType,
-  PROGRAM_ID,
   RouteInstructionAccounts,
   RouteInstructionArgs,
-} from '../../src';
-import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+} from '../../src/generated/instructions/route';
+import { GuardType } from '../../src/generated/types/GuardType';
 
 const API = new InitTransactions();
 
@@ -230,11 +230,7 @@ test('allowlist (with wrong proof pda)', async (t) => {
     addresses.push(address.toString());
   }
 
-  const {
-    fstTxHandler: minterHandler,
-    minterPair: minterKeypair,
-    connection: minterConnection,
-  } = await API.minter();
+  const { fstTxHandler: minterHandler, minterPair: minterKeypair } = await API.minter();
   addresses.push(minterKeypair.publicKey.toString());
 
   // creates the merkle tree
@@ -344,7 +340,7 @@ test('allowlist (large)', async (t) => {
 
   // list of addresses in the allow list
 
-  console.log("Creating merkle tree...");
+  console.log('Creating merkle tree...');
 
   for (let i = 0; i < 1999; i++) {
     const [address] = await amman.genLabeledKeypair(`Wallet ${i}`);

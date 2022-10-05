@@ -1,17 +1,13 @@
 import test from 'tape';
-import spok from 'spok';
-import { newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess, amman } from './setup';
+import { newCandyGuardData, InitTransactions, killStuckProcess, amman } from './setup';
+import { CandyMachineHelper } from './utils';
+import { Transaction } from '@solana/web3.js';
 import {
-  CandyGuard,
   createRouteInstruction,
-  GuardType,
   RouteInstructionAccounts,
   RouteInstructionArgs,
-} from '../src/generated';
-import { CandyMachineHelper, DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
-import { BN } from 'bn.js';
-import { parseData } from '../src';
-import { Transaction } from '@solana/web3.js';
+} from '../src/generated/instructions/route';
+import { GuardType } from '../src/generated/types/GuardType';
 
 killStuckProcess();
 

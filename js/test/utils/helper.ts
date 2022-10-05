@@ -10,7 +10,6 @@ import {
   SystemProgram,
   Transaction,
   TransactionInstruction,
-  SYSVAR_RENT_PUBKEY,
   SYSVAR_SLOT_HASHES_PUBKEY,
 } from '@solana/web3.js';
 import {
