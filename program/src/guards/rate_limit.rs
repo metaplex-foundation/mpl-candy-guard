@@ -10,30 +10,30 @@ use crate::utils::assert_keys_equal;
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct RateLimit {
     pub candy_machine: Pubkey,
-    pub hash: u64
+    pub hash: u8
 }
 
 #[account]
 #[derive(Default)]
 pub struct RateLimiter {
     pub candy_machine: Pubkey,
-    pub hash: u64
+    pub hash: u8
 }
 
 impl RateLimit {
     pub const PREFIX: &'static str = "RATE_LIMIT";
 
-    pub fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    pub fn calculate_hash<T: Hash>(t: &T) -> u8 {
         let mut s = DefaultHasher::new();
         t.hash(&mut s);
-        s.finish()
+        s.finish() as u8
     }
 
 }
 
 #[derive(Hash)]
 pub struct HashOfHash {
-    pub(crate) hash: u64,
+    pub(crate) hash: u8,
     pub(crate) clock: u8,
 }
 
@@ -63,7 +63,6 @@ impl Condition for RateLimit {
         evaluation_context.account_cursor += 1;
 
         let candy_machine_key = &ctx.accounts.candy_machine.key();
-        let candy_guard_key = &ctx.accounts.candy_guard.key();
 
         let seeds = [
             candy_machine_key.as_ref(),
@@ -71,12 +70,15 @@ impl Condition for RateLimit {
         ];
 
         let signer_seeds = &seeds[..];
-        let signer = &[&signer_seeds[..]];
 
         let (pda, _bump_seed) = Pubkey::find_program_address(signer_seeds, ctx.program_id);
-
         assert_keys_equal(rate_limiter.key, &pda)?;
 
+        let rate_limiter = Self::get_account_info(ctx, evaluation_context.account_cursor)?;
+        let account_data = rate_limiter.try_borrow_mut_data()?;
+        let rate_limiter = RateLimiter::try_from_slice(&account_data)?;
+
+        assert!(rate_limiter.hash == _mint_args[0]);
         Ok(())
     }
 
@@ -94,9 +96,14 @@ impl Condition for RateLimit {
             RateLimit::PREFIX.as_bytes(),
         ];
         let signer_seeds = &seeds[..];
-        let signer = &[&signer_seeds[..]];
-        let (pda, _bump_seed) = Pubkey::find_program_address(signer_seeds, ctx.program_id);
+
+        let (pda, bump_seed) = Pubkey::find_program_address(signer_seeds, ctx.program_id);
         assert_keys_equal(rate_limiter.key, &pda)?;
+        let signer = [
+            candy_machine_key.as_ref(),
+            RateLimit::PREFIX.as_bytes(),
+            &[bump_seed]
+        ];
 
         if rate_limiter.data_is_empty() {
             let rent = Rent::get()?;
@@ -105,12 +112,12 @@ impl Condition for RateLimit {
                     ctx.accounts.payer.key,
                     &pda,
                     rent.minimum_balance(std::mem::size_of::<u16>()),
-                    self.size(),
+                    RateLimit::size() as u64,
                     &crate::ID,
                 ),
                 &[
                     ctx.accounts.payer.to_account_info(),
-                    counter.to_account_info(),
+                    rate_limiter.to_account_info(),
                 ],
                 &[&signer],
             )?;
@@ -135,11 +142,9 @@ impl Condition for RateLimit {
     ) -> Result<()> {
         let clock = solana_program::clock::Clock::get()?;
         let rate_limiter = Self::get_account_info(ctx, evaluation_context.account_cursor)?;
-
-
         let mut account_data = rate_limiter.try_borrow_mut_data()?;
         let mut rate_limiter = RateLimiter::try_from_slice(&account_data)?;
-        rate_limiter.hash = rate_limiter.calculate_hash(&HashOfHash {
+        rate_limiter.hash = RateLimit::calculate_hash(&HashOfHash {
             hash: rate_limiter.hash,
             clock: clock.unix_timestamp as u8,
         });
