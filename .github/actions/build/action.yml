@@ -12,5 +12,5 @@ runs:
       working-directory: ./
       run: |
         cargo +${{ env.RUST_STABLE }} build-bpf --version
-        cargo +${{ env.RUST_STABLE }} build-bpf --bpf-out-dir ../../target/deploy/
+        cargo +${{ env.RUST_STABLE }} build-bpf --bpf-out-dir ./target/deploy/
       shell: bash

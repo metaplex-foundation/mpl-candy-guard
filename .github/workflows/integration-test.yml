@@ -1,10 +1,10 @@
-name: Integration Candy Guard
+name: Integration Test
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     # Set job outputs to values from filter step
     outputs:
-      core: ${{ steps.filter.outputs.core }}
       package: ${{ steps.filter.outputs.package }}
       workflow: ${{ steps.filter.outputs.workflow }}
     steps:
@@ -30,12 +29,12 @@ jobs:
             - 'program/**'
           workflow:
             - '.github/workflows/integration-test.yml'
-  build-and-integration-test-candy-machine-core:
+  build-and-integration-test:
     runs-on: ubuntu-latest
     env:
-      cache_id: program-candy-machine-core 
+      cache_id: program-candy-guard 
     needs: changes
-    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' }}
+    if: ${{ needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' }}
     steps:
       # Setup Deps
       - uses: actions/checkout@v3
@@ -67,7 +66,23 @@ jobs:
           cache_id: sdk-candy-guard
           working_dir: ./js
 
-      # Run integration test
+      # Check CI variable
+      - name: check-ci-variable
+        working-directory: ./js
+        run: echo "Value of CI='$CI'"
+
+      # Start local validator
       - name: start-local-test-validator
         working-directory: ./js
-        run: yarn run api:gen && yarn run build && DEBUG=amman* yarn amman:start && DEBUG=mpl* yarn test && yarn run amman:stop
+        run: DEBUG=amman* yarn amman:start&
+      
+      # Run integration test
+      - name: integration-test-candy-guard-program
+        id: run_integration_test
+        working-directory: ./js
+        run: DEBUG=mpl* yarn test
+
+      # Stop local validator
+      - name: stop-local-test-validator
+        working-directory: ./js
+        run: yarn amman:stop
