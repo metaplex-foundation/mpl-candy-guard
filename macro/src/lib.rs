@@ -148,7 +148,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             quote! {}
         }
     });
-
+    /* This is used to generate the GuardType enum
     let types_list = fields.iter().map(|f| {
         if is_option_t(&f.ty) {
             let ty = unwrap_option_t(&f.ty);
@@ -157,7 +157,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
             quote! {}
         }
     });
-
+    */
     let route_arm = fields.iter().map(|f| {
         if is_option_t(&f.ty) {
             let ty = unwrap_option_t(&f.ty);
@@ -223,7 +223,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
             pub fn route<'info>(
                 &self,
-                ctx: Context<'_, '_, '_, 'info, crate::instructions::Route<'info>>, 
+                ctx: Context<'_, '_, '_, 'info, crate::instructions::Route<'info>>,
                 args: crate::instructions::RouteArgs
             ) -> anchor_lang::Result<()> {
                 match args.guard {
@@ -232,11 +232,12 @@ pub fn derive(input: TokenStream) -> TokenStream {
                 }
             }
         }
-
+        /*
         #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
         pub enum GuardType {
             #(#types_list,)*
         }
+         */
     };
 
     TokenStream::from(expanded)

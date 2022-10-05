@@ -986,6 +986,62 @@
           }
         ]
       }
+    },
+    {
+      "name": "GuardType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "BotTax"
+          },
+          {
+            "name": "SolPayment"
+          },
+          {
+            "name": "TokenPayment"
+          },
+          {
+            "name": "StartDate"
+          },
+          {
+            "name": "ThirdPartySigner"
+          },
+          {
+            "name": "TokenGate"
+          },
+          {
+            "name": "Gatekeeper"
+          },
+          {
+            "name": "EndDate"
+          },
+          {
+            "name": "AllowList"
+          },
+          {
+            "name": "MintLimit"
+          },
+          {
+            "name": "NftPayment"
+          },
+          {
+            "name": "RedeemedAmount"
+          },
+          {
+            "name": "AddressGate"
+          },
+          {
+            "name": "NftGate"
+          },
+          {
+            "name": "NftBurn"
+          },
+          {
+            "name": "TokenBurn"
+          }
+        ]
+      }
     }
   ],
   "errors": [

@@ -7,6 +7,7 @@
 
 import * as beet from '@metaplex-foundation/beet';
 import * as web3 from '@solana/web3.js';
+import { RouteArgs, routeArgsBeet } from '../types/RouteArgs';
 
 /**
  * @category Instructions
@@ -14,7 +15,8 @@ import * as web3 from '@solana/web3.js';
  * @category generated
  */
 export type RouteInstructionArgs = {
-  data: Uint8Array;
+  args: RouteArgs;
+  label: beet.COption<string>;
 };
 /**
  * @category Instructions
@@ -28,7 +30,8 @@ export const routeStruct = new beet.FixableBeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['data', beet.bytes],
+    ['args', routeArgsBeet],
+    ['label', beet.coption(beet.utf8String)],
   ],
   'RouteInstructionArgs',
 );
@@ -36,12 +39,16 @@ export const routeStruct = new beet.FixableBeetArgsStruct<
  * Accounts required by the _route_ instruction
  *
  * @property [] candyGuard
+ * @property [_writable_] candyMachine
+ * @property [_writable_, **signer**] payer
  * @category Instructions
  * @category Route
  * @category generated
  */
 export type RouteInstructionAccounts = {
   candyGuard: web3.PublicKey;
+  candyMachine: web3.PublicKey;
+  payer: web3.PublicKey;
 };
 
 export const routeInstructionDiscriminator = [229, 23, 203, 151, 122, 227, 173, 42];
@@ -70,6 +77,16 @@ export function createRouteInstruction(
       pubkey: accounts.candyGuard,
       isWritable: false,
       isSigner: false,
+    },
+    {
+      pubkey: accounts.candyMachine,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.payer,
+      isWritable: true,
+      isSigner: true,
     },
   ];
 

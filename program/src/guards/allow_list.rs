@@ -8,6 +8,11 @@ use crate::{
 use super::*;
 
 /// Guard that uses a merkle tree to specify the addresses allowed to mint.
+///
+/// List of accounts required:
+///
+///   0. `[]` Pda created by the merkle proof instruction (seeds `[merke tree root, payer key,
+///           candy guard pubkey, candy machine pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AllowList {
     /// Merkle root of the addresses allowed to mint.
@@ -44,11 +49,20 @@ impl Guard for AllowList {
         0b1u64 << 8
     }
 
+    /// Instruction to validate an address against the merkle tree.
+    ///
+    /// List of accounts required:
+    ///
+    ///   0. `[writable]` Pda to represent the merkle proof (seeds `[merke tree root, payer key,
+    ///                   candy guard pubkey, candy machine pubkey]`).
+    ///   1. `[]` System program account.
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
         guard_set: &GuardSet,
         data: Vec<u8>,
     ) -> Result<()> {
+        msg!("AllowList: validate proof instruction");
+
         // validates the proof
 
         let merkle_proof: Vec<[u8; 32]> = if let Ok(proof) = Vec::try_from_slice(&data[..]) {

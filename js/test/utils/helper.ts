@@ -98,8 +98,6 @@ export class CandyMachineHelper {
       collectionMasterEdition,
       collectionAuthorityRecord,
       tokenMetadataProgram: METAPLEX_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
     };
 
     const args: InitializeInstructionArgs = {
