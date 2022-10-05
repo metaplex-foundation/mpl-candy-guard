@@ -69,7 +69,7 @@ jobs:
       # Start local validator
       - name: start-local-test-validator
         working-directory: ./js
-        run: DEBUG=amman* yarn amman:start
+        run: DEBUG=amman* yarn amman:start&
       
       # Run integration test
       - name: integration-test-candy-guard-program
