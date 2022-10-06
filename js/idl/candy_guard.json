@@ -392,7 +392,12 @@
     {
       "name": "AllowList",
       "docs": [
-        "Guard that uses a merkle tree to specify the addresses allowed to mint."
+        "Guard that uses a merkle tree to specify the addresses allowed to mint.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[]` Pda created by the merkle proof instruction (seeds `[merke tree root, payer key,",
+        "candy guard pubkey, candy machine pubkey]`)."
       ],
       "type": {
         "kind": "struct",
@@ -1217,7 +1222,7 @@
     }
   ],
   "metadata": {
-    "address": "CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ",
+    "address": "Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g",
     "origin": "anchor",
     "binaryVersion": "0.25.0",
     "libVersion": "0.25.0"
