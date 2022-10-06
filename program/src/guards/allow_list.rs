@@ -89,7 +89,7 @@ impl Guard for AllowList {
         let candy_guard_key = &ctx.accounts.candy_guard.key();
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
-        let proof_pda = ctx.remaining_accounts[0].to_account_info();
+        let proof_pda = Self::get_account_info(ctx, 0)?;
         let seeds = [
             &merkle_root[..],
             user.as_ref(),
