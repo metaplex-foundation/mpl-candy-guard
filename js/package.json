@@ -6,7 +6,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "check:publish-ready": "yarn build && yarn test",
+    "check:publish-ready": "yarn build && if test \"$SKIP_TESTS\" = \"1\" ; then echo \"WARN: Skipping Tests\"; else yarn test; fi",
     "preversion": "yarn check:publish-ready",
     "postversion": "git add package.json && git commit -m \"chore: update $npm_package_name to v$npm_package_version\" && git tag $npm_package_name@$npm_package_version",
     "prepublishOnly": "yarn check:publish-ready",
@@ -50,8 +50,8 @@
   "devDependencies": {
     "@metaplex-foundation/amman": "^0.11.1",
     "@metaplex-foundation/amman-client": "^0.2.2",
-    "@metaplex-foundation/mpl-candy-machine-core": "https://github.com/febo/candy-core",
     "@metaplex-foundation/js": "^0.15.0",
+    "@metaplex-foundation/mpl-candy-machine-core": "^0.1.0",
     "@metaplex-foundation/mpl-token-metadata": "^2.2.4",
     "@metaplex-foundation/solita": "^0.12.0",
     "@noble/hashes": "^1.1.2",
