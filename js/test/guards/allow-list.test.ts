@@ -98,7 +98,7 @@ test('allowlist (mint without proof)', async (t) => {
     ],
   );
 
-  await minterMintTx2.assertError(t, /Account does not have correct owner/i);
+  await minterMintTx2.assertError(t, /Missing allowed list proof/i);
 });
 
 test('allowlist (with proof)', async (t) => {
