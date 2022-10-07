@@ -166,11 +166,12 @@ impl Condition for AllowList {
         let (pda, _) = Pubkey::find_program_address(&seeds, &crate::ID);
 
         assert_keys_equal(proof_pda.key, &pda)?;
-        assert_owned_by(proof_pda, &crate::ID)?;
 
         if proof_pda.data_is_empty() {
             return err!(CandyGuardError::MissingAllowedListProof);
         }
+
+        assert_owned_by(proof_pda, &crate::ID)?;
 
         Ok(())
     }
