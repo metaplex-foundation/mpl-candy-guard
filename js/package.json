@@ -1,6 +1,6 @@
 {
   "name": "@metaplex-foundation/mpl-candy-guard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "programVersion": "0.0.1",
   "description": "MPL Candy Guard JavaScript API. This MPL package is for the current generation of the Candy Guard",
   "main": "dist/src/index.js",
