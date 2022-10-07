@@ -3,43 +3,6 @@
   "name": "candy_guard",
   "instructions": [
     {
-      "name": "route",
-      "docs": [
-        "Route the transaction to a guard instruction."
-      ],
-      "accounts": [
-        {
-          "name": "candyGuard",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "candyMachine",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "RouteArgs"
-          }
-        },
-        {
-          "name": "label",
-          "type": {
-            "option": "string"
-          }
-        }
-      ]
-    },
-    {
       "name": "initialize",
       "docs": [
         "Create a new candy guard account."
@@ -186,6 +149,43 @@
         {
           "name": "mintArgs",
           "type": "bytes"
+        },
+        {
+          "name": "label",
+          "type": {
+            "option": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "route",
+      "docs": [
+        "Route the transaction to a guard instruction."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "candyMachine",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "RouteArgs"
+          }
         },
         {
           "name": "label",
@@ -396,8 +396,8 @@
         "",
         "List of accounts required:",
         "",
-        "0. `[]` Pda created by the merkle proof instruction (seeds `[merke tree root, payer key,",
-        "candy guard pubkey, candy machine pubkey]`)."
+        "0. `[]` Pda created by the merkle proof instruction (seeds `[\"allow_list\", merke tree root,",
+        "payer key, candy guard pubkey, candy machine pubkey]`)."
       ],
       "type": {
         "kind": "struct",
@@ -497,7 +497,7 @@
         "List of accounts required:",
         "",
         "0. `[writable]` Mint counter PDA. The PDA is derived",
-        "using the seed `[mint guard id, payer key,",
+        "using the seed `[\"mint_limit\", mint guard id, payer key,",
         "candy guard pubkey, candy machine pubkey]`."
       ],
       "type": {

@@ -94,33 +94,6 @@ This instruction creates and initializes a new `CandyGuard` account.
 </details>
 
 
-### 📄 `route`
-
-This instruction routes the transaction to a guard, allowing the execution of custom guard instructions. The transaction can include any additional accounts required by the guard instruction. The guard that will received the transaction and any additional parameters are specified in the `RouteArgs` struct.
-
-<details>
-  <summary>Accounts</summary>
-
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
-| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
-| `payer`                   | ✅       | ✅     | Payer of the transaction. |
-| *remaining accounts*      |          |        | (optional) A list of optional accounts required by the guard instruction. |
-</details>
-
-<details>
-  <summary>Arguments</summary>
-  
-| Argument     | Size | Description               |
-| -------------| ---- | ------------------------- |
-| `args`       |      | `RouteArgs` struct.       |
-| - *guard*    | 1    | Value of enum `GuardType` |
-| - *data*     | ~    | `[u8]` representing arguments for the instruction; an empty `[u8]` if there are no arguments. |
-| `label`      | 6    | (optional) string representing the group label to use for retrieving the guards set. |
-</details>
-
-
 ### 📄 `mint`
 
 This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. Only when the transaction is succesfully validated, it is forwarded to the Candy Machine.
@@ -160,6 +133,33 @@ This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. O
 | --------------- | ------ | ---- | ------------------------- |
 | `mint_args`     | 0      | ~    | `[u8]` representing arguments for guards; an empty `[u8]` if there are no arguments. |
 | `label`         | ~      | 6    | (optional) `string` representing the group label to use for validation of guards. |
+</details>
+
+
+### 📄 `route`
+
+This instruction routes the transaction to a guard, allowing the execution of custom guard instructions. The transaction can include any additional accounts required by the guard instruction. The guard that will received the transaction and any additional parameters is specified in the `RouteArgs` struct.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
+| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
+| `payer`                   | ✅       | ✅     | Payer of the transaction. |
+| *remaining accounts*      |          |        | (optional) A list of optional accounts required by the guard instruction. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `args`       |      | `RouteArgs` struct.       |
+| - *guard*    | 1    | Value of enum `GuardType` |
+| - *data*     | ~    | `[u8]` representing arguments for the instruction; an empty `[u8]` if there are no arguments. |
+| `label`      | 6    | (optional) string representing the group label to use for retrieving the guards set. |
 </details>
 
 
@@ -280,7 +280,7 @@ The `AllowList` guard validates the payer's address against a merkle tree-based 
 
 #### Route Instruction
 
-The merkle proof validation needs to be completed before the mint transaction. This is done by a ['route'] instruction with the following accounts and `RouteArgs`:
+The merkle proof validation needs to be completed before the mint transaction. This is done by a `route` instruction with the following accounts and `RouteArgs`:
 
 <details>
   <summary>Accounts</summary>
@@ -295,8 +295,9 @@ The merkle proof validation needs to be completed before the mint transaction. T
   
 | Argument     | Size | Description               |
 | -------------| ---- | ------------------------- |
-| `guard`      | 1    | `GuardType.AllowList`    |
-| `data`       | ~    | `Vec` of the merkle proof hash values. |
+| `args`       |      | `RouteArgs` struct         |
+| - *guard*    | 1    | `GuardType.AllowList`    |
+| - *data*     | ~    | `Vec` of the merkle proof hash values. |
 </details>
 
 
