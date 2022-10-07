@@ -11,8 +11,8 @@ use super::*;
 ///
 /// List of accounts required:
 ///
-///   0. `[]` Pda created by the merkle proof instruction (seeds `[merke tree root, payer key,
-///           candy guard pubkey, candy machine pubkey]`).
+///   0. `[]` Pda created by the merkle proof instruction (seeds `["allow_list", merke tree root, 
+///           payer key, candy guard pubkey, candy machine pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AllowList {
     /// Merkle root of the addresses allowed to mint.
@@ -53,8 +53,8 @@ impl Guard for AllowList {
     ///
     /// List of accounts required:
     ///
-    ///   0. `[writable]` Pda to represent the merkle proof (seeds `[merke tree root, payer key,
-    ///                   candy guard pubkey, candy machine pubkey]`).
+    ///   0. `[writable]` Pda to represent the merkle proof (seeds `["allow_list", merke tree root,
+    ///                   payer key, candy guard pubkey, candy machine pubkey]`).
     ///   1. `[]` System program account.
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
@@ -91,6 +91,7 @@ impl Guard for AllowList {
 
         let proof_pda = Self::get_account_info(ctx, 0)?;
         let seeds = [
+            b"allow_list",
             &merkle_root[..],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -102,6 +103,7 @@ impl Guard for AllowList {
 
         if proof_pda.data_is_empty() {
             let signer = [
+                b"allow_list",
                 &merkle_root[..],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -158,6 +160,7 @@ impl Condition for AllowList {
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         let seeds = [
+            b"allow_list",
             &self.merkle_root[..],
             user.as_ref(),
             candy_guard_key.as_ref(),

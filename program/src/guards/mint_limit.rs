@@ -8,7 +8,7 @@ use crate::utils::assert_keys_equal;
 /// List of accounts required:
 ///
 ///   0. `[writable]` Mint counter PDA. The PDA is derived
-///                   using the seed `[mint guard id, payer key,
+///                   using the seed `["mint_limit", mint guard id, payer key,
 ///                   candy guard pubkey, candy machine pubkey]`.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct MintLimit {
@@ -55,6 +55,7 @@ impl Condition for MintLimit {
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         let seeds = [
+            b"mint_limit".as_ref(),
             &[self.id],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -94,6 +95,7 @@ impl Condition for MintLimit {
 
         if counter.data_is_empty() {
             let seeds = [
+                b"mint_limit".as_ref(),
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -103,6 +105,7 @@ impl Condition for MintLimit {
 
             let rent = Rent::get()?;
             let signer = [
+                b"mint_limit".as_ref(),
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),

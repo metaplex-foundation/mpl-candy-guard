@@ -36,6 +36,7 @@ test('mint limit', async (t) => {
 
   const [mintCounterPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from("mint_limit"),
       new Uint8Array([0]),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -98,6 +99,7 @@ test('mint limit', async (t) => {
 
   const [mintCounterPda2] = await PublicKey.findProgramAddress(
     [
+      Buffer.from("mint_limit"),
       new Uint8Array([0]),
       minter2Keypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -156,6 +158,7 @@ test('mint limit (limit = 2)', async (t) => {
 
   const [mintCounterPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from("mint_limit"),
       new Uint8Array([0]),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -240,6 +243,7 @@ test('mint limit (limit = 2)', async (t) => {
 
   const [mintCounterPda2] = await PublicKey.findProgramAddress(
     [
+      Buffer.from("mint_limit"),
       new Uint8Array([0]),
       minter2Keypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),

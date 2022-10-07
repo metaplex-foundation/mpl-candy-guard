@@ -15,15 +15,6 @@ declare_id!("Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g");
 pub mod candy_guard {
     use super::*;
 
-    /// Route the transaction to a guard instruction.
-    pub fn route<'info>(
-        ctx: Context<'_, '_, '_, 'info, Route<'info>>,
-        args: RouteArgs,
-        label: Option<String>,
-    ) -> Result<()> {
-        instructions::route(ctx, args, label)
-    }
-
     /// Create a new candy guard account.
     pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> {
         instructions::initialize(ctx, data)
@@ -36,6 +27,15 @@ pub mod candy_guard {
         label: Option<String>,
     ) -> Result<()> {
         instructions::mint(ctx, mint_args, label)
+    }
+
+    /// Route the transaction to a guard instruction.
+    pub fn route<'info>(
+        ctx: Context<'_, '_, '_, 'info, Route<'info>>,
+        args: RouteArgs,
+        label: Option<String>,
+    ) -> Result<()> {
+        instructions::route(ctx, args, label)
     }
 
     /// Remove a candy guard from a candy machine, setting the authority to the
