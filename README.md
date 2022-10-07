@@ -94,6 +94,33 @@ This instruction creates and initializes a new `CandyGuard` account.
 </details>
 
 
+### 📄 `route`
+
+This instruction routes the transaction to a guard, allowing the execution of custom guard instructions. The transaction can include any additional accounts required by the guard instruction. The guard that will received the transaction and any additional parameters are specified in the `RouteArgs` struct.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description |
+| ------------------------- | :------: | :----: | ----------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
+| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
+| `payer`                   | ✅       | ✅     | Payer of the transaction. |
+| *remaining accounts*      |          |        | (optional) A list of optional accounts required by the guard instruction. |
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `args`       |      | `RouteArgs` struct.       |
+| - *guard*    | 1    | Value of enum `GuardType` |
+| - *data*     | ~    | `[u8]` representing arguments for the instruction; an empty `[u8]` if there are no arguments. |
+| `label`      | 6    | (optional) string representing the group label to use for retrieving the guards set. |
+</details>
+
+
 ### 📄 `mint`
 
 This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. Only when the transaction is succesfully validated, it is forwarded to the Candy Machine.
@@ -241,14 +268,35 @@ pub struct AllowList {
     pub merkle_root: [u8; 32],
 }
 ```
-The `AllowList` guard validates the payer's address against a merkle tree-based allow list of addresses. It required the root of the merkle tree as a configuration and the mint transaction must include the information of the merkle proof leaves &mdash; the proof is passed to the mint transaction using the `mint_args` parameter. The transaction will fail if either the address is not part on the merkle tree or no proof arguments is specified.
+The `AllowList` guard validates the payer's address against a merkle tree-based allow list of addresses. It required the root of the merkle tree as a configuration and the mint transaction must include the PDA of the merkle proof. The transaction will fail if no proof is specified.
 
+<details>
+  <summary>Accounts</summary>
+
+| Name        | Writable | Signer | Description |
+| ----------- | :------: | :----: | ----------- |
+| `proof_pda` |          |        | PDA of the merkle proof (seed `["allow_list", merke tree root, payer key, candy guard pubkey, candy machine pubkey]`). |
+</details>
+
+#### Route Instruction
+
+The merkle proof validation needs to be completed before the mint transaction. This is done by a ['route'] instruction with the following accounts and `RouteArgs`:
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description |
+| ---------------- | :------: | :----: | ----------- |
+| `proof_pda`      | ✅       |        | PDA to represent the merkle proof (seed `["allow_list", merke tree root, payer key, candy guard pubkey, candy machine pubkey]`). |
+| `system_program` |          |        | System program account. |
+</details>
 <details>
   <summary>Arguments</summary>
   
-| Argument                      | Size | Description               |
-| ----------------------------- | ---- | ------------------------- |
-| `merkle_proof`                | ~    | `Vec` of the hash values. |
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `guard`      | 1    | `GuardType.AllowList`    |
+| `data`       | ~    | `Vec` of the merkle proof hash values. |
 </details>
 
 
@@ -306,7 +354,7 @@ The `MintLimit` guard allows to specify a limit on the number of mints for each 
 
 | Name         | Writable | Signer | Description |
 | ------------ | :------: | :----: | ----------- |
-| `mint_count` | ✅       |        | Mint counter PDA. The PDA is derived using the seed `[mint guard id, payer key, candy guard pubkey, candy machine pubkey]` |
+| `mint_count` | ✅       |        | Mint counter PDA. The PDA is derived using the seed `["mint_limit", mint guard id, payer key, candy guard pubkey, candy machine pubkey]` |
 </details>
 
 ### `NftBurn`
