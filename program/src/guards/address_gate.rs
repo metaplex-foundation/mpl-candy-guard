@@ -5,7 +5,7 @@ use super::*;
 /// Guard that restricts access to a specific address.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AddressGate {
-    address: Pubkey,
+    pub address: Pubkey,
 }
 
 impl Guard for AddressGate {
