@@ -1,6 +1,6 @@
 [package]
 name = "mpl-candy-guard-derive"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 description = "Proc macro for automating ser/deser of Metaplex Candy guards."
 authors = ["Metaplex Developers <dev@metaplex.com>"]
