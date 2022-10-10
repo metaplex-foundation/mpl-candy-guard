@@ -93,7 +93,7 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
     /// Return the feature mask for the guard.
     fn mask() -> u64;
 
-    /// Executes an instruction. This function is called from the [`route`] instruction
+    /// Executes an instruction. This function is called from the `route` instruction
     /// handler.
     fn instruction<'info>(
         _ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
