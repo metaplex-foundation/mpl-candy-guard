@@ -69,13 +69,13 @@ jobs:
       # Start local validator
       - name: start-local-test-validator
         working-directory: ./js
-        run: DEBUG=amman* yarn amman:start&
+        run: DEBUG=amman* yarn amman:start
       
       # Run integration test
       - name: integration-test-candy-guard-program
         id: run_integration_test
         working-directory: ./js
-        run: sleep 10 && DEBUG=mpl* yarn test
+        run: DEBUG=mpl* yarn test
 
       # Stop local validator
       - name: stop-local-test-validator

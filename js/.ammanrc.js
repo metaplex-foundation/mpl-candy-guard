@@ -41,11 +41,4 @@ const validator = {
       ]
 };
 
-module.exports = {
-    programs,
-    validator,
-    relay: {
-        enabled: true,
-        killRunningRelay: true,
-    },
-};
+module.exports = {validator};
