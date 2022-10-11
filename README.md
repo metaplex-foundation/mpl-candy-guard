@@ -343,7 +343,7 @@ pub struct Gatekeeper {
 }
 ```
 
-The `Gatekeeper` guard validates if the payer of the transaction has a _token_ from a specified gateway network &mdash; in most cases, a _token_ after completing a captcha challenge. The `expeire_on_use` configuration is used to indicate whether or not the token should expire after minting.
+The `Gatekeeper` guard validates if the payer of the transaction has a _token_ from a specified gateway network &mdash; in most cases, a _token_ after completing a captcha challenge. The `expire_on_use` configuration is used to indicate whether or not the token should expire after minting.
 
 <details>
   <summary>Accounts</summary>
