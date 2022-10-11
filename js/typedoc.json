@@ -17,5 +17,5 @@
   ],
   "readme": "none",
   "emit": "both",
-  "out": "../docs/candy-guard"
+  "out": "../docs"
 }
