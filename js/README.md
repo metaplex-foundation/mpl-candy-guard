@@ -4,7 +4,7 @@ This package contains the Metaplex Candy Guard contract SDK code.
 
 ## API Docs
 
-Find the [candy-guard API docs published here](https://metaplex-foundation.github.io/mpl-candy-guard/docs/index.html).
+Find the [candy-guard API docs published here](https://metaplex-foundation.github.io/mpl-candy-guard/index.html).
 
 ## Installation
 
