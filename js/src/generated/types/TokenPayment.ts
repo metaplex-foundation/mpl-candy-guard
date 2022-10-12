@@ -10,7 +10,7 @@ import * as web3 from '@solana/web3.js';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
 export type TokenPayment = {
   amount: beet.bignum;
-  tokenMint: web3.PublicKey;
+  mint: web3.PublicKey;
   destinationAta: web3.PublicKey;
 };
 
@@ -21,7 +21,7 @@ export type TokenPayment = {
 export const tokenPaymentBeet = new beet.BeetArgsStruct<TokenPayment>(
   [
     ['amount', beet.u64],
-    ['tokenMint', beetSolana.publicKey],
+    ['mint', beetSolana.publicKey],
     ['destinationAta', beetSolana.publicKey],
   ],
   'TokenPayment',

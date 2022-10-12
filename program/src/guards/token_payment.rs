@@ -14,7 +14,7 @@ use crate::{
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TokenPayment {
     pub amount: u64,
-    pub token_mint: Pubkey,
+    pub mint: Pubkey,
     pub destination_ata: Pubkey,
 }
 
@@ -46,11 +46,8 @@ impl Condition for TokenPayment {
 
         assert_keys_equal(destination_ata.key, &self.destination_ata)?;
 
-        let token_account = assert_is_ata(
-            token_account_info,
-            &ctx.accounts.payer.key(),
-            &self.token_mint,
-        )?;
+        let token_account =
+            assert_is_ata(token_account_info, &ctx.accounts.payer.key(), &self.mint)?;
 
         if token_account.amount < self.amount {
             return err!(CandyGuardError::NotEnoughTokens);
