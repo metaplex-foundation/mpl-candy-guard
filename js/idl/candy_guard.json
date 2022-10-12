@@ -731,7 +731,7 @@
             "type": "u64"
           },
           {
-            "name": "tokenMint",
+            "name": "mint",
             "type": "publicKey"
           },
           {
