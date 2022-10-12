@@ -103,8 +103,7 @@ impl Condition for NftPayment {
             &create_associated_token_account(
                 ctx.accounts.payer.key,
                 &self.destination,
-                nft_mint.key,
-                &spl_associated_token_account::id(),
+                nft_mint.key
             ),
             &[
                 ctx.accounts.payer.to_account_info(),
