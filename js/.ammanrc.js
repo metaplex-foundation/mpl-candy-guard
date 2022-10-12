@@ -12,7 +12,7 @@ function localDeployPath(programName) {
 const programs = {
   candy_guard: {
     label: "Candy Guard",
-    programId: 'CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ',
+    programId: 'Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g',
     deployPath: localDeployPath('mpl_candy_guard'),
   },
 };
@@ -41,11 +41,4 @@ const validator = {
       ]
 };
 
-module.exports = {
-    programs,
-    validator,
-    relay: {
-        enabled: true,
-        killRunningRelay: true,
-    },
-};
+module.exports = {validator};

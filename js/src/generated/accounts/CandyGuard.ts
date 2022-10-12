@@ -74,7 +74,7 @@ export class CandyGuard implements CandyGuardArgs {
    * @param programId - the program that owns the accounts we are filtering
    */
   static gpaBuilder(
-    programId: web3.PublicKey = new web3.PublicKey('CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ'),
+    programId: web3.PublicKey = new web3.PublicKey('Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g'),
   ) {
     return beetSolana.GpaBuilder.fromStruct(programId, candyGuardBeet);
   }

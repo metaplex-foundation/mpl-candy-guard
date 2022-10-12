@@ -72,6 +72,7 @@ test('allowlist (mint without proof)', async (t) => {
   // create the pda address
   const [proofPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from('allow_list'),
       tree.getRoot(),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -98,7 +99,7 @@ test('allowlist (mint without proof)', async (t) => {
     ],
   );
 
-  await minterMintTx2.assertError(t, /Account does not have correct owner/i);
+  await minterMintTx2.assertError(t, /Missing allowed list proof/i);
 });
 
 test('allowlist (with proof)', async (t) => {
@@ -167,6 +168,7 @@ test('allowlist (with proof)', async (t) => {
 
   const [proofPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from('allow_list'),
       tree.getRoot(),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -282,6 +284,7 @@ test('allowlist (with wrong proof pda)', async (t) => {
 
   const [proofPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from('allow_list'),
       tree.getRoot(),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
@@ -403,6 +406,7 @@ test('allowlist (large)', async (t) => {
 
   const [proofPda] = await PublicKey.findProgramAddress(
     [
+      Buffer.from('allow_list'),
       tree.getRoot(),
       minterKeypair.publicKey.toBuffer(),
       candyGuard.toBuffer(),

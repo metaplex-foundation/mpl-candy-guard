@@ -39,7 +39,7 @@ pub struct CandyGuard {
     //  5) third party signer
     //  6) token gate
     //  7) gatekeeper
-    //  8) end settings
+    //  8) end date
     //  9) allow list
     // 10) mint limit
     // 11) nft payment
@@ -75,32 +75,33 @@ pub struct GuardSet {
     pub token_payment: Option<TokenPayment>,
     /// Start data guard (controls when minting is allowed).
     pub start_date: Option<StartDate>,
-    /// Third party signer guard.
+    /// Third party signer guard (requires an extra signer for the transaction).
     pub third_party_signer: Option<ThirdPartySigner>,
-    /// Token gate guard (restricrt access to holders of a specific token).
+    /// Token gate guard (restrict access to holders of a specific token).
     pub token_gate: Option<TokenGate>,
-    /// Gatekeeper guard
+    /// Gatekeeper guard (captcha challenge).
     pub gatekeeper: Option<Gatekeeper>,
-    /// End date guard
+    /// End date guard (set an end date to stop the mint).
     pub end_date: Option<EndDate>,
-    /// Allow list guard
+    /// Allow list guard (curated list of allowed addresses).
     pub allow_list: Option<AllowList>,
-    /// Mint limit guard
+    /// Mint limit guard (add a limit on the number of mints per wallet).
     pub mint_limit: Option<MintLimit>,
-    /// NFT Payment
+    /// NFT Payment (charge an NFT in order to mint).
     pub nft_payment: Option<NftPayment>,
-    /// Redeemed amount guard
+    /// Redeemed amount guard (add a limit on the overall number of items minted).
     pub redeemed_amount: Option<RedeemedAmount>,
-    /// Address gate (check access against a specified address)
+    /// Address gate (check access against a specified address).
     pub address_gate: Option<AddressGate>,
-    /// NFT gate guard (check access based on holding a specified NFT)
+    /// NFT gate guard (check access based on holding a specified NFT).
     pub nft_gate: Option<NftGate>,
-    /// NFT burn guard (burn a specified NFT)
+    /// NFT burn guard (burn a specified NFT).
     pub nft_burn: Option<NftBurn>,
-    /// Token burn guard (burn a specified amount of spl-token)
+    /// Token burn guard (burn a specified amount of spl-token).
     pub token_burn: Option<TokenBurn>,
 }
 
+/// Available guard types.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub enum GuardType {
     BotTax,

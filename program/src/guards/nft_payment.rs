@@ -104,7 +104,6 @@ impl Condition for NftPayment {
                 ctx.accounts.payer.key,
                 &self.destination,
                 nft_mint.key,
-                &spl_token::id(),
             ),
             &[
                 ctx.accounts.payer.to_account_info(),
@@ -112,7 +111,6 @@ impl Condition for NftPayment {
                 destination.to_account_info(),
                 nft_mint.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
-                ctx.accounts.token_program.to_account_info(),
             ],
         )?;
 

@@ -1,12 +1,12 @@
 [package]
 name = "mpl-candy-guard"
-version = "0.0.1"
+version = "0.1.0"
 description = "Metaplex Candy Guard: programmatic access control for Candy Machine."
 authors = ["Metaplex Developers <dev@metaplex.com>"]
-repository = "https://github.com/metaplex-foundation/metaplex-program-library"
+repository = "https://github.com/metaplex-foundation/mpl-candy-guard"
 license = "AGPL-3.0"
 edition = "2021"
-readme = "README.md"
+readme = "../README.md"
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -21,10 +21,10 @@ default = []
 [dependencies]
 anchor-lang = "0.25.0"
 arrayref = "0.3.6"
-mpl-candy-guard-derive = { path = "../macro" }
-mpl-candy-machine-core = { version = "0.0.3", git = "https://github.com/metaplex-foundation/metaplex-program-library", branch = "stranzhay/read-api", features = ["cpi"] }
+mpl-candy-guard-derive = { version = "0.1.0" }
+mpl-candy-machine-core = { version = "0.1.0", features = ["cpi"] }
 mpl-token-metadata = { version = "1.4.1", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
-spl-associated-token-account = { version = "1.1.1", features = ["no-entrypoint"] }
-spl-token = { version = "3.5.0", features = ["no-entrypoint"] }
+spl-associated-token-account = { version = "1.0.5", features = ["no-entrypoint"] }
+spl-token = { version = "~3.3.0", features = ["no-entrypoint"] }
 solana-gateway = "0.2.2"

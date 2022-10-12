@@ -1,44 +1,7 @@
 {
-  "version": "0.0.1",
+  "version": "0.1.0",
   "name": "candy_guard",
   "instructions": [
-    {
-      "name": "route",
-      "docs": [
-        "Route the transaction to a guard instruction."
-      ],
-      "accounts": [
-        {
-          "name": "candyGuard",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "candyMachine",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "RouteArgs"
-          }
-        },
-        {
-          "name": "label",
-          "type": {
-            "option": "string"
-          }
-        }
-      ]
-    },
     {
       "name": "initialize",
       "docs": [
@@ -186,6 +149,43 @@
         {
           "name": "mintArgs",
           "type": "bytes"
+        },
+        {
+          "name": "label",
+          "type": {
+            "option": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "route",
+      "docs": [
+        "Route the transaction to a guard instruction."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "candyMachine",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "RouteArgs"
+          }
         },
         {
           "name": "label",
@@ -392,7 +392,12 @@
     {
       "name": "AllowList",
       "docs": [
-        "Guard that uses a merkle tree to specify the addresses allowed to mint."
+        "Guard that uses a merkle tree to specify the addresses allowed to mint.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[]` Pda created by the merkle proof instruction (seeds `[\"allow_list\", merke tree root,",
+        "payer key, candy guard pubkey, candy machine pubkey]`)."
       ],
       "type": {
         "kind": "struct",
@@ -492,7 +497,7 @@
         "List of accounts required:",
         "",
         "0. `[writable]` Mint counter PDA. The PDA is derived",
-        "using the seed `[mint guard id, payer key,",
+        "using the seed `[\"mint_limit\", mint guard id, payer key,",
         "candy guard pubkey, candy machine pubkey]`."
       ],
       "type": {
@@ -855,7 +860,7 @@
           {
             "name": "thirdPartySigner",
             "docs": [
-              "Third party signer guard."
+              "Third party signer guard (requires an extra signer for the transaction)."
             ],
             "type": {
               "option": {
@@ -866,7 +871,7 @@
           {
             "name": "tokenGate",
             "docs": [
-              "Token gate guard (restricrt access to holders of a specific token)."
+              "Token gate guard (restrict access to holders of a specific token)."
             ],
             "type": {
               "option": {
@@ -877,7 +882,7 @@
           {
             "name": "gatekeeper",
             "docs": [
-              "Gatekeeper guard"
+              "Gatekeeper guard (captcha challenge)."
             ],
             "type": {
               "option": {
@@ -888,7 +893,7 @@
           {
             "name": "endDate",
             "docs": [
-              "End date guard"
+              "End date guard (set an end date to stop the mint)."
             ],
             "type": {
               "option": {
@@ -899,7 +904,7 @@
           {
             "name": "allowList",
             "docs": [
-              "Allow list guard"
+              "Allow list guard (curated list of allowed addresses)."
             ],
             "type": {
               "option": {
@@ -910,7 +915,7 @@
           {
             "name": "mintLimit",
             "docs": [
-              "Mint limit guard"
+              "Mint limit guard (add a limit on the number of mints per wallet)."
             ],
             "type": {
               "option": {
@@ -921,7 +926,7 @@
           {
             "name": "nftPayment",
             "docs": [
-              "NFT Payment"
+              "NFT Payment (charge an NFT in order to mint)."
             ],
             "type": {
               "option": {
@@ -932,7 +937,7 @@
           {
             "name": "redeemedAmount",
             "docs": [
-              "Redeemed amount guard"
+              "Redeemed amount guard (add a limit on the overall number of items minted)."
             ],
             "type": {
               "option": {
@@ -943,7 +948,7 @@
           {
             "name": "addressGate",
             "docs": [
-              "Address gate (check access against a specified address)"
+              "Address gate (check access against a specified address)."
             ],
             "type": {
               "option": {
@@ -954,7 +959,7 @@
           {
             "name": "nftGate",
             "docs": [
-              "NFT gate guard (check access based on holding a specified NFT)"
+              "NFT gate guard (check access based on holding a specified NFT)."
             ],
             "type": {
               "option": {
@@ -965,7 +970,7 @@
           {
             "name": "nftBurn",
             "docs": [
-              "NFT burn guard (burn a specified NFT)"
+              "NFT burn guard (burn a specified NFT)."
             ],
             "type": {
               "option": {
@@ -976,7 +981,7 @@
           {
             "name": "tokenBurn",
             "docs": [
-              "Token burn guard (burn a specified amount of spl-token)"
+              "Token burn guard (burn a specified amount of spl-token)."
             ],
             "type": {
               "option": {
@@ -989,6 +994,9 @@
     },
     {
       "name": "GuardType",
+      "docs": [
+        "Available guard types."
+      ],
       "type": {
         "kind": "enum",
         "variants": [
@@ -1217,7 +1225,7 @@
     }
   ],
   "metadata": {
-    "address": "CnDYGRdU51FsSyLnVgSd19MCFxA4YHT5h3nacvCKMPUJ",
+    "address": "Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g",
     "origin": "anchor",
     "binaryVersion": "0.25.0",
     "libVersion": "0.25.0"

@@ -1,6 +1,7 @@
 # Metaplex Candy Guard
 
-> 🛑 **DO NOT USE IN PRODUCTION**: This repository contain a proof-of-concept.
+> ⚠️ **Candy Guard is currently experimental and has not been formally audited. Use in production
+> at your own risk.**
 
 ## Overview
 
@@ -20,9 +21,9 @@ The main purpose of the Candy Guard program is to hold the configuration of mint
 When a mint transaction is received, the program performs the following steps:
 
 1. Validates the transaction against all enabled guards.
-    - If any of the guards fail at this point, the transaction is subject to the `BotTax` (when the `BotTax` guard is enabled) and the transaction is then aborted.
+   - If any of the guards fail at this point, the transaction is subject to the `BotTax` (when the `BotTax` guard is enabled) and the transaction is then aborted.
 2. After evaluating that all guards are valid, it invokes the `pre_actions` function on each guard. This function is responsible to perform any action **before** the mint (e.g., take payment for the mint).
-3. Then the transaction is forwarded to the Candy Machine program to mint the NFT. 
+3. Then the transaction is forwarded to the Candy Machine program to mint the NFT.
 4. Finally, it invokes the `post_actions` function on each enabled guard. This function is responsible to perform any action **after** the mint (e.g., freeze the NFT, change the update authority).
 
 A **guard** is a modular piece of code that can be easily added to the Candy Guard program, providing great flexibility and simplicity to support specific features without having to modify directly the Candy Machine program. Adding new guards is supported by conforming to specific interfaces, with changes isolated to the individual guard – e.g., each guard can be created and modified in isolation. This architecture also provides the flexibility to enable/disable guards without requiring code changes, as each guard has an enable/disable "switch".
@@ -41,7 +42,7 @@ The Candy Guard program contains a set of core access control guards that can be
 - `RedeemedAmount`: determines the end of the mint based on a total amount minted
 - `SolPayment`: set the price of the mint in SOL
 - `StartDate`: determines the start date of the mint
-- `ThirdPartySigner`: requires an additional signer on the transaction 
+- `ThirdPartySigner`: requires an additional signer on the transaction
 - `TokenBurn`: restricts the mint to holders of a specified spl-token, requiring a burn of the tokens
 - `TokenGate`: restricts the mint to holders of a specified spl-token
 - `TokenPayment`: set the price of the mint in spl-token amount
@@ -50,20 +51,20 @@ The Candy Guard program contains a set of core access control guards that can be
 
 The Candy Guard configuration is stored in a single account. The information regarding the guards that are enable is stored in a "hidden" section of the account to avoid unnecessary deserialization.
 
-| Field             | Offset | Size  | Description                  |
-| ----------------- | ------ | ----- | ---------------------------- |
-| &mdash;           | 0      | 8     | Anchor account discriminator.
-| `base`            | 8      | 32    | `PubKey` to derive the PDA key. The seed is defined by `["candy_guard", base pubkey]`. |
-| `bump`            | 40     | 1     | `u8` representing the bump of the derivation. |
-| `authority`       | 41     | 32    | `PubKey` of the authority address that controls the Candy Guard. |
-| *hidden section*  | 73     | ~     | Hidden data section to avoid unnecessary deserialization. This section of the account is used to serialize the guards data. |
-| - *features*      | 73     | 8     | Feature flags indicating which guards are serialized. |
-| - *guard set*     | 81     | ~     | (optional) A sequence of serialized guard structs. |
-| - *group counter* | ~      | 4     | `u32` specifying the number of groups in use. |
-| - *groups*        | ~      | ~     | (optional) A variable number of `Group` structs representing different guard sets. Each group is defined by:  |
-| -- *label*        | ~      | 6     | The label of the group. |
-| -- *features*     | ~      | 8     | Feature flags indicating which guards are serialized for the group. |
-| -- *guard set*    | ~      | ~     | (optional) A sequence of serialized guard structs. |
+| Field             | Offset | Size | Description                                                                                                                 |
+| ----------------- | ------ | ---- | --------------------------------------------------------------------------------------------------------------------------- |
+| &mdash;           | 0      | 8    | Anchor account discriminator.                                                                                               |
+| `base`            | 8      | 32   | `PubKey` to derive the PDA key. The seed is defined by `["candy_guard", base pubkey]`.                                      |
+| `bump`            | 40     | 1    | `u8` representing the bump of the derivation.                                                                               |
+| `authority`       | 41     | 32   | `PubKey` of the authority address that controls the Candy Guard.                                                            |
+| _hidden section_  | 73     | ~    | Hidden data section to avoid unnecessary deserialization. This section of the account is used to serialize the guards data. |
+| - _features_      | 73     | 8    | Feature flags indicating which guards are serialized.                                                                       |
+| - _guard set_     | 81     | ~    | (optional) A sequence of serialized guard structs.                                                                          |
+| - _group counter_ | ~      | 4    | `u32` specifying the number of groups in use.                                                                               |
+| - _groups_        | ~      | ~    | (optional) A variable number of `Group` structs representing different guard sets. Each group is defined by:                |
+| -- _label_        | ~      | 6    | The label of the group.                                                                                                     |
+| -- _features_     | ~      | 8    | Feature flags indicating which guards are serialized for the group.                                                         |
+| -- _guard set_    | ~      | ~    | (optional) A sequence of serialized guard structs.                                                                          |
 
 Since the number of guards enabled and groups is variable, the account size is dynamically resized during the `update` instruction to accommodate the updated configuration.
 
@@ -76,13 +77,14 @@ This instruction creates and initializes a new `CandyGuard` account.
 <details>
   <summary>Accounts</summary>
 
-| Name                 | Writable | Signer | Description |
-| ---------------------| :------: | :----: | ----------- |
-| `candy_guard`        | ✅       |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
-| `base`               |          | ✅     | Base public key for the PDA derivation. |
-| `authority`          |          |        | Public key of the candy guard authority. |
-| `payer`              |          | ✅     | Payer of the transaction. |
-| `system_program`     |          |        | `SystemProgram` account. |
+| Name             | Writable | Signer | Description                                                                                         |
+| ---------------- | :------: | :----: | --------------------------------------------------------------------------------------------------- |
+| `candy_guard`    |    ✅    |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
+| `base`           |          |   ✅   | Base public key for the PDA derivation.                                                             |
+| `authority`      |          |        | Public key of the candy guard authority.                                                            |
+| `payer`          |          |   ✅   | Payer of the transaction.                                                                           |
+| `system_program` |          |        | `SystemProgram` account.                                                                            |
+
 </details>
 
 <details>
@@ -93,7 +95,6 @@ This instruction creates and initializes a new `CandyGuard` account.
 | `data`                        | 0      | ~    | `CandyGuardData` object. |
 </details>
 
-
 ### 📄 `mint`
 
 This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. Only when the transaction is succesfully validated, it is forwarded to the Candy Machine.
@@ -101,29 +102,30 @@ This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. O
 <details>
   <summary>Accounts</summary>
 
-| Name                          | Writable | Signer | Description |
-| ----------------------------- | :------: | :----: | ----------- |
+| Name                          | Writable | Signer | Description                                                                                         |
+| ----------------------------- | :------: | :----: | --------------------------------------------------------------------------------------------------- |
 | `candy_guard`                 |          |        | The `CandyGuard` account PDA key. The PDA is derived using the seed `["candy_guard", base pubkey]`. |
-| `candy_machine_program`       |          |        | `CandyMachine` program ID. |
-| `candy_machine`               | ✅       |        | The `CandyMachine` account. |
-| `candy_machine_authority_pda` | ✅       |        | Authority PDA key (seeds `["candy_machine", candy_machine pubkey]`). |
-| `payer`                       | ✅       | ✅     | Payer of the transaction. |
-| `nft_metadata`                | ✅       |        | Metadata account of the NFT. |
-| `nft_mint`                    | ✅       |        | Mint account for the NFT. The account should be created before executing the instruction. |
-| `nft_mint_authority`          |          | ✅     | Mint authority of the NFT. |
-| `nft_master_edition`          | ✅       |        | Master Edition account of the NFT. |
-| `collection_authority_record` |          |        | Authority Record PDA of the collection. |
-| `collection_mint`             |          |        | Mint account of the collection. |
-| `collection_metadata`         | ✅       |        | Metadata account of the collection. |
-| `collection_master_edition`   |          |        | Master Edition account of the collection. |
-| `collection_update_authority` |          |        | Update authority of the collection. |
-| `token_metadata_program`      |          |        | Metaplex `TokenMetadata` program ID. |
-| `token_program`               |          |        | `spl-token` program ID. |
-| `system_program`              |          |        | `SystemProgram` account. |
-| `rent`                        |          |        | `Rent` account. |
-| `recent_slothashes`           |          |        | `SlotHashes` account. |
-| `instruction_sysvar_account`  |          |        | `Sysvar1nstructions` account. |
-| *remaining accounts*          |          |        | (optional) A list of optional accounts required by individual guards. |
+| `candy_machine_program`       |          |        | `CandyMachine` program ID.                                                                          |
+| `candy_machine`               |    ✅    |        | The `CandyMachine` account.                                                                         |
+| `candy_machine_authority_pda` |    ✅    |        | Authority PDA key (seeds `["candy_machine", candy_machine pubkey]`).                                |
+| `payer`                       |    ✅    |   ✅   | Payer of the transaction.                                                                           |
+| `nft_metadata`                |    ✅    |        | Metadata account of the NFT.                                                                        |
+| `nft_mint`                    |    ✅    |        | Mint account for the NFT. The account should be created before executing the instruction.           |
+| `nft_mint_authority`          |          |   ✅   | Mint authority of the NFT.                                                                          |
+| `nft_master_edition`          |    ✅    |        | Master Edition account of the NFT.                                                                  |
+| `collection_authority_record` |          |        | Authority Record PDA of the collection.                                                             |
+| `collection_mint`             |          |        | Mint account of the collection.                                                                     |
+| `collection_metadata`         |    ✅    |        | Metadata account of the collection.                                                                 |
+| `collection_master_edition`   |          |        | Master Edition account of the collection.                                                           |
+| `collection_update_authority` |          |        | Update authority of the collection.                                                                 |
+| `token_metadata_program`      |          |        | Metaplex `TokenMetadata` program ID.                                                                |
+| `token_program`               |          |        | `spl-token` program ID.                                                                             |
+| `system_program`              |          |        | `SystemProgram` account.                                                                            |
+| `rent`                        |          |        | `Rent` account.                                                                                     |
+| `recent_slothashes`           |          |        | `SlotHashes` account.                                                                               |
+| `instruction_sysvar_account`  |          |        | `Sysvar1nstructions` account.                                                                       |
+| _remaining accounts_          |          |        | (optional) A list of optional accounts required by individual guards.                               |
+
 </details>
 
 <details>
@@ -135,6 +137,32 @@ This instruction mints an NFT from a Candy Machine "wrapped" by a Candy Guard. O
 | `label`         | ~      | 6    | (optional) `string` representing the group label to use for validation of guards. |
 </details>
 
+### 📄 `route`
+
+This instruction routes the transaction to a guard, allowing the execution of custom guard instructions. The transaction can include any additional accounts required by the guard instruction. The guard that will received the transaction and any additional parameters is specified in the `RouteArgs` struct.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                 | Writable | Signer | Description                                                               |
+| -------------------- | :------: | :----: | ------------------------------------------------------------------------- |
+| `candy_guard`        |          |        | The `CandyGuard` account PDA key.                                         |
+| `candy_machine`      |    ✅    |        | The `CandyMachine` account.                                               |
+| `payer`              |    ✅    |   ✅   | Payer of the transaction.                                                 |
+| _remaining accounts_ |          |        | (optional) A list of optional accounts required by the guard instruction. |
+
+</details>
+
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `args`       |      | `RouteArgs` struct.       |
+| - *guard*    | 1    | Value of enum `GuardType` |
+| - *data*     | ~    | `[u8]` representing arguments for the instruction; an empty `[u8]` if there are no arguments. |
+| `label`      | 6    | (optional) string representing the group label to use for retrieving the guards set. |
+</details>
 
 ### 📄 `unwrap`
 
@@ -143,13 +171,14 @@ This instruction removes a Candy Guard from a Candy Machine, setting the mint au
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
-| `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
-| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
-| `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
-| `candy_machine_program`   |          |        | `CandyMachine` program ID. |
+| Name                      | Writable | Signer | Description                                  |
+| ------------------------- | :------: | :----: | -------------------------------------------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key.            |
+| `authority`               |          |   ✅   | Public key of the `candy_guard` authority.   |
+| `candy_machine`           |    ✅    |        | The `CandyMachine` account.                  |
+| `candy_machine_authority` |          |   ✅   | Public key of the `candy_machine` authority. |
+| `candy_machine_program`   |          |        | `CandyMachine` program ID.                   |
+
 </details>
 
 <details>
@@ -158,20 +187,20 @@ This instruction removes a Candy Guard from a Candy Machine, setting the mint au
 None.
 </details>
 
-
 ### 📄 `update`
 
-This instruction updates the Candy Guard configuration. Given that there is a flexible number of guards and groups that can be present, this instruction will resize the account accordingly, either increasing or decreasing the account size. Therefore, there will be either a charge for rent or a withdraw of rent lamports. 
+This instruction updates the Candy Guard configuration. Given that there is a flexible number of guards and groups that can be present, this instruction will resize the account accordingly, either increasing or decreasing the account size. Therefore, there will be either a charge for rent or a withdraw of rent lamports.
 
 <details>
   <summary>Accounts</summary>
 
-| Name             | Writable | Signer | Description |
-| ---------------- | :------: | :----: | ----------- |
-| `candy_guard`    | ✅       |        | The `CandyGuard` account PDA key. |
+| Name             | Writable | Signer | Description                                |
+| ---------------- | :------: | :----: | ------------------------------------------ |
+| `candy_guard`    |    ✅    |        | The `CandyGuard` account PDA key.          |
 | `authority`      |          |        | Public key of the `candy_guard` authority. |
-| `payer`          |          | ✅     | Payer of the transaction. |
-| `system_program` |          |        | `SystemProgram` account. |
+| `payer`          |          |   ✅   | Payer of the transaction.                  |
+| `system_program` |          |        | `SystemProgram` account.                   |
+
 </details>
 
 <details>
@@ -182,7 +211,6 @@ This instruction updates the Candy Guard configuration. Given that there is a fl
 | `data`                        | 0      | ~    | `CandyGuardData` object. |
 </details>
 
-
 ### 📄 `withdraw`
 
 This instruction withdraws the rent lamports from the account and closes it. After executing this instruction, the Candy Guard account will not be operational.
@@ -190,10 +218,11 @@ This instruction withdraws the rent lamports from the account and closes it. Aft
 <details>
   <summary>Accounts</summary>
 
-| Name          | Writable | Signer | Description |
-| --------------| :------: | :----: | ----------- |
-| `candy_guard` | ✅       |        | The `CandyGuard` account. |
-| `authority`   | ✅       | ✅     | Public key of the `candy_guard` authority. |
+| Name          | Writable | Signer | Description                                |
+| ------------- | :------: | :----: | ------------------------------------------ |
+| `candy_guard` |    ✅    |        | The `CandyGuard` account.                  |
+| `authority`   |    ✅    |   ✅   | Public key of the `candy_guard` authority. |
+
 </details>
 
 <details>
@@ -202,7 +231,6 @@ This instruction withdraws the rent lamports from the account and closes it. Aft
 None.
 </details>
 
-
 ### 📄 `wrap`
 
 This instruction adds a Candy Guard to a Candy Machine. After the guard is added, minting is only allowed through the Candy Guard.
@@ -210,13 +238,14 @@ This instruction adds a Candy Guard to a Candy Machine. After the guard is added
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `candy_guard`             |          |        | The `CandyGuard` account PDA key. |
-| `authority`               |          | ✅     | Public key of the `candy_guard` authority. |
-| `candy_machine`           | ✅       |        | The `CandyMachine` account. |
-| `candy_machine_authority` |          | ✅     | Public key of the `candy_machine` authority. |
-| `candy_machine_program`   |          |        | `CandyMachine` program ID. |
+| Name                      | Writable | Signer | Description                                  |
+| ------------------------- | :------: | :----: | -------------------------------------------- |
+| `candy_guard`             |          |        | The `CandyGuard` account PDA key.            |
+| `authority`               |          |   ✅   | Public key of the `candy_guard` authority.   |
+| `candy_machine`           |    ✅    |        | The `CandyMachine` account.                  |
+| `candy_machine_authority` |          |   ✅   | Public key of the `candy_machine` authority. |
+| `candy_machine_program`   |          |        | `CandyMachine` program ID.                   |
+
 </details>
 
 <details>
@@ -228,235 +257,295 @@ None.
 ## Guards
 
 ### `AddressGate`
+
 ```rust
 pub struct AddressGate {
     address: Pubkey,
 }
 ```
+
 The `AddressGate` guard restricts the mint to a single `address` &mdash; the `address` must match the payer's address of the mint transaction.
 
 ### `AllowList`
+
 ```rust
 pub struct AllowList {
     pub merkle_root: [u8; 32],
 }
 ```
-The `AllowList` guard validates the payer's address against a merkle tree-based allow list of addresses. It required the root of the merkle tree as a configuration and the mint transaction must include the information of the merkle proof leaves &mdash; the proof is passed to the mint transaction using the `mint_args` parameter. The transaction will fail if either the address is not part on the merkle tree or no proof arguments is specified.
 
+The `AllowList` guard validates the payer's address against a merkle tree-based allow list of addresses. It required the root of the merkle tree as a configuration and the mint transaction must include the PDA of the merkle proof. The transaction will fail if no proof is specified.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name        | Writable | Signer | Description                                                                                                            |
+| ----------- | :------: | :----: | ---------------------------------------------------------------------------------------------------------------------- |
+| `proof_pda` |          |        | PDA of the merkle proof (seed `["allow_list", merke tree root, payer key, candy guard pubkey, candy machine pubkey]`). |
+
+</details>
+
+#### Route Instruction
+
+The merkle proof validation needs to be completed before the mint transaction. This is done by a `route` instruction with the following accounts and `RouteArgs`:
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description                                                                                                                      |
+| ---------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `proof_pda`      |    ✅    |        | PDA to represent the merkle proof (seed `["allow_list", merke tree root, payer key, candy guard pubkey, candy machine pubkey]`). |
+| `system_program` |          |        | System program account.                                                                                                          |
+
+</details>
 <details>
   <summary>Arguments</summary>
   
-| Argument                      | Size | Description               |
-| ----------------------------- | ---- | ------------------------- |
-| `merkle_proof`                | ~    | `Vec` of the hash values. |
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `args`       |      | `RouteArgs` struct         |
+| - *guard*    | 1    | `GuardType.AllowList`    |
+| - *data*     | ~    | `Vec` of the merkle proof hash values. |
 </details>
 
-
 ### `BotTax`
+
 ```rust
 pub struct BotTax {
     pub lamports: u64,
     pub last_instruction: bool,
 }
 ```
+
 The `BotTax` guard is used to:
+
 - charge a penalty for invalid transactions. The value of the penalty is specified by the `lamports` configuration.
 - validate that the mint transaction is the last transaction (`last_instruction = true`).
 
 The `bot_tax` is applied to any error that occurs during the validation of the guards.
 
 ### `EndDate`
+
 ```rust
 pub struct EndDate {
     pub date: i64,
 }
 ```
+
 The `EndDate` guard is used to specify a date to end the mint. Any transaction received after the end date will fail.
 
 ### `Gatekeeper`
+
 ```rust
 pub struct Gatekeeper {
     pub gatekeeper_network: Pubkey,
     pub expire_on_use: bool,
 }
 ```
-The `Gatekeeper` guard validates if the payer of the transaction has a *token* from a specified gateway network &mdash; in most cases, a *token* after completing a captcha challenge. The `expeire_on_use` configuration is used to indicate whether or not the token should expire after minting.
+
+The `Gatekeeper` guard validates if the payer of the transaction has a _token_ from a specified gateway network &mdash; in most cases, a _token_ after completing a captcha challenge. The `expire_on_use` configuration is used to indicate whether or not the token should expire after minting.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                       | Writable | Signer | Description |
-| -------------------------- | :------: | :----: | ----------- |
-| `gatekeeper_token_account` | ✅       |        | Gatekeeper token account. |
+| Name                       | Writable | Signer | Description                 |
+| -------------------------- | :------: | :----: | --------------------------- |
+| `gatekeeper_token_account` |    ✅    |        | Gatekeeper token account.   |
 | `gatekeeper_program`       |          |        | Gatekeeper program account. |
-| `network_expire_feature`   |          |        | Gatekeeper expire account. |
+| `network_expire_feature`   |          |        | Gatekeeper expire account.  |
+
 </details>
 
 ### `MintLimit`
+
 ```rust
 pub struct MintLimit {
     pub id: u8,
     pub limit: u16,
 }
 ```
+
 The `MintLimit` guard allows to specify a limit on the number of mints for each individual address. The `id` configuration represents the unique identification for the limit &mdash; changing the `id` has the effect of restarting the limit, since a different tracking account will be created. The `limit` indicated the maximum number of mints allowed.
 
 <details>
   <summary>Accounts</summary>
 
-| Name         | Writable | Signer | Description |
-| ------------ | :------: | :----: | ----------- |
-| `mint_count` | ✅       |        | Mint counter PDA. The PDA is derived using the seed `[mint guard id, payer key, candy guard pubkey, candy machine pubkey]` |
+| Name         | Writable | Signer | Description                                                                                                                              |
+| ------------ | :------: | :----: | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `mint_count` |    ✅    |        | Mint counter PDA. The PDA is derived using the seed `["mint_limit", mint guard id, payer key, candy guard pubkey, candy machine pubkey]` |
+
 </details>
 
 ### `NftBurn`
+
 ```rust
 pub struct NftBurn {
     pub required_collection: Pubkey,
 }
 ```
+
 The `NftBurn` guard restricts the mint to holders of another NFT (token), requiring that the NFT is burn in exchange of being allowed to mint.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                           | Writable | Signer | Description |
-| ------------------------------ | :------: | :----: | ----------- |
-| `nft_account`                  | ✅       |        | Token account of the NFT. |
-| `nft_metadata`                 | ✅       |        | Metadata account of the NFT. |
-| `nft_edition`                  | ✅       |        | Master Edition account of the NFT. |
-| `nft_mint_account`             | ✅       |        | Mint account of the NFT. |
-| `nft_mint_collection_metadata` | ✅       |        | Collection metadata account of the NFT. |
+| Name                           | Writable | Signer | Description                             |
+| ------------------------------ | :------: | :----: | --------------------------------------- |
+| `nft_account`                  |    ✅    |        | Token account of the NFT.               |
+| `nft_metadata`                 |    ✅    |        | Metadata account of the NFT.            |
+| `nft_edition`                  |    ✅    |        | Master Edition account of the NFT.      |
+| `nft_mint_account`             |    ✅    |        | Mint account of the NFT.                |
+| `nft_mint_collection_metadata` |    ✅    |        | Collection metadata account of the NFT. |
+
 </details>
 
 ### `NftGate`
+
 ```rust
 pub struct NftGate {
     pub required_collection: Pubkey,
 }
 ```
+
 The `NftGate` guard restricts the mint to holders of a specified `required_collection` NFT collection. The payer is required to hold at least one NFT of the collection.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `nft_account`             |          |        | Token account of the NFT. |
-| `nft_metadata`            |          |        | Metadata account of the NFT. |
+| Name           | Writable | Signer | Description                  |
+| -------------- | :------: | :----: | ---------------------------- |
+| `nft_account`  |          |        | Token account of the NFT.    |
+| `nft_metadata` |          |        | Metadata account of the NFT. |
+
 </details>
 
 ### `NftPayment`
+
 ```rust
 pub struct NftPayment {
     pub required_collection: Pubkey,
     pub destination: Pubkey,
 }
 ```
+
 The `NftPayment` guard is a payment guard that charges another NFT (token) from a specific collection for the mint. As a requirement of the mint, the specified NFT is transferred to the `destination` address.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `nft_account`             | ✅       |        | Token account of the NFT. |
-| `nft_metadata`            | ✅       |        | Metadata account of the NFT. |
-| `nft_mint_account`        |          |        | Mint account of the NFT. |
-| `destination`             |          |        | Account to receive the NFT. |
-| `destination_ata`         | ✅       |        | Destination PDA key (seeds `[destination pubkey, token program id, nft_mint pubkey]`). |
-| `atoken_progam`           |          |        | `spl-associate-token` program ID. |
+| Name               | Writable | Signer | Description                                                                            |
+| ------------------ | :------: | :----: | -------------------------------------------------------------------------------------- |
+| `nft_account`      |    ✅    |        | Token account of the NFT.                                                              |
+| `nft_metadata`     |    ✅    |        | Metadata account of the NFT.                                                           |
+| `nft_mint_account` |          |        | Mint account of the NFT.                                                               |
+| `destination`      |          |        | Account to receive the NFT.                                                            |
+| `destination_ata`  |    ✅    |        | Destination PDA key (seeds `[destination pubkey, token program id, nft_mint pubkey]`). |
+| `atoken_progam`    |          |        | `spl-associate-token` program ID.                                                      |
+
 </details>
 
-
 ### `RedeemedAmount`
+
 ```rust
 pub struct RedeemedAmount {
     pub maximum: u64,
 }
 ```
+
 The `RedeemedAmount` guard stops the mint when the number of `items_redeemed` of the Candy Machine reaches the configured `maximum` amount.
 
 ### `SolPayment`
+
 ```rust
 pub struct SolPayment {
     pub lamports: u64,
     pub destination: Pubkey,
 }
 ```
+
 The `SolPayment` guard is used to charge an amount in SOL (lamports) for the mint. The funds are transferred to the configured `destination` address.
 
 <details>
   <summary>Accounts</summary>
 
-| Name           | Writable | Signer | Description |
-| ---------------| :------: | :----: | ----------- |
-| `destination`  | ✅       |        | Address to receive the funds. |
+| Name          | Writable | Signer | Description                   |
+| ------------- | :------: | :----: | ----------------------------- |
+| `destination` |    ✅    |        | Address to receive the funds. |
+
 </details>
 
-
 ### `StartDate`
+
 ```rust
 pub struct StartDate {
     pub date: i64,
 }
 ```
+
 The `StartDate` guard determines the start date of the mint. If this guard is not specified, mint is allowed &mdash; similar to say any date is valid.
 
-
 ### `ThirdPartySigner`
+
 ```rust
 pub struct ThirdPartySigner {
     pub signer_key: Pubkey,
 }
 ```
+
 The `ThirdPartySigner` guard required an extra signer on the transaction.
 
 <details>
   <summary>Accounts</summary>
 
-| Name           | Writable | Signer | Description |
-| ---------------| :------: | :----: | ----------- |
-| `signer_key`  |          | ✅     | Signer of the transaction. |
+| Name         | Writable | Signer | Description                |
+| ------------ | :------: | :----: | -------------------------- |
+| `signer_key` |          |   ✅   | Signer of the transaction. |
+
 </details>
 
-
 ### `TokenBurn`
+
 ```rust
 pub struct TokenBurn {
     pub amount: u64,
     pub mint: Pubkey,
 }
 ```
+
 The `TokenBurn` restrict the mint to holder of a specified spl-token and required the burn of the tokens. The `amount` determines how many tokens are required.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                   | Writable | Signer | Description |
-| -----------------------| :------: | :----: | ----------- |
-| `token_account`        | ✅       |        | Token account holding the required amount. |
-| `token_mint`           | ✅       |        | Token mint account. |
+| Name            | Writable | Signer | Description                                |
+| --------------- | :------: | :----: | ------------------------------------------ |
+| `token_account` |    ✅    |        | Token account holding the required amount. |
+| `token_mint`    |    ✅    |        | Token mint account.                        |
+
 </details>
 
 ### `TokenGate`
+
 ```rust
 pub struct TokenGate {
     pub amount: u64,
     pub mint: Pubkey,
 }
 ```
+
 The `TokenGate` restrict the mint to holder of a specified spl-token. The `amount` determines how many tokens are required.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                   | Writable | Signer | Description |
-| -----------------------| :------: | :----: | ----------- |
-| `token_account`        |          |        | oken account holding the required amount. |
+| Name            | Writable | Signer | Description                               |
+| --------------- | :------: | :----: | ----------------------------------------- |
+| `token_account` |          |        | oken account holding the required amount. |
+
 </details>
 
 ### `TokenPayment`
+
 ```rust
 pub struct TokenPayment {
     pub amount: u64,
@@ -464,13 +553,15 @@ pub struct TokenPayment {
     pub destination_ata: Pubkey,
 }
 ```
+
 The `TokenPayment` restrict the mint to holder of a specified spl-token, transferring the required amount to the `destination_ata` address. The `amount` determines how many tokens are required.
 
 <details>
   <summary>Accounts</summary>
 
-| Name                      | Writable | Signer | Description |
-| ------------------------- | :------: | :----: | ----------- |
-| `token_account`           | ✅       |        | Token account holding the required amount. |
-| `destination_ata`         | ✅       |        | Address of the ATA to receive the tokens. |
+| Name              | Writable | Signer | Description                                |
+| ----------------- | :------: | :----: | ------------------------------------------ |
+| `token_account`   |    ✅    |        | Token account holding the required amount. |
+| `destination_ata` |    ✅    |        | Address of the ATA to receive the tokens.  |
+
 </details>
