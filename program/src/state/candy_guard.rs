@@ -99,6 +99,8 @@ pub struct GuardSet {
     pub nft_burn: Option<NftBurn>,
     /// Token burn guard (burn a specified amount of spl-token).
     pub token_burn: Option<TokenBurn>,
+    /// Freeze sol payment (set the price for the mint in lamports with a freeze period).
+    pub freeze_sol_payment: Option<FreezeSolPayment>,
 }
 
 /// Available guard types.
@@ -120,6 +122,7 @@ pub enum GuardType {
     NftGate,
     NftBurn,
     TokenBurn,
+    FreezeSolPayment,
 }
 
 impl CandyGuardData {

@@ -22,6 +22,7 @@ import { AddressGate, addressGateBeet } from './AddressGate';
 import { NftGate, nftGateBeet } from './NftGate';
 import { NftBurn, nftBurnBeet } from './NftBurn';
 import { TokenBurn, tokenBurnBeet } from './TokenBurn';
+import { FreezeSolPayment, freezeSolPaymentBeet } from './FreezeSolPayment';
 export type GuardSet = {
   botTax: beet.COption<BotTax>;
   solPayment: beet.COption<SolPayment>;
@@ -39,6 +40,7 @@ export type GuardSet = {
   nftGate: beet.COption<NftGate>;
   nftBurn: beet.COption<NftBurn>;
   tokenBurn: beet.COption<TokenBurn>;
+  freezeSolPayment: beet.COption<FreezeSolPayment>;
 };
 
 /**
@@ -63,6 +65,7 @@ export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
     ['nftGate', beet.coption(nftGateBeet)],
     ['nftBurn', beet.coption(nftBurnBeet)],
     ['tokenBurn', beet.coption(tokenBurnBeet)],
+    ['freezeSolPayment', beet.coption(freezeSolPaymentBeet)],
   ],
   'GuardSet',
 );

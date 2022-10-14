@@ -10,31 +10,17 @@ import * as beet from '@metaplex-foundation/beet';
  * @category enums
  * @category generated
  */
-export enum GuardType {
-  BotTax,
-  SolPayment,
-  TokenPayment,
-  StartDate,
-  ThirdPartySigner,
-  TokenGate,
-  Gatekeeper,
-  EndDate,
-  AllowList,
-  MintLimit,
-  NftPayment,
-  RedeemedAmount,
-  AddressGate,
-  NftGate,
-  NftBurn,
-  TokenBurn,
-  FreezeSolPayment,
+export enum FreezeInstruction {
+  Initialize,
+  Thaw,
+  UnlockFunds,
 }
 
 /**
  * @category userTypes
  * @category generated
  */
-export const guardTypeBeet = beet.fixedScalarEnum(GuardType) as beet.FixedSizeBeet<
-  GuardType,
-  GuardType
+export const freezeInstructionBeet = beet.fixedScalarEnum(FreezeInstruction) as beet.FixedSizeBeet<
+  FreezeInstruction,
+  FreezeInstruction
 >;

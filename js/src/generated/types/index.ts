@@ -3,6 +3,8 @@ export * from './AllowList';
 export * from './BotTax';
 export * from './CandyGuardData';
 export * from './EndDate';
+export * from './FreezeInstruction';
+export * from './FreezeSolPayment';
 export * from './Gatekeeper';
 export * from './Group';
 export * from './GuardSet';
