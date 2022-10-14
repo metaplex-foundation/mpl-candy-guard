@@ -11,7 +11,7 @@ import { GuardType } from '../../src/generated/types/GuardType';
 import { i64 } from '@metaplex-foundation/beet';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { findAssociatedTokenAccountPda, findMasterEditionV2Pda } from '@metaplex-foundation/js';
-import { METAPLEX_PROGRAM_ID } from 'test/utils';
+import { METAPLEX_PROGRAM_ID } from '../utils';
 
 const API = new InitTransactions();
 
@@ -460,4 +460,173 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
   );
 
   await unlockHandler.assertSuccess(t);
+});
+
+test('Freeze Sol Payment (unlock not enabled)', async (t) => {
+  const { fstTxHandler: authorityHandler, authorityPair, connection } = await API.authority();
+
+  const data = newCandyGuardData();
+  data.default.freezeSolPayment = {
+    lamports: 1000000000,
+    destination: authorityPair.publicKey,
+  };
+
+  const { candyGuard, candyMachine } = await API.deploy(
+    t,
+    data,
+    authorityPair,
+    authorityHandler,
+    connection,
+  );
+
+  const [freezeEscrow] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from('freeze_sol_payment'),
+      authorityPair.publicKey.toBuffer(),
+      candyGuard.toBuffer(),
+      candyMachine.toBuffer(),
+    ],
+    PROGRAM_ID,
+  );
+
+  // route instruction to enable freeze
+
+  const freeze_accounts: RouteInstructionAccounts = {
+    candyGuard: candyGuard,
+    candyMachine: candyMachine,
+    payer: authorityPair.publicKey,
+  };
+
+  const freeze_buffer = Buffer.alloc(freezeInstructionBeet.byteSize + i64.byteSize);
+  freezeInstructionBeet.write(freeze_buffer, 0, FreezeInstruction.Initialize);
+  i64.write(freeze_buffer, freezeInstructionBeet.byteSize, 1);
+
+  const freeze_args: RouteInstructionArgs = {
+    args: {
+      guard: GuardType.FreezeSolPayment,
+      data: freeze_buffer,
+    },
+    label: null,
+  };
+
+  const freezeRouteIx = createRouteInstruction(freeze_accounts, freeze_args);
+  freezeRouteIx.keys.push(
+    ...[
+      {
+        pubkey: freezeEscrow,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: authorityPair.publicKey,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  const freezeTx = new Transaction().add(freezeRouteIx);
+
+  const freezeHandler = authorityHandler.sendAndConfirmTransaction(
+    freezeTx,
+    [authorityPair],
+    'tx: Route (Initialize)',
+  );
+
+  await freezeHandler.assertSuccess(t);
+
+  // minting
+
+  const {
+    fstTxHandler: minterHandler,
+    minterPair,
+    connection: minterConnection,
+  } = await API.minter();
+
+  const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account (minter)');
+  const nftATA = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
+
+  const { tx: minterMintTx2 } = await API.mint(
+    t,
+    candyGuard,
+    candyMachine,
+    minterPair,
+    mintForMinter2,
+    minterHandler,
+    minterConnection,
+    [
+      {
+        pubkey: freezeEscrow,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: nftATA,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  await minterMintTx2.assertSuccess(t);
+
+  // route instruction to unlock fund
+
+  const unlock_accounts: RouteInstructionAccounts = {
+    candyGuard: candyGuard,
+    candyMachine: candyMachine,
+    payer: authorityPair.publicKey,
+  };
+
+  const unlock_buffer = Buffer.alloc(freezeInstructionBeet.byteSize);
+  freezeInstructionBeet.write(unlock_buffer, 0, FreezeInstruction.UnlockFunds);
+
+  const unlock_args: RouteInstructionArgs = {
+    args: {
+      guard: GuardType.FreezeSolPayment,
+      data: unlock_buffer,
+    },
+    label: null,
+  };
+
+  const unlockRouteIx = createRouteInstruction(unlock_accounts, unlock_args);
+  unlockRouteIx.keys.push(
+    ...[
+      {
+        pubkey: freezeEscrow,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: authorityPair.publicKey,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
+        pubkey: authorityPair.publicKey,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+  );
+
+  const unlockTx = new Transaction().add(unlockRouteIx);
+
+  const unlockHandler = authorityHandler.sendAndConfirmTransaction(
+    unlockTx,
+    [authorityPair],
+    'tx: Route (Initialize)',
+  );
+
+  await unlockHandler.assertError(t, /Unlock is not enabled/i);
 });
