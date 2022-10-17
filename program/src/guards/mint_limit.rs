@@ -1,7 +1,7 @@
 use solana_program::{program::invoke_signed, system_instruction};
 
 use super::*;
-use crate::utils::assert_keys_equal;
+use crate::{utils::assert_keys_equal, state::GuardType};
 
 /// Gaurd to set a limit of mints per wallet.
 ///
@@ -32,7 +32,7 @@ impl Guard for MintLimit {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 9
+        GuardType::as_mask(GuardType::MintLimit)
     }
 }
 

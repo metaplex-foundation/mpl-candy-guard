@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::utils::*;
+use crate::{utils::*, state::GuardType};
 
 /// Guard that restricts access to addresses that hold the specified spl-token.
 ///
@@ -20,7 +20,7 @@ impl Guard for TokenGate {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 5
+        GuardType::as_mask(GuardType::TokenGate)
     }
 }
 

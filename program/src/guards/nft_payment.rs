@@ -1,5 +1,5 @@
 use super::*;
-use crate::utils::{assert_keys_equal, spl_token_transfer, TokenTransferParams};
+use crate::{utils::{assert_keys_equal, spl_token_transfer, TokenTransferParams}, state::GuardType};
 use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
 use solana_program::program::invoke;
 use spl_associated_token_account::instruction::create_associated_token_account;
@@ -28,7 +28,7 @@ impl Guard for NftPayment {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 10
+        GuardType::as_mask(GuardType::NftPayment)
     }
 }
 

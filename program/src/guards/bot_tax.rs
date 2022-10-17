@@ -6,7 +6,7 @@ use solana_program::{
 };
 
 use super::*;
-use crate::{errors::CandyGuardError, utils::cmp_pubkeys};
+use crate::{errors::CandyGuardError, utils::cmp_pubkeys, state::GuardType};
 
 /// Guard is used to:
 /// * charge a penalty for invalid transactions.
@@ -26,7 +26,7 @@ impl Guard for BotTax {
     }
 
     fn mask() -> u64 {
-        0b1u64
+        GuardType::as_mask(GuardType::BotTax)
     }
 }
 

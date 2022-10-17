@@ -1,5 +1,5 @@
 use super::*;
-use crate::utils::cmp_pubkeys;
+use crate::{utils::cmp_pubkeys, state::GuardType};
 
 /// Guard that requires a specified signer to validate the transaction.
 ///
@@ -17,7 +17,7 @@ impl Guard for ThirdPartySigner {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 4
+        GuardType::as_mask(GuardType::ThirdPartySigner)
     }
 }
 
