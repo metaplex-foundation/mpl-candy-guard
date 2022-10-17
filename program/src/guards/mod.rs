@@ -5,12 +5,12 @@ pub use anchor_lang::prelude::*;
 use crate::instructions::Route;
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
-pub use self::token_payment::TokenPayment;
 pub use address_gate::AddressGate;
 pub use allow_list::AllowList;
 pub use bot_tax::BotTax;
 pub use end_date::EndDate;
 pub use freeze_sol_payment::{FreezeEscrow, FreezeInstruction, FreezeSolPayment};
+pub use freeze_token_payment::FreezeTokenPayment;
 pub use gatekeeper::Gatekeeper;
 pub use mint_limit::{MintCounter, MintLimit};
 pub use nft_burn::NftBurn;
@@ -22,12 +22,14 @@ pub use start_date::StartDate;
 pub use third_party_signer::ThirdPartySigner;
 pub use token_burn::TokenBurn;
 pub use token_gate::TokenGate;
+pub use token_payment::TokenPayment;
 
 mod address_gate;
 mod allow_list;
 mod bot_tax;
 mod end_date;
 mod freeze_sol_payment;
+mod freeze_token_payment;
 mod gatekeeper;
 mod mint_limit;
 mod nft_burn;
@@ -164,4 +166,15 @@ pub struct EvaluationContext<'a> {
 
     /// Convenience mapping of remaining account indices.
     pub indices: BTreeMap<&'a str, usize>,
+}
+
+pub fn get_account_info<'c, 'info, T>(
+    ctx: &Context<'_, '_, 'c, 'info, T>,
+    index: usize,
+) -> Result<&'c AccountInfo<'info>> {
+    if index < ctx.remaining_accounts.len() {
+        Ok(&ctx.remaining_accounts[index])
+    } else {
+        err!(CandyGuardError::MissingRemainingAccount)
+    }
 }
