@@ -48,7 +48,8 @@ pub struct CandyGuard {
     // 14) nft gate
     // 15) nft burn
     // 16) token burn
-    // 17} freeze sol payment
+    // 17) freeze sol payment
+    // 18) freeze token payment
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]

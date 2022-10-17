@@ -31,6 +31,7 @@ export function newGuardSet(): GuardSet {
     nftBurn: null,
     tokenBurn: null,
     freezeSolPayment: null,
+    freezeTokenPayment: null,
   };
 }
 

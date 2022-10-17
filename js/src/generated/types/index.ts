@@ -5,6 +5,7 @@ export * from './CandyGuardData';
 export * from './EndDate';
 export * from './FreezeInstruction';
 export * from './FreezeSolPayment';
+export * from './FreezeTokenPayment';
 export * from './Gatekeeper';
 export * from './Group';
 export * from './GuardSet';

@@ -6,6 +6,7 @@ import {
   botTaxBeet,
   CandyGuardData,
   freezeSolPaymentBeet,
+  freezeTokenPaymentBeet,
   gatekeeperBeet,
   Group,
   GuardSet,
@@ -63,6 +64,8 @@ import { tokenBurnBeet } from './generated/types/TokenBurn';
  *   pub token_burn: Option<TokenBurn>,
  *   /// Freeze sol payment (set the price for the mint in lamports with a freeze period).
  *   pub freeze_sol_payment: Option<FreezeSolPayment>,
+ *   /// Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period).
+ *   pub freeze_token_payment: Option<FreezeTokenPayment>,
  * }
  * ```
  */
@@ -85,6 +88,7 @@ type Guards = {
   /* 15 */ nftBurnEnabled: boolean;
   /* 16 */ tokenBurnEnabled: boolean;
   /* 17 */ freezeSolPaymentEnabled: boolean;
+  /* 18 */ freezeTokenPaymentEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -105,8 +109,9 @@ const GUARDS_SIZE = {
   /* 15 */ nftBurn: 32,
   /* 16 */ tokenBurn: 40,
   /* 17 */ freezeSolPayment: 40,
+  /* 18 */ freezeTokenPayment: 72,
 };
-const GUARDS_COUNT = 17;
+const GUARDS_COUNT = 18;
 const MAX_LABEL_LENGTH = 6;
 
 function determineGuards(buffer: Buffer): Guards {
@@ -135,6 +140,7 @@ function determineGuards(buffer: Buffer): Guards {
     nftBurnEnabled,
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   ] = guards;
 
   return {
@@ -155,6 +161,7 @@ function determineGuards(buffer: Buffer): Guards {
     nftBurnEnabled,
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   };
 }
 
@@ -201,6 +208,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     nftBurnEnabled,
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -312,6 +320,12 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.freezeSolPayment;
   }
 
+  if (freezeTokenPaymentEnabled) {
+    const [freezeTokenPayment] = freezeTokenPaymentBeet.deserialize(buffer, cursor);
+    data.freezeTokenPayment = freezeTokenPayment;
+    cursor += GUARDS_SIZE.freezeTokenPayment;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
@@ -331,6 +345,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       nftBurn: data.nftBurn ?? null,
       tokenBurn: data.tokenBurn ?? null,
       freezeSolPayment: data.freezeSolPayment ?? null,
+      freezeTokenPayment: data.freezeTokenPayment ?? null,
     },
     offset: cursor,
   };

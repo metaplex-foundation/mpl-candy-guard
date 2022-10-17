@@ -492,13 +492,13 @@
     {
       "name": "FreezeSolPayment",
       "docs": [
-        "Guard that charges an amount in SOL (lamports) for the mint.",
+        "Guard that charges an amount in SOL (lamports) for the mint with a freeze period.",
         "",
         "List of accounts required:",
         "",
-        "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_sol_payment\",",
+        "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_escrow\",",
         "destination pubkey, candy guard pubkey, candy machine pubkey]`).",
-        "1. `[]` NFT mint associated account (seeds `[payer pubkey, nft mint pubkey]`)"
+        "1. `[]` Associate token account of the NFT (seeds `[payer pubkey, nft mint pubkey]`)."
       ],
       "type": {
         "kind": "struct",
@@ -509,6 +509,37 @@
           },
           {
             "name": "destination",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FreezeTokenPayment",
+      "docs": [
+        "Guard that charges an amount in a specified spl-token as payment for the mint with a freeze period.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_escrow\",",
+        "destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).",
+        "1. `[]` Associate token account of the NFT (seeds `[payer pubkey, nft mint pubkey]`).",
+        "2. `[writable]` Token account holding the required amount.",
+        "3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "destinationAta",
             "type": "publicKey"
           }
         ]
@@ -1050,11 +1081,22 @@
           {
             "name": "freezeSolPayment",
             "docs": [
-              "Freeze sol payment (set the price for the mint in lamports with a freeze period)."
+              "Freeze sol payment guard (set the price for the mint in lamports with a freeze period)."
             ],
             "type": {
               "option": {
                 "defined": "FreezeSolPayment"
+              }
+            }
+          },
+          {
+            "name": "freezeTokenPayment",
+            "docs": [
+              "Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period)."
+            ],
+            "type": {
+              "option": {
+                "defined": "FreezeTokenPayment"
               }
             }
           }
@@ -1136,6 +1178,9 @@
           },
           {
             "name": "FreezeSolPayment"
+          },
+          {
+            "name": "FreezeTokenPayment"
           }
         ]
       }

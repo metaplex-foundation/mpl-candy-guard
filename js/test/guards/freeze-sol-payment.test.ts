@@ -36,7 +36,7 @@ test('Freeze Sol Payment (thaw not enabled)', async (t) => {
 
   const [freezeEscrow] = await PublicKey.findProgramAddress(
     [
-      Buffer.from('freeze_sol_payment'),
+      Buffer.from('freeze_escrow'),
       authorityPair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
       candyMachine.toBuffer(),
@@ -240,7 +240,7 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
 
   const [freezeEscrow] = await PublicKey.findProgramAddress(
     [
-      Buffer.from('freeze_sol_payment'),
+      Buffer.from('freeze_escrow'),
       authorityPair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
       candyMachine.toBuffer(),
@@ -481,7 +481,7 @@ test('Freeze Sol Payment (unlock not enabled)', async (t) => {
 
   const [freezeEscrow] = await PublicKey.findProgramAddress(
     [
-      Buffer.from('freeze_sol_payment'),
+      Buffer.from('freeze_escrow'),
       authorityPair.publicKey.toBuffer(),
       candyGuard.toBuffer(),
       candyMachine.toBuffer(),

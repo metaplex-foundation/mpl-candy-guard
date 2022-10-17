@@ -28,6 +28,7 @@ export enum GuardType {
   NftBurn,
   TokenBurn,
   FreezeSolPayment,
+  FreezeTokenPayment,
 }
 
 /**
