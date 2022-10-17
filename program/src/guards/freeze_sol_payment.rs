@@ -6,7 +6,7 @@ use mpl_token_metadata::instruction::{freeze_delegated_account, thaw_delegated_a
 use solana_program::{
     program::{invoke, invoke_signed},
     program_pack::Pack,
-    system_instruction,
+    system_instruction, system_program,
 };
 use spl_token::{
     instruction::{approve, revoke},
@@ -18,13 +18,13 @@ use crate::{
     utils::{assert_is_ata, assert_keys_equal, cmp_pubkeys},
 };
 
-/// Guard that charges an amount in SOL (lamports) for the mint.
+/// Guard that charges an amount in SOL (lamports) for the mint with a freeze period.
 ///
 /// List of accounts required:
 ///
 ///   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_sol_payment",
 ///           destination pubkey, candy guard pubkey, candy machine pubkey]`).
-///   1. `[]` NFT mint associated account (seeds `[payer pubkey, nft mint pubkey]`)
+///   1. `[]` Associate token account of the NFT (seeds `[payer pubkey, nft mint pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FreezeSolPayment {
     pub lamports: u64,
@@ -44,7 +44,7 @@ impl Guard for FreezeSolPayment {
     /// Instructions to interact with the freeze feature:
     ///
     ///  * initialize
-    ///  * thawn
+    ///  * thaw
     ///  * unlock funds
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
@@ -66,7 +66,7 @@ impl Guard for FreezeSolPayment {
         };
 
         match instruction {
-            // Initializes the freese escrow PDA.
+            // Initializes the freeze escrow PDA.
             //
             // List of accounts required:
             //
@@ -81,7 +81,7 @@ impl Guard for FreezeSolPayment {
                 let candy_machine_key = &ctx.accounts.candy_machine.key();
 
                 let seeds = [
-                    b"freeze_sol_payment".as_ref(),
+                    FreezeEscrow::PREFIX_SEED,
                     freeze_guard.destination.as_ref(),
                     candy_guard_key.as_ref(),
                     candy_machine_key.as_ref(),
@@ -96,13 +96,16 @@ impl Guard for FreezeSolPayment {
                 if !(cmp_pubkeys(authority.key, &ctx.accounts.candy_guard.authority)
                     && authority.is_signer)
                 {
-                    msg!("Signer={}, Authority={}", authority.key, &ctx.accounts.candy_guard.authority);
                     return err!(CandyGuardError::MissingRequiredSignature);
                 }
 
                 if freeze_pda.data_is_empty() {
+                    // checking if we got the correct system_program
+                    let system_program = Self::get_account_info(ctx, 2)?;
+                    assert_keys_equal(&system_program::ID, &system_program.key())?;
+
                     let signer = [
-                        b"freeze_sol_payment".as_ref(),
+                        FreezeEscrow::PREFIX_SEED,
                         freeze_guard.destination.as_ref(),
                         candy_guard_key.as_ref(),
                         candy_machine_key.as_ref(),
@@ -141,7 +144,7 @@ impl Guard for FreezeSolPayment {
                 }
 
                 // initilializes the escrow account (safe to be unchecked since the account
-                // mut be empty at this point)
+                // must be empty at this point)
                 let mut freeze_escrow: Account<FreezeEscrow> =
                     Account::try_from_unchecked(freeze_pda)?;
                 freeze_escrow.init(*candy_machine_key, None, freeze_period);
@@ -194,15 +197,21 @@ impl Guard for FreezeSolPayment {
                 let candy_machine_key = candy_machine.key();
 
                 let seeds = [
-                    b"freeze_sol_payment".as_ref(),
+                    FreezeEscrow::PREFIX_SEED,
                     freeze_guard.destination.as_ref(),
                     candy_guard_key.as_ref(),
                     candy_machine_key.as_ref(),
                 ];
-
                 let (pda, bump) = Pubkey::find_program_address(&seeds, &crate::ID);
                 assert_keys_equal(&pda, freeze_pda.key)?;
-                let signer = [seeds[0], seeds[1], seeds[2], seeds[3], &[bump]];
+
+                let signer = [
+                    FreezeEscrow::PREFIX_SEED,
+                    freeze_guard.destination.as_ref(),
+                    candy_guard_key.as_ref(),
+                    candy_machine_key.as_ref(),
+                    &[bump],
+                ];
 
                 if nft_token_account.is_frozen() {
                     invoke_signed(
@@ -253,8 +262,20 @@ impl Guard for FreezeSolPayment {
             FreezeInstruction::UnlockFunds => {
                 msg!("FreezeSolPayment: unlock_funds");
 
+                let candy_guard_key = &ctx.accounts.candy_guard.key();
+                let candy_machine_key = &ctx.accounts.candy_machine.key();
+
                 let freeze_pda = Self::get_account_info(ctx, 0)?;
                 let freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
+
+                let seeds = [
+                    FreezeEscrow::PREFIX_SEED,
+                    freeze_guard.destination.as_ref(),
+                    candy_guard_key.as_ref(),
+                    candy_machine_key.as_ref(),
+                ];
+                let (pda, _) = Pubkey::find_program_address(&seeds, &crate::ID);
+                assert_keys_equal(freeze_pda.key, &pda)?;
 
                 // authority must the a signer
                 let authority = Self::get_account_info(ctx, 1)?;
@@ -290,7 +311,6 @@ impl Condition for FreezeSolPayment {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        // validates that we received all required accounts
         let candy_guard_key = &ctx.accounts.candy_guard.key();
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
@@ -301,7 +321,7 @@ impl Condition for FreezeSolPayment {
         evaluation_context.account_cursor += 1;
 
         let seeds = [
-            b"freeze_sol_payment".as_ref(),
+            FreezeEscrow::PREFIX_SEED,
             self.destination.as_ref(),
             candy_guard_key.as_ref(),
             candy_machine_key.as_ref(),
@@ -309,6 +329,7 @@ impl Condition for FreezeSolPayment {
 
         let (pda, _) = Pubkey::find_program_address(&seeds, &crate::ID);
         assert_keys_equal(freeze_pda.key, &pda)?;
+
         if freeze_pda.data_is_empty() {
             return err!(CandyGuardError::FreezeNotInitialized);
         }
@@ -366,7 +387,6 @@ impl Condition for FreezeSolPayment {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        msg!("Post actions");
         let index = evaluation_context.indices["freeze_sol_payment"];
         let freeze_pda = Self::get_account_info(ctx, index)?;
 
@@ -385,14 +405,20 @@ impl Condition for FreezeSolPayment {
         let payer = &ctx.accounts.payer;
 
         let seeds = [
-            b"freeze_sol_payment".as_ref(),
+            FreezeEscrow::PREFIX_SEED,
             self.destination.as_ref(),
             candy_guard_key.as_ref(),
             candy_machine_key.as_ref(),
         ];
-
         let (_, bump) = Pubkey::find_program_address(&seeds, &crate::ID);
-        let signer = [seeds[0], seeds[1], seeds[2], seeds[3], &[bump]];
+
+        let signer = [
+            FreezeEscrow::PREFIX_SEED,
+            self.destination.as_ref(),
+            candy_guard_key.as_ref(),
+            candy_machine_key.as_ref(),
+            &[bump],
+        ];
 
         let nft_ata = Self::get_account_info(ctx, index + 1)?;
 
@@ -455,6 +481,9 @@ impl FreezeEscrow {
         + 8     // frozen_count
         + 1 + 8 // option + first_mint_time
         + 8; // freeze time
+
+    /// Prefix used as seed.
+    pub const PREFIX_SEED: &'static [u8] = b"freeze_sol_payment";
 
     /// Maximum freeze period in seconds (30 days).
     pub const MAX_FREEZE_TIME: i64 = 60 * 60 * 24 * 30;
