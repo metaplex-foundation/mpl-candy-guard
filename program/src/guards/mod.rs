@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 pub use anchor_lang::prelude::*;
 
-use crate::instructions::Route;
+use crate::instructions::{Route, RouteContext};
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
 pub use address_gate::AddressGate;
@@ -101,7 +101,7 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
     /// handler.
     fn instruction<'info>(
         _ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
-        _guard_set: &GuardSet,
+        _route_context: RouteContext<'info>,
         _data: Vec<u8>,
     ) -> Result<()> {
         err!(CandyGuardError::InstructionNotFound)

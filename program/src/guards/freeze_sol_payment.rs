@@ -48,7 +48,7 @@ impl Guard for FreezeSolPayment {
     ///  * unlock funds
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
-        guard_set: &GuardSet,
+        route_context: RouteContext<'info>,
         data: Vec<u8>,
     ) -> Result<()> {
         // determines the instruction to execute
@@ -58,12 +58,6 @@ impl Guard for FreezeSolPayment {
             } else {
                 return err!(CandyGuardError::MissingFreezeInstruction);
             };
-
-        let freeze_guard = if let Some(freeze_guard) = &guard_set.freeze_sol_payment {
-            freeze_guard
-        } else {
-            return err!(CandyGuardError::FreezeGuardNotEnabled);
-        };
 
         match instruction {
             // Initializes the freeze escrow PDA.
@@ -75,8 +69,23 @@ impl Guard for FreezeSolPayment {
             //   1. `[signer]` Candy Guard authority.
             //   2. `[]` System program account.
             FreezeInstruction::Initialize => {
-                msg!("FreezeSolPayment: initialize");
-                initialize_freeze(ctx, data, freeze_guard.destination)
+                msg!("Instruction: Initialize (FreezeSolPayment guard)");
+
+                if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
+                    return err!(CandyGuardError::Uninitialized);
+                }
+
+                let destination = if let Some(guard_set) = &route_context.guard_set {
+                    if let Some(freeze_guard) = &guard_set.freeze_sol_payment {
+                        freeze_guard.destination
+                    } else {
+                        return err!(CandyGuardError::FreezeGuardNotEnabled);
+                    }
+                } else {
+                    return err!(CandyGuardError::FreezeGuardNotEnabled);
+                };
+
+                initialize_freeze(ctx, route_context, data, destination)
             }
             // Thaw an eligible NFT.
             //
@@ -91,8 +100,8 @@ impl Guard for FreezeSolPayment {
             //   5. `[]` spl-token program ID.
             //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
-                msg!("FreezeSolPayment: thaw");
-                thaw_nft(ctx, data, freeze_guard.destination)
+                msg!("Instruction: Thaw (FreezeSolPayment guard)");
+                thaw_nft(ctx, route_context, data)
             }
             // Unlocks frozen funds.
             //
@@ -105,8 +114,8 @@ impl Guard for FreezeSolPayment {
             //                   of the guard configuration).
             //   3. `[]` System program account.
             FreezeInstruction::UnlockFunds => {
-                msg!("FreezeSolPayment: unlock_funds");
-                unlock_funds(ctx, data, freeze_guard.destination)
+                msg!("Instruction: Unlock Funds (FreezeSolPayment guard)");
+                unlock_funds(ctx, route_context, data)
             }
         }
     }
@@ -205,25 +214,46 @@ impl Condition for FreezeSolPayment {
     }
 }
 
-/// PDA to track whether an address has been validated or not.
+/// PDA to store the frozen funds.
 #[account]
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct FreezeEscrow {
+    /// Candy guard address associated with this escrow.
+    pub candy_guard: Pubkey,
+
+    /// Candy machine address associated with this escrow.
     pub candy_machine: Pubkey,
-    pub allow_thaw: bool,
+
+    /// Number of NFTs frozen.
     pub frozen_count: u64,
+
+    /// The timestamp of the first (frozen) mint. This is used to calculate
+    /// when the freeze period is over.
     pub first_mint_time: Option<i64>,
+
+    /// The amount of time (in seconds) for the freeze. The NFTs will be
+    /// allowed to thaw after this.
     pub freeze_period: i64,
+
+    /// The destination address for the frozed fund to go to.
+    pub destination: Pubkey,
+
+    /// The authority that initialized the freeze. This will be the only
+    /// address able to unlock the funds in case the candy guard account is
+    /// closed.
+    pub authority: Pubkey,
 }
 
 impl FreezeEscrow {
     /// Maximum account size.
     pub const SIZE: usize = 8 // discriminator
-        + 32    // candy_machine
-        + 1     // allow_thawn
-        + 8     // frozen_count
-        + 1 + 8 // option + first_mint_time
-        + 8; // freeze time
+        + 32    // candy guard
+        + 32    // candy machine
+        + 8     // frozen count
+        + 1 + 8 // option + first mint time
+        + 8     // freeze time
+        + 32    // destination
+        + 32; // authority
 
     /// Prefix used as seed.
     pub const PREFIX_SEED: &'static [u8] = b"freeze_escrow";
@@ -233,19 +263,24 @@ impl FreezeEscrow {
 
     pub fn init(
         &mut self,
+        candy_guard: Pubkey,
         candy_machine: Pubkey,
         first_mint_time: Option<i64>,
         freeze_period: i64,
+        destination: Pubkey,
+        authority: Pubkey,
     ) {
+        self.candy_guard = candy_guard;
         self.candy_machine = candy_machine;
-        self.allow_thaw = false;
         self.frozen_count = 0;
         self.first_mint_time = first_mint_time;
         self.freeze_period = freeze_period;
+        self.destination = destination;
+        self.authority = authority;
     }
 
     pub fn is_thaw_allowed(&self, candy_machine: &CandyMachine, current_timestamp: i64) -> bool {
-        if self.allow_thaw || candy_machine.items_redeemed >= candy_machine.data.items_available {
+        if candy_machine.items_redeemed >= candy_machine.data.items_available {
             return true;
         } else if let Some(first_mint_time) = self.first_mint_time {
             if current_timestamp >= first_mint_time + self.freeze_period {
@@ -346,6 +381,7 @@ pub fn freeze_nft<'info>(
 /// Helper function to initialize the freeze pda.
 pub fn initialize_freeze<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
+    route_context: RouteContext,
     data: Vec<u8>,
     destination: Pubkey,
 ) -> Result<()> {
@@ -365,8 +401,12 @@ pub fn initialize_freeze<'info>(
 
     let authority = get_account_info(ctx, 1)?;
 
-    if !(cmp_pubkeys(authority.key, &ctx.accounts.candy_guard.authority) && authority.is_signer) {
-        return err!(CandyGuardError::MissingRequiredSignature);
+    if let Some(candy_guard) = route_context.candy_guard {
+        if !(cmp_pubkeys(authority.key, &candy_guard.authority) && authority.is_signer) {
+            return err!(CandyGuardError::MissingRequiredSignature);
+        }
+    } else {
+        return err!(CandyGuardError::Uninitialized);
     }
 
     if freeze_pda.data_is_empty() {
@@ -416,7 +456,14 @@ pub fn initialize_freeze<'info>(
     // initilializes the escrow account (safe to be unchecked since the account
     // must be empty at this point)
     let mut freeze_escrow: Account<FreezeEscrow> = Account::try_from_unchecked(freeze_pda)?;
-    freeze_escrow.init(*candy_machine_key, None, freeze_period);
+    freeze_escrow.init(
+        *candy_guard_key,
+        *candy_machine_key,
+        None,
+        freeze_period,
+        destination,
+        authority.key(),
+    );
     freeze_escrow.exit(&crate::ID)?;
 
     Ok(())
@@ -425,20 +472,20 @@ pub fn initialize_freeze<'info>(
 /// Helper function to thaw an nft.
 pub fn thaw_nft<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
+    route_context: RouteContext,
     _data: Vec<u8>,
-    destination: Pubkey,
 ) -> Result<()> {
-    let candy_guard = &ctx.accounts.candy_guard;
-    let candy_machine = &ctx.accounts.candy_machine;
     let current_timestamp = Clock::get()?.unix_timestamp;
 
     let freeze_pda = get_account_info(ctx, 0)?;
     let mut freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
 
-    if !(freeze_escrow.is_thaw_allowed(candy_machine, current_timestamp)
-        || candy_machine.to_account_info().data_is_empty())
-    {
-        return err!(CandyGuardError::ThawNotEnabled);
+    // thaw is automatically enabled if the candy machine account is closed, so
+    // only check if we have one
+    if let Some(ref candy_machine) = route_context.candy_machine {
+        if !freeze_escrow.is_thaw_allowed(candy_machine, current_timestamp) {
+            return err!(CandyGuardError::ThawNotEnabled);
+        }
     }
 
     let nft_mint = get_account_info(ctx, 1)?;
@@ -456,12 +503,12 @@ pub fn thaw_nft<'info>(
     let token_program = get_account_info(ctx, 5)?;
     let token_metadata_program = get_account_info(ctx, 6)?;
 
-    let candy_guard_key = candy_guard.key();
-    let candy_machine_key = candy_machine.key();
+    let candy_guard_key = &ctx.accounts.candy_guard.key();
+    let candy_machine_key = &ctx.accounts.candy_machine.key();
 
     let seeds = [
         FreezeEscrow::PREFIX_SEED,
-        destination.as_ref(),
+        freeze_escrow.destination.as_ref(),
         candy_guard_key.as_ref(),
         candy_machine_key.as_ref(),
     ];
@@ -470,7 +517,7 @@ pub fn thaw_nft<'info>(
 
     let signer = [
         FreezeEscrow::PREFIX_SEED,
-        destination.as_ref(),
+        freeze_escrow.destination.as_ref(),
         candy_guard_key.as_ref(),
         candy_machine_key.as_ref(),
         &[bump],
@@ -518,8 +565,8 @@ pub fn thaw_nft<'info>(
 /// Helper function to unlock funds.
 fn unlock_funds<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
+    route_context: RouteContext,
     _data: Vec<u8>,
-    destination: Pubkey,
 ) -> Result<()> {
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
@@ -529,7 +576,7 @@ fn unlock_funds<'info>(
 
     let seeds = [
         FreezeEscrow::PREFIX_SEED,
-        destination.as_ref(),
+        freeze_escrow.destination.as_ref(),
         candy_guard_key.as_ref(),
         candy_machine_key.as_ref(),
     ];
@@ -539,7 +586,15 @@ fn unlock_funds<'info>(
     // authority must the a signer
     let authority = get_account_info(ctx, 1)?;
 
-    if !(cmp_pubkeys(authority.key, &ctx.accounts.candy_guard.authority) && authority.is_signer) {
+    // if the candy guard account is present, we check the authority against
+    // the candy guard authority; otherwise we use the freeze escrow authority
+    let authority_ckeck = if let Some(candy_guard) = route_context.candy_guard {
+        candy_guard.authority
+    } else {
+        freeze_escrow.authority
+    };
+
+    if !(cmp_pubkeys(authority.key, &authority_ckeck) && authority.is_signer) {
         return err!(CandyGuardError::MissingRequiredSignature);
     }
 
@@ -550,7 +605,7 @@ fn unlock_funds<'info>(
 
     let destination_address = get_account_info(ctx, 2)?;
     // funds should go to the destination account
-    assert_keys_equal(destination_address.key, &destination)?;
+    assert_keys_equal(destination_address.key, &freeze_escrow.destination)?;
 
     freeze_escrow.close(destination_address.to_account_info())?;
 

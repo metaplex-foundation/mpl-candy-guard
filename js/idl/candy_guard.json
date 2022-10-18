@@ -340,32 +340,65 @@
     {
       "name": "FreezeEscrow",
       "docs": [
-        "PDA to track whether an address has been validated or not."
+        "PDA to store the frozen funds."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "candyMachine",
+            "name": "candyGuard",
+            "docs": [
+              "Candy guard address associated with this escrow."
+            ],
             "type": "publicKey"
           },
           {
-            "name": "allowThaw",
-            "type": "bool"
+            "name": "candyMachine",
+            "docs": [
+              "Candy machine address associated with this escrow."
+            ],
+            "type": "publicKey"
           },
           {
             "name": "frozenCount",
+            "docs": [
+              "Number of NFTs frozen."
+            ],
             "type": "u64"
           },
           {
             "name": "firstMintTime",
+            "docs": [
+              "The timestamp of the first (frozen) mint. This is used to calculate",
+              "when the freeze period is over."
+            ],
             "type": {
               "option": "i64"
             }
           },
           {
             "name": "freezePeriod",
+            "docs": [
+              "The amount of time (in seconds) for the freeze. The NFTs will be",
+              "allowed to thaw after this."
+            ],
             "type": "i64"
+          },
+          {
+            "name": "destination",
+            "docs": [
+              "The destination address for the frozed fund to go to."
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "docs": [
+              "The authority that initialized the freeze. This will be the only",
+              "address able to unlock the funds in case the candy guard account is",
+              "closed."
+            ],
+            "type": "publicKey"
           }
         ]
       }
@@ -832,17 +865,26 @@
     },
     {
       "name": "RouteArgs",
+      "docs": [
+        "Arguments for a route transaction."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "guard",
+            "docs": [
+              "The target guard type."
+            ],
             "type": {
               "defined": "GuardType"
             }
           },
           {
             "name": "data",
+            "docs": [
+              "Arguments for the guard instruction."
+            ],
             "type": "bytes"
           }
         ]

@@ -1,17 +1,21 @@
 use super::{freeze_sol_payment::freeze_nft, *};
 
 use anchor_lang::AccountsClose;
-use solana_program::program::{invoke, invoke_signed};
+use solana_program::{
+    program::{invoke, invoke_signed},
+    program_pack::Pack,
+};
 use spl_associated_token_account::{
     get_associated_token_address, instruction::create_associated_token_account,
 };
-use spl_token::instruction::close_account;
+use spl_token::{instruction::close_account, state::Account as TokenAccount};
 
 use crate::{
     errors::CandyGuardError,
     guards::freeze_sol_payment::{initialize_freeze, thaw_nft},
     utils::{
-        assert_is_ata, assert_keys_equal, cmp_pubkeys, spl_token_transfer, TokenTransferParams,
+        assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys, spl_token_transfer,
+        TokenTransferParams,
     },
 };
 
@@ -49,7 +53,7 @@ impl Guard for FreezeTokenPayment {
     ///  * unlock funds
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
-        guard_set: &GuardSet,
+        route_context: RouteContext<'info>,
         data: Vec<u8>,
     ) -> Result<()> {
         // determines the instruction to execute
@@ -59,12 +63,6 @@ impl Guard for FreezeTokenPayment {
             } else {
                 return err!(CandyGuardError::MissingFreezeInstruction);
             };
-
-        let freeze_guard = if let Some(freeze_guard) = &guard_set.freeze_token_payment {
-            freeze_guard
-        } else {
-            return err!(CandyGuardError::FreezeGuardNotEnabled);
-        };
 
         match instruction {
             // List of accounts required:
@@ -76,10 +74,29 @@ impl Guard for FreezeTokenPayment {
             //   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
             //   4. `[]` Token mint account.
             FreezeInstruction::Initialize => {
-                msg!("FreezeTokenPayment: initialize");
+                msg!("Instruction: Initialize (FreezeTokenPayment guard)");
+
+                if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
+                    return err!(CandyGuardError::Uninitialized);
+                }
+
+                if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
+                    return err!(CandyGuardError::Uninitialized);
+                }
+
+                let destination = if let Some(guard_set) = &route_context.guard_set {
+                    if let Some(freeze_guard) = &guard_set.freeze_token_payment {
+                        freeze_guard.destination_ata
+                    } else {
+                        return err!(CandyGuardError::FreezeGuardNotEnabled);
+                    }
+                } else {
+                    return err!(CandyGuardError::FreezeGuardNotEnabled);
+                };
+
                 // initializes the freeze pda (the check of the authority as signer is done
                 // during the initialization)
-                initialize_freeze(ctx, data, freeze_guard.destination_ata)?;
+                initialize_freeze(ctx, route_context, data, destination)?;
 
                 // initializes the freeze ata
 
@@ -111,13 +128,13 @@ impl Guard for FreezeTokenPayment {
                 Ok(())
             }
             FreezeInstruction::Thaw => {
-                msg!("FreezeTokenPayment: thaw");
-                thaw_nft(ctx, data, freeze_guard.destination_ata)
+                msg!("Instruction: Thaw (FreezeTokenPayment guard)");
+                thaw_nft(ctx, route_context, data)
             }
 
             FreezeInstruction::UnlockFunds => {
-                msg!("FreezeTokenPayment: unlock_funds");
-                unlock_funds(ctx, data, freeze_guard.mint, freeze_guard.destination_ata)
+                msg!("Instruction: Unlock Funds (FreezeTokenPayment guard)");
+                unlock_funds(ctx, route_context)
             }
         }
     }
@@ -233,9 +250,7 @@ impl Condition for FreezeTokenPayment {
 //   5. `[]` System program account.
 fn unlock_funds<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
-    _data: Vec<u8>,
-    mint: Pubkey,
-    destination_ata: Pubkey,
+    route_context: RouteContext<'info>,
 ) -> Result<()> {
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
@@ -245,7 +260,7 @@ fn unlock_funds<'info>(
 
     let seeds = [
         FreezeEscrow::PREFIX_SEED,
-        destination_ata.as_ref(),
+        freeze_escrow.destination.as_ref(),
         candy_guard_key.as_ref(),
         candy_machine_key.as_ref(),
     ];
@@ -255,7 +270,15 @@ fn unlock_funds<'info>(
     // authority must the a signer
     let authority = get_account_info(ctx, 1)?;
 
-    if !(cmp_pubkeys(authority.key, &ctx.accounts.candy_guard.authority) && authority.is_signer) {
+    // if the candy guard account is present, we check the authority against
+    // the candy guard authority; otherwise we use the freeze escrow authority
+    let authority_ckeck = if let Some(candy_guard) = route_context.candy_guard {
+        candy_guard.authority
+    } else {
+        freeze_escrow.authority
+    };
+
+    if !(cmp_pubkeys(authority.key, &authority_ckeck) && authority.is_signer) {
         return err!(CandyGuardError::MissingRequiredSignature);
     }
 
@@ -265,10 +288,12 @@ fn unlock_funds<'info>(
     }
 
     let freeze_ata = get_account_info(ctx, 2)?;
-    let source_ata = assert_is_ata(freeze_ata, &freeze_pda.key(), &mint)?;
+    assert_owned_by(freeze_ata, &spl_associated_token_account::ID)?;
+    let freeze_ata_account = TokenAccount::unpack(&freeze_ata.try_borrow_data()?)?;
+    assert_keys_equal(&freeze_ata_account.owner, freeze_pda.key)?;
 
     let destination_ata_account = get_account_info(ctx, 3)?;
-    assert_keys_equal(&destination_ata, destination_ata_account.key)?;
+    assert_keys_equal(&freeze_escrow.destination, destination_ata_account.key)?;
 
     let token_program = get_account_info(ctx, 4)?;
     assert_keys_equal(token_program.key, &Token::id())?;
@@ -277,7 +302,7 @@ fn unlock_funds<'info>(
 
     let signer = [
         FreezeEscrow::PREFIX_SEED,
-        destination_ata.as_ref(),
+        freeze_escrow.destination.as_ref(),
         candy_guard_key.as_ref(),
         candy_machine_key.as_ref(),
         &[bump],
@@ -289,7 +314,7 @@ fn unlock_funds<'info>(
         authority: freeze_pda.to_account_info(),
         authority_signer_seeds: &signer,
         token_program: token_program.to_account_info(),
-        amount: source_ata.amount,
+        amount: freeze_ata_account.amount,
     })?;
 
     // close the freeze ata

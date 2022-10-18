@@ -15,11 +15,13 @@ import * as beetSolana from '@metaplex-foundation/beet-solana';
  * @category generated
  */
 export type FreezeEscrowArgs = {
+  candyGuard: web3.PublicKey;
   candyMachine: web3.PublicKey;
-  allowThaw: boolean;
   frozenCount: beet.bignum;
   firstMintTime: beet.COption<beet.bignum>;
   freezePeriod: beet.bignum;
+  destination: web3.PublicKey;
+  authority: web3.PublicKey;
 };
 
 export const freezeEscrowDiscriminator = [227, 186, 40, 152, 7, 174, 131, 184];
@@ -32,11 +34,13 @@ export const freezeEscrowDiscriminator = [227, 186, 40, 152, 7, 174, 131, 184];
  */
 export class FreezeEscrow implements FreezeEscrowArgs {
   private constructor(
+    readonly candyGuard: web3.PublicKey,
     readonly candyMachine: web3.PublicKey,
-    readonly allowThaw: boolean,
     readonly frozenCount: beet.bignum,
     readonly firstMintTime: beet.COption<beet.bignum>,
     readonly freezePeriod: beet.bignum,
+    readonly destination: web3.PublicKey,
+    readonly authority: web3.PublicKey,
   ) {}
 
   /**
@@ -44,11 +48,13 @@ export class FreezeEscrow implements FreezeEscrowArgs {
    */
   static fromArgs(args: FreezeEscrowArgs) {
     return new FreezeEscrow(
+      args.candyGuard,
       args.candyMachine,
-      args.allowThaw,
       args.frozenCount,
       args.firstMintTime,
       args.freezePeriod,
+      args.destination,
+      args.authority,
     );
   }
 
@@ -148,8 +154,8 @@ export class FreezeEscrow implements FreezeEscrowArgs {
    */
   pretty() {
     return {
+      candyGuard: this.candyGuard.toBase58(),
       candyMachine: this.candyMachine.toBase58(),
-      allowThaw: this.allowThaw,
       frozenCount: (() => {
         const x = <{ toNumber: () => number }>this.frozenCount;
         if (typeof x.toNumber === 'function') {
@@ -173,6 +179,8 @@ export class FreezeEscrow implements FreezeEscrowArgs {
         }
         return x;
       })(),
+      destination: this.destination.toBase58(),
+      authority: this.authority.toBase58(),
     };
   }
 }
@@ -189,11 +197,13 @@ export const freezeEscrowBeet = new beet.FixableBeetStruct<
 >(
   [
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
+    ['candyGuard', beetSolana.publicKey],
     ['candyMachine', beetSolana.publicKey],
-    ['allowThaw', beet.bool],
     ['frozenCount', beet.u64],
     ['firstMintTime', beet.coption(beet.i64)],
     ['freezePeriod', beet.i64],
+    ['destination', beetSolana.publicKey],
+    ['authority', beetSolana.publicKey],
   ],
   FreezeEscrow.fromArgs,
   'FreezeEscrow',
