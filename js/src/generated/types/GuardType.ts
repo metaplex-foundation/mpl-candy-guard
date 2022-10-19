@@ -27,6 +27,7 @@ export enum GuardType {
   NftGate,
   NftBurn,
   TokenBurn,
+  ProgramGate,
 }
 
 /**

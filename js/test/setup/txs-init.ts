@@ -314,6 +314,122 @@ export class InitTransactions {
     return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard Mint') };
   }
 
+  async mintExtended(
+    t: Test,
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    // candy machine object
+    const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
+
+    // PDAs required for the mint
+    const nftMetadata = findMetadataPda(mint.publicKey);
+    const nftMasterEdition = findMasterEditionV2Pda(mint.publicKey);
+    const nftTokenAccount = findAssociatedTokenAccountPda(mint.publicKey, payer.publicKey);
+
+    const collectionMint = candyMachineObject.collectionMint;
+    // retrieves the collection nft
+    const metaplex = Metaplex.make(connection).use(keypairIdentity(payer));
+    const collection = await metaplex.nfts().findByMint({ mintAddress: collectionMint }).run();
+    // collection PDAs
+    const authorityPda = findCandyMachineCreatorPda(candyMachine, CANDY_MACHINE_PROGRAM);
+    const collectionAuthorityRecord = findCollectionAuthorityRecordPda(
+      collectionMint,
+      authorityPda,
+    );
+    const collectionMetadata = findMetadataPda(collectionMint);
+    const collectionMasterEdition = findMasterEditionV2Pda(collectionMint);
+
+    const accounts: MintInstructionAccounts = {
+      candyGuard,
+      candyMachineProgram: CANDY_MACHINE_PROGRAM,
+      candyMachine,
+      payer: payer.publicKey,
+      candyMachineAuthorityPda: authorityPda,
+      nftMasterEdition: nftMasterEdition,
+      nftMetadata,
+      nftMint: mint.publicKey,
+      nftMintAuthority: payer.publicKey,
+      collectionUpdateAuthority: collection.updateAuthorityAddress,
+      collectionAuthorityRecord,
+      collectionMasterEdition,
+      collectionMetadata,
+      collectionMint,
+      tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      recentSlothashes: SYSVAR_SLOT_HASHES_PUBKEY,
+      instructionSysvarAccount: SYSVAR_INSTRUCTIONS_PUBKEY,
+    };
+
+    if (!mintArgs) {
+      mintArgs = new Uint8Array();
+    }
+
+    const args: MintInstructionArgs = {
+      mintArgs,
+      label: label ?? null,
+    };
+
+    const ixs: TransactionInstruction[] = [];
+    ixs.push(
+      SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: mint.publicKey,
+        lamports: await connection.getMinimumBalanceForRentExemption(MintLayout.span),
+        space: MintLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    );
+    ixs.push(createInitializeMintInstruction(mint.publicKey, 0, payer.publicKey, payer.publicKey));
+    ixs.push(
+      createAssociatedTokenAccountInstruction(
+        payer.publicKey,
+        nftTokenAccount,
+        payer.publicKey,
+        mint.publicKey,
+      ),
+    );
+    ixs.push(createMintToInstruction(mint.publicKey, nftTokenAccount, payer.publicKey, 1, []));
+
+    const mintIx = createMintInstruction(accounts, args);
+    if (remainingAccounts) {
+      mintIx.keys.push(...remainingAccounts);
+    }
+    ixs.push(mintIx);
+
+    // extended instruction to the mint transaction
+
+    const [, extendedMint] = await amman.genLabeledKeypair('Extended Mint Account');
+
+    ixs.push(
+      SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: extendedMint.publicKey,
+        lamports: await connection.getMinimumBalanceForRentExemption(MintLayout.span),
+        space: MintLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    );
+
+    const tx = new Transaction().add(...ixs);
+
+    return {
+      tx: handler.sendAndConfirmTransaction(
+        tx,
+        [payer, mint, extendedMint],
+        'tx: Candy Guard Mint',
+      ),
+    };
+  }
+
   async deploy(
     t: Test,
     guards: CandyGuardData,

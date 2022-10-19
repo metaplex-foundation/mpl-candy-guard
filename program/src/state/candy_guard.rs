@@ -99,6 +99,8 @@ pub struct GuardSet {
     pub nft_burn: Option<NftBurn>,
     /// Token burn guard (burn a specified amount of spl-token).
     pub token_burn: Option<TokenBurn>,
+    /// Program gate guard (restricts the programs that can be in a mint transaction).
+    pub program_gate: Option<ProgramGate>,
 }
 
 /// Available guard types.
@@ -120,6 +122,7 @@ pub enum GuardType {
     NftGate,
     NftBurn,
     TokenBurn,
+    ProgramGate,
 }
 
 impl CandyGuardData {

@@ -593,6 +593,23 @@
       }
     },
     {
+      "name": "ProgramGate",
+      "docs": [
+        "Guard that restricts the programs that can be in a mint transaction."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "allowList",
+            "type": {
+              "vec": "publicKey"
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "RedeemedAmount",
       "docs": [
         "Guard that stop the mint once the specified amount of items",
@@ -988,6 +1005,17 @@
                 "defined": "TokenBurn"
               }
             }
+          },
+          {
+            "name": "programGate",
+            "docs": [
+              "Program gate guard (restricts the programs that can be in a mint transaction)."
+            ],
+            "type": {
+              "option": {
+                "defined": "ProgramGate"
+              }
+            }
           }
         ]
       }
@@ -1047,6 +1075,9 @@
           },
           {
             "name": "TokenBurn"
+          },
+          {
+            "name": "ProgramGate"
           }
         ]
       }

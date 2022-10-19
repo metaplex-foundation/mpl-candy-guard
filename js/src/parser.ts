@@ -10,6 +10,7 @@ import {
   GuardSet,
   mintLimitBeet,
   nftPaymentBeet,
+  programGateBeet,
   startDateBeet,
   thirdPartySignerBeet,
   tokenGateBeet,
@@ -60,6 +61,8 @@ import { tokenBurnBeet } from './generated/types/TokenBurn';
  *   pub nft_burn: Option<NftBurn>,
  *   /// Token burn guard (burn a specified amount of spl-token)
  *   pub token_burn: Option<NftBurn>,
+ *   /// Program gate guard (restricts the programs that can be in a mint transaction).
+ *   pub program_gate: Option<ProgramGate>,
  * }
  * ```
  */
@@ -81,6 +84,7 @@ type Guards = {
   /* 14 */ nftGateEnabled: boolean;
   /* 15 */ nftBurnEnabled: boolean;
   /* 16 */ tokenBurnEnabled: boolean;
+  /* 17 */ programGateEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -100,8 +104,9 @@ const GUARDS_SIZE = {
   /* 14 */ nftGate: 32,
   /* 15 */ nftBurn: 32,
   /* 16 */ tokenBurn: 40,
+  /* 17 */ programGate: 164,
 };
-const GUARDS_COUNT = 16;
+const GUARDS_COUNT = 17;
 const MAX_LABEL_LENGTH = 6;
 
 function determineGuards(buffer: Buffer): Guards {
@@ -129,6 +134,7 @@ function determineGuards(buffer: Buffer): Guards {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    programGateEnabled,
   ] = guards;
 
   return {
@@ -148,6 +154,7 @@ function determineGuards(buffer: Buffer): Guards {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    programGateEnabled,
   };
 }
 
@@ -193,6 +200,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    programGateEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -298,6 +306,12 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.tokenBurn;
   }
 
+  if (programGateEnabled) {
+    const [programGate] = programGateBeet.deserialize(buffer, cursor);
+    data.programGate = programGate;
+    cursor += GUARDS_SIZE.programGate;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
@@ -316,6 +330,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       nftGate: data.nftGate ?? null,
       nftBurn: data.nftBurn ?? null,
       tokenBurn: data.tokenBurn ?? null,
+      programGate: data.programGate ?? null,
     },
     offset: cursor,
   };
