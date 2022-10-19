@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Route the transaction to the specified guard. This instruction allows the use of
-/// empty candy guard and candy machine accounts and it is up to ndividual guard
+/// empty candy guard and candy machine accounts and it is up to individual guard
 /// instructions to validate whether the instruction can be executed or not.
 pub fn route<'info>(
     ctx: Context<'_, '_, '_, 'info, Route<'info>>,
@@ -29,7 +29,7 @@ pub fn route<'info>(
         Some(account)
     };
 
-    // checks if the candy guard account is not empty
+    // checks if the candy machine account is not empty
 
     let candy_machine = &ctx.accounts.candy_machine;
     let candy_machine_account = if candy_machine.to_account_info().data_is_empty() {
