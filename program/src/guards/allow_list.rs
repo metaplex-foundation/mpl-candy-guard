@@ -11,7 +11,7 @@ use super::*;
 ///
 /// List of accounts required:
 ///
-///   0. `[]` Pda created by the merkle proof instruction (seeds `["allow_list", merke tree root, 
+///   0. `[]` Pda created by the merkle proof instruction (seeds `["allow_list", merke tree root,
 ///           payer key, candy guard pubkey, candy machine pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AllowList {
@@ -128,7 +128,7 @@ impl Guard for AllowList {
             )?;
         } else {
             // if it an existing account, make sure it has the correct ownwer
-            assert_owned_by(&proof_pda, &crate::ID)?;
+            assert_owned_by(proof_pda, &crate::ID)?;
         }
 
         let mut account_data = proof_pda.try_borrow_mut_data()?;
