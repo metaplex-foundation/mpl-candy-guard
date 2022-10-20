@@ -162,7 +162,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         if is_option_t(&f.ty) {
             let ty = unwrap_option_t(&f.ty);
             quote! {
-                GuardType::#ty => #ty::instruction(&ctx, &self, args.data)
+                GuardType::#ty => #ty::instruction(&ctx, route_context, args.data)
             }
         } else {
             quote! {}
@@ -222,8 +222,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
 
             pub fn route<'info>(
-                &self,
                 ctx: Context<'_, '_, '_, 'info, crate::instructions::Route<'info>>,
+                route_context: crate::instructions::RouteContext<'info>,
                 args: crate::instructions::RouteArgs
             ) -> anchor_lang::Result<()> {
                 match args.guard {
