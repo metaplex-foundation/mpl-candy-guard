@@ -1,7 +1,7 @@
 import test from 'tape';
 import { amman, InitTransactions, killStuckProcess, newCandyGuardData, sleep } from '../setup';
 import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-import { FreezeInstruction, freezeInstructionBeet, PROGRAM_ID } from '../../src';
+import { PROGRAM_ID } from '../../src';
 import {
   createRouteInstruction,
   RouteInstructionAccounts,
@@ -9,9 +9,10 @@ import {
 } from '../../src/generated/instructions/route';
 import { GuardType } from '../../src/generated/types/GuardType';
 import { i64 } from '@metaplex-foundation/beet';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { getAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { findAssociatedTokenAccountPda, findMasterEditionV2Pda } from '@metaplex-foundation/js';
 import { METAPLEX_PROGRAM_ID } from '../utils';
+import { FreezeInstruction, freezeInstructionBeet } from 'src/generated/types/FreezeInstruction';
 
 const API = new InitTransactions();
 
@@ -125,7 +126,7 @@ test('Freeze Sol Payment (thaw not enabled)', async (t) => {
   // minting
 
   const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account 2 (minter)');
-  const nftATA = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
+  const nftAta = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
 
   const { tx: minterMintTx2 } = await API.mint(
     t,
@@ -142,7 +143,7 @@ test('Freeze Sol Payment (thaw not enabled)', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: false,
       },
@@ -150,6 +151,9 @@ test('Freeze Sol Payment (thaw not enabled)', async (t) => {
   );
 
   await minterMintTx2.assertSuccess(t);
+
+  const nftAtaAccount = await getAccount(minterConnection, nftAta);
+  t.true(nftAtaAccount.isFrozen);
 
   // thaw
 
@@ -189,7 +193,7 @@ test('Freeze Sol Payment (thaw not enabled)', async (t) => {
         isWritable: false,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: true,
       },
@@ -309,7 +313,7 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
   } = await API.minter();
 
   const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftATA = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
+  const nftAta = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
 
   const { tx: minterMintTx2 } = await API.mint(
     t,
@@ -326,7 +330,7 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: false,
       },
@@ -334,6 +338,9 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
   );
 
   await minterMintTx2.assertSuccess(t);
+
+  let nftAtaAccount = await getAccount(minterConnection, nftAta);
+  t.true(nftAtaAccount.isFrozen);
 
   // thaw
 
@@ -375,7 +382,7 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
         isWritable: false,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: true,
       },
@@ -407,7 +414,12 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
 
   await thawHandler.assertSuccess(t);
 
+  nftAtaAccount = await getAccount(minterConnection, nftAta);
+  t.false(nftAtaAccount.isFrozen);
+
   // route instruction to unlock fund
+
+  const authorityWallet = await connection.getAccountInfo(authorityPair.publicKey);
 
   const unlock_accounts: RouteInstructionAccounts = {
     candyGuard: candyGuard,
@@ -461,6 +473,10 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
   );
 
   await unlockHandler.assertSuccess(t);
+
+  const updatedAuthorityWallet = await connection.getAccountInfo(authorityPair.publicKey);
+
+  t.true(authorityWallet!.lamports < updatedAuthorityWallet!.lamports);
 });
 
 test('Freeze Sol Payment (unlock not enabled)', async (t) => {
@@ -719,7 +735,7 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
   } = await API.minter();
 
   const [, mintForMinter2] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftATA = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
+  const nftAta = findAssociatedTokenAccountPda(mintForMinter2.publicKey, minterPair.publicKey);
 
   const { tx: minterMintTx2 } = await API.mint(
     t,
@@ -736,7 +752,7 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: false,
       },
@@ -744,6 +760,9 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
   );
 
   await minterMintTx2.assertSuccess(t);
+
+  let nftAtaAccount = await getAccount(minterConnection, nftAta);
+  t.true(nftAtaAccount.isFrozen);
 
   // close candy guard account
 
@@ -793,7 +812,7 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
         isWritable: false,
       },
       {
-        pubkey: nftATA,
+        pubkey: nftAta,
         isSigner: false,
         isWritable: true,
       },
@@ -824,4 +843,7 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
   );
 
   await thawHandler.assertSuccess(t);
+
+  nftAtaAccount = await getAccount(minterConnection, nftAta);
+  t.false(nftAtaAccount.isFrozen);
 });

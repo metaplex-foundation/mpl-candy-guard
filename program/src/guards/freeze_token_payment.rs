@@ -73,6 +73,8 @@ impl Guard for FreezeTokenPayment {
             //   2. `[]` System program account.
             //   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
             //   4. `[]` Token mint account.
+            //   5. `[]` Token program account.
+            //   6. `[]` Associate token program account.
             FreezeInstruction::Initialize => {
                 msg!("Instruction: Initialize (FreezeTokenPayment guard)");
 
@@ -104,6 +106,9 @@ impl Guard for FreezeTokenPayment {
                 let system_program = get_account_info(ctx, 2)?;
                 let freeze_ata = get_account_info(ctx, 3)?;
                 let token_mint = get_account_info(ctx, 4)?;
+                // validate the remaining accounts
+                let _token_program = get_account_info(ctx, 5)?;
+                let _associate_token_program = get_account_info(ctx, 6)?;
 
                 assert_keys_equal(
                     &get_associated_token_address(freeze_pda.key, token_mint.key),
@@ -240,8 +245,8 @@ impl Condition for FreezeTokenPayment {
 //
 // List of accounts required:
 //
-//   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_sol_payment",
-//                   destination pubkey, candy guard pubkey, candy machine pubkey]`).
+//   0. `[writable]` Freeze PDA (seeds `["freeze_escrow", destination pubkey, candy guard pubkey,
+//                   candy machine pubkey]`).
 //   1. `[signer]` Candy Guard authority.
 //   2. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
 //   3. `[writable]` Address to receive the funds (must match the `destination_ata` address
@@ -288,7 +293,7 @@ fn unlock_funds<'info>(
     }
 
     let freeze_ata = get_account_info(ctx, 2)?;
-    assert_owned_by(freeze_ata, &spl_associated_token_account::ID)?;
+    assert_owned_by(freeze_ata, &spl_token::ID)?;
     let freeze_ata_account = TokenAccount::unpack(&freeze_ata.try_borrow_data()?)?;
     assert_keys_equal(&freeze_ata_account.owner, freeze_pda.key)?;
 
