@@ -12,7 +12,7 @@ import { i64 } from '@metaplex-foundation/beet';
 import { getAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { findAssociatedTokenAccountPda, findMasterEditionV2Pda } from '@metaplex-foundation/js';
 import { METAPLEX_PROGRAM_ID } from '../utils';
-import { FreezeInstruction, freezeInstructionBeet } from 'src/generated/types/FreezeInstruction';
+import { FreezeInstruction, freezeInstructionBeet } from '../../src/generated/types/FreezeInstruction';
 
 const API = new InitTransactions();
 
