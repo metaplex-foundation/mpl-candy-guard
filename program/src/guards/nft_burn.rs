@@ -6,7 +6,7 @@ use mpl_token_metadata::{
 };
 use solana_program::program::invoke;
 
-use crate::{utils::assert_keys_equal, state::GuardType};
+use crate::{state::GuardType, utils::assert_keys_equal};
 
 /// Guard that requires another NFT (token) from a specific collection to be burned.
 ///

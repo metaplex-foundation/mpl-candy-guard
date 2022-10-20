@@ -2,7 +2,8 @@ use solana_program::{program::invoke_signed, system_instruction};
 
 use crate::{
     instructions::Route,
-    utils::{assert_keys_equal, assert_owned_by}, state::GuardType,
+    state::GuardType,
+    utils::{assert_keys_equal, assert_owned_by},
 };
 
 use super::*;

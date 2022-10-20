@@ -6,7 +6,7 @@ use solana_program::{
 };
 
 use super::*;
-use crate::{errors::CandyGuardError, utils::cmp_pubkeys, state::GuardType};
+use crate::{errors::CandyGuardError, state::GuardType, utils::cmp_pubkeys};
 
 /// Guard is used to:
 /// * charge a penalty for invalid transactions.

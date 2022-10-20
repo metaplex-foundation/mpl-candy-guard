@@ -2,7 +2,7 @@ use super::*;
 
 use solana_program::{program::invoke, system_instruction};
 
-use crate::{errors::CandyGuardError, utils::assert_keys_equal, state::GuardType};
+use crate::{errors::CandyGuardError, state::GuardType, utils::assert_keys_equal};
 
 /// Guard that charges an amount in SOL (lamports) for the mint.
 ///

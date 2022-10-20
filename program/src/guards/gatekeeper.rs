@@ -1,7 +1,7 @@
 use solana_gateway::{instruction::expire_token, state::get_expire_address_with_seed, Gateway};
 use solana_program::program::invoke;
 
-use crate::{utils::assert_keys_equal, state::GuardType};
+use crate::{state::GuardType, utils::assert_keys_equal};
 
 use super::*;
 

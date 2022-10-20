@@ -1,7 +1,8 @@
 use super::*;
 use crate::{
     errors::CandyGuardError,
-    utils::{assert_is_token_account, assert_keys_equal}, state::GuardType,
+    state::GuardType,
+    utils::{assert_is_token_account, assert_keys_equal},
 };
 use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
 

@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::{utils::*, state::GuardType};
+use crate::{state::GuardType, utils::*};
 
 /// Guard that restricts access to addresses that hold the specified spl-token.
 ///

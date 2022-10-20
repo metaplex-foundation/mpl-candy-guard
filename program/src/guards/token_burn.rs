@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::{utils::*, state::GuardType};
+use crate::{state::GuardType, utils::*};
 
 /// Guard that requires addresses that hold an amount of a specified spl-token
 /// and burns them.

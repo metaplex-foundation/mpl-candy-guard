@@ -1,5 +1,5 @@
 use super::*;
-use crate::{utils::cmp_pubkeys, state::GuardType};
+use crate::{state::GuardType, utils::cmp_pubkeys};
 
 /// Guard that requires a specified signer to validate the transaction.
 ///
