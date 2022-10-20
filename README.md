@@ -480,7 +480,7 @@ The `FreezeTokenPayment` guard is used to charge an amount in a specified spl-to
 | `freeze_ata`              |    ✅    |        | Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, token program pubkey, nft mint pubkey]`). |
 | `token_mint`              |          |        | Token mint account (must match the `mint` address of the guard configuration). |
 | `token_program`           |          |        | `spl-token` program ID. |
-| `associate_token_program` |          |        | `SystemProgram` account. |
+| `associate_token_program` |          |        | Associate token program account. |
 
 </details>
 <details>
