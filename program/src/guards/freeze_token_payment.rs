@@ -25,9 +25,11 @@ use crate::{
 ///
 ///   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_escrow",
 ///           destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).
-///   1. `[]` Associate token account of the NFT (seeds `[payer pubkey, nft mint pubkey]`).
+///   1. `[]` Associate token account of the NFT (seeds `[payer pubkey, token
+///           program pubkey, nft mint pubkey]`).
 ///   2. `[writable]` Token account holding the required amount.
-///   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
+///   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA
+///                   pubkey, token program pubkey, nft mint pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FreezeTokenPayment {
     pub amount: u64,
@@ -68,10 +70,11 @@ impl Guard for FreezeTokenPayment {
             // List of accounts required:
             //
             //   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_escrow",
-            //                   destination pubkey, candy guard pubkey, candy machine pubkey]`).
+            //                   destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).
             //   1. `[signer]` Candy Guard authority.
             //   2. `[]` System program account.
-            //   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
+            //   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA
+            //                   pubkey, token program pubkey, nft mint pubkey]`).
             //   4. `[]` Token mint account.
             //   5. `[]` Token program account.
             //   6. `[]` Associate token program account.
@@ -132,11 +135,35 @@ impl Guard for FreezeTokenPayment {
 
                 Ok(())
             }
+            // Thaw an eligible NFT.
+            //
+            // List of accounts required:
+            //
+            //   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_escrow",
+            //                   destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).
+            //   1. `[]` Mint account for the NFT.
+            //   2. `[]` Address of the owner of the NFT.
+            //   3. `[writable]` Associate token account of the NFT.
+            //   4. `[]` Master Edition account of the NFT.
+            //   5. `[]` spl-token program ID.
+            //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeTokenPayment guard)");
                 thaw_nft(ctx, route_context, data)
             }
-
+            // Unlocks frozen funds.
+            //
+            // List of accounts required:
+            //
+            //   0. `[writable]` Freeze PDA (seeds `["freeze_escrow", destination_ata pubkey, candy guard pubkey,
+            //                   candy machine pubkey]`).
+            //   1. `[signer]` Candy Guard authority.
+            //   2. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, token
+            //                   program pubkey, nft mint pubkey]`).
+            //   3. `[writable]` Address to receive the funds (must match the `destination_ata` address
+            //                   of the guard configuration).
+            //   4. `[]` Token program account.
+            //   5. `[]` System program account.
             FreezeInstruction::UnlockFunds => {
                 msg!("Instruction: Unlock Funds (FreezeTokenPayment guard)");
                 unlock_funds(ctx, route_context)
@@ -241,18 +268,7 @@ impl Condition for FreezeTokenPayment {
     }
 }
 
-// Unlocks frozen funds.
-//
-// List of accounts required:
-//
-//   0. `[writable]` Freeze PDA (seeds `["freeze_escrow", destination pubkey, candy guard pubkey,
-//                   candy machine pubkey]`).
-//   1. `[signer]` Candy Guard authority.
-//   2. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, nft mint pubkey]`).
-//   3. `[writable]` Address to receive the funds (must match the `destination_ata` address
-//                   of the guard configuration).
-//   4. `[]` Token program account.
-//   5. `[]` System program account.
+// Helper function to unlocks frozen funds.
 fn unlock_funds<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
     route_context: RouteContext<'info>,
@@ -277,13 +293,13 @@ fn unlock_funds<'info>(
 
     // if the candy guard account is present, we check the authority against
     // the candy guard authority; otherwise we use the freeze escrow authority
-    let authority_ckeck = if let Some(candy_guard) = route_context.candy_guard {
+    let authority_check = if let Some(candy_guard) = route_context.candy_guard {
         candy_guard.authority
     } else {
         freeze_escrow.authority
     };
 
-    if !(cmp_pubkeys(authority.key, &authority_ckeck) && authority.is_signer) {
+    if !(cmp_pubkeys(authority.key, &authority_check) && authority.is_signer) {
         return err!(CandyGuardError::MissingRequiredSignature);
     }
 

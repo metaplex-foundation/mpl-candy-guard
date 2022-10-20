@@ -24,7 +24,8 @@ use crate::{
 ///
 ///   0. `[writable]` Freeze PDA to receive the funds (seeds `["freeze_escrow",
 ///           destination pubkey, candy guard pubkey, candy machine pubkey]`).
-///   1. `[]` Associate token account of the NFT (seeds `[payer pubkey, nft mint pubkey]`).
+///   1. `[]` Associate token account of the NFT (seeds `[payer pubkey, token
+///           program pubkey, nft mint pubkey]`).
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FreezeSolPayment {
     pub lamports: u64,
@@ -588,13 +589,13 @@ fn unlock_funds<'info>(
 
     // if the candy guard account is present, we check the authority against
     // the candy guard authority; otherwise we use the freeze escrow authority
-    let authority_ckeck = if let Some(candy_guard) = route_context.candy_guard {
+    let authority_check = if let Some(candy_guard) = route_context.candy_guard {
         candy_guard.authority
     } else {
         freeze_escrow.authority
     };
 
-    if !(cmp_pubkeys(authority.key, &authority_ckeck) && authority.is_signer) {
+    if !(cmp_pubkeys(authority.key, &authority_check) && authority.is_signer) {
         return err!(CandyGuardError::MissingRequiredSignature);
     }
 
