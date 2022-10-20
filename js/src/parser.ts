@@ -5,6 +5,8 @@ import {
   allowListBeet,
   botTaxBeet,
   CandyGuardData,
+  freezeSolPaymentBeet,
+  freezeTokenPaymentBeet,
   gatekeeperBeet,
   Group,
   GuardSet,
@@ -36,30 +38,34 @@ import { tokenBurnBeet } from './generated/types/TokenBurn';
  *   pub token_payment: Option<TokenPayment>,
  *   /// Start data guard (controls when minting is allowed).
  *   pub start_date: Option<StartDate>,
- *   /// Third party signer guard.
+ *   /// Third party signer guard (requires an extra signer for the transaction).
  *   pub third_party_signer: Option<ThirdPartySigner>,
- *   /// Token gate guard (restricrt access to holders of a specific token).
+ *   /// Token gate guard (restrict access to holders of a specific token).
  *   pub token_gate: Option<TokenGate>,
- *   /// Gatekeeper guard
+ *   /// Gatekeeper guard (captcha challenge).
  *   pub gatekeeper: Option<Gatekeeper>,
- *   /// End date guard
+ *   /// End date guard (set an end date to stop the mint).
  *   pub end_date: Option<EndDate>,
- *   /// Allow list guard
+ *   /// Allow list guard (curated list of allowed addresses).
  *   pub allow_list: Option<AllowList>,
- *   /// Mint limit guard
+ *   /// Mint limit guard (add a limit on the number of mints per wallet).
  *   pub mint_limit: Option<MintLimit>,
- *   /// NFT Payment
+ *   /// NFT Payment (charge an NFT in order to mint).
  *   pub nft_payment: Option<NftPayment>,
- *   /// Redeemed amount guard
- *   pub redemeed_amount: Option<RedemeedAmount>,
- *   /// Address gate (check access against a specified address)
+ *   /// Redeemed amount guard (add a limit on the overall number of items minted).
+ *   pub redeemed_amount: Option<RedeemedAmount>,
+ *   /// Address gate (check access against a specified address).
  *   pub address_gate: Option<AddressGate>,
- *   /// NFT gate guard (check access based on holding a specified NFT)
+ *   /// NFT gate guard (check access based on holding a specified NFT).
  *   pub nft_gate: Option<NftGate>,
- *   /// NFT burn guard (burn a specified NFT)
+ *   /// NFT burn guard (burn a specified NFT).
  *   pub nft_burn: Option<NftBurn>,
- *   /// Token burn guard (burn a specified amount of spl-token)
- *   pub token_burn: Option<NftBurn>,
+ *   /// Token burn guard (burn a specified amount of spl-token).
+ *   pub token_burn: Option<TokenBurn>,
+ *   /// Freeze sol payment (set the price for the mint in lamports with a freeze period).
+ *   pub freeze_sol_payment: Option<FreezeSolPayment>,
+ *   /// Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period).
+ *   pub freeze_token_payment: Option<FreezeTokenPayment>,
  * }
  * ```
  */
@@ -81,6 +87,8 @@ type Guards = {
   /* 14 */ nftGateEnabled: boolean;
   /* 15 */ nftBurnEnabled: boolean;
   /* 16 */ tokenBurnEnabled: boolean;
+  /* 17 */ freezeSolPaymentEnabled: boolean;
+  /* 18 */ freezeTokenPaymentEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -100,8 +108,10 @@ const GUARDS_SIZE = {
   /* 14 */ nftGate: 32,
   /* 15 */ nftBurn: 32,
   /* 16 */ tokenBurn: 40,
+  /* 17 */ freezeSolPayment: 40,
+  /* 18 */ freezeTokenPayment: 72,
 };
-const GUARDS_COUNT = 16;
+const GUARDS_COUNT = 18;
 const MAX_LABEL_LENGTH = 6;
 
 function determineGuards(buffer: Buffer): Guards {
@@ -129,6 +139,8 @@ function determineGuards(buffer: Buffer): Guards {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   ] = guards;
 
   return {
@@ -148,6 +160,8 @@ function determineGuards(buffer: Buffer): Guards {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   };
 }
 
@@ -193,6 +207,8 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     nftGateEnabled,
     nftBurnEnabled,
     tokenBurnEnabled,
+    freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -298,6 +314,18 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     cursor += GUARDS_SIZE.tokenBurn;
   }
 
+  if (freezeSolPaymentEnabled) {
+    const [freezeSolPayment] = freezeSolPaymentBeet.deserialize(buffer, cursor);
+    data.freezeSolPayment = freezeSolPayment;
+    cursor += GUARDS_SIZE.freezeSolPayment;
+  }
+
+  if (freezeTokenPaymentEnabled) {
+    const [freezeTokenPayment] = freezeTokenPaymentBeet.deserialize(buffer, cursor);
+    data.freezeTokenPayment = freezeTokenPayment;
+    cursor += GUARDS_SIZE.freezeTokenPayment;
+  }
+
   return {
     guardSet: {
       botTax: data.botTax ?? null,
@@ -316,6 +344,8 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       nftGate: data.nftGate ?? null,
       nftBurn: data.nftBurn ?? null,
       tokenBurn: data.tokenBurn ?? null,
+      freezeSolPayment: data.freezeSolPayment ?? null,
+      freezeTokenPayment: data.freezeTokenPayment ?? null,
     },
     offset: cursor,
   };

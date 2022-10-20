@@ -72,7 +72,7 @@ createErrorFromCodeLookup.set(0x1772, () => new PublicKeyMismatchError());
 createErrorFromNameLookup.set('PublicKeyMismatch', () => new PublicKeyMismatchError());
 
 /**
- * DataIncrementLimitExceeded: 'Missing expected remaining account'
+ * DataIncrementLimitExceeded: 'Exceeded account increase limit'
  *
  * @category Errors
  * @category generated
@@ -81,7 +81,7 @@ export class DataIncrementLimitExceededError extends Error {
   readonly code: number = 0x1773;
   readonly name: string = 'DataIncrementLimitExceeded';
   constructor() {
-    super('Missing expected remaining account');
+    super('Exceeded account increase limit');
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, DataIncrementLimitExceededError);
     }
@@ -708,6 +708,175 @@ export class AddressNotAuthorizedError extends Error {
 
 createErrorFromCodeLookup.set(0x1791, () => new AddressNotAuthorizedError());
 createErrorFromNameLookup.set('AddressNotAuthorized', () => new AddressNotAuthorizedError());
+
+/**
+ * MissingFreezeInstruction: 'Missing freeze instruction data'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class MissingFreezeInstructionError extends Error {
+  readonly code: number = 0x1792;
+  readonly name: string = 'MissingFreezeInstruction';
+  constructor() {
+    super('Missing freeze instruction data');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, MissingFreezeInstructionError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1792, () => new MissingFreezeInstructionError());
+createErrorFromNameLookup.set(
+  'MissingFreezeInstruction',
+  () => new MissingFreezeInstructionError(),
+);
+
+/**
+ * FreezeGuardNotEnabled: 'Freeze guard must be enabled'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class FreezeGuardNotEnabledError extends Error {
+  readonly code: number = 0x1793;
+  readonly name: string = 'FreezeGuardNotEnabled';
+  constructor() {
+    super('Freeze guard must be enabled');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, FreezeGuardNotEnabledError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1793, () => new FreezeGuardNotEnabledError());
+createErrorFromNameLookup.set('FreezeGuardNotEnabled', () => new FreezeGuardNotEnabledError());
+
+/**
+ * FreezeNotInitialized: 'Freeze must be initialized'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class FreezeNotInitializedError extends Error {
+  readonly code: number = 0x1794;
+  readonly name: string = 'FreezeNotInitialized';
+  constructor() {
+    super('Freeze must be initialized');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, FreezeNotInitializedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1794, () => new FreezeNotInitializedError());
+createErrorFromNameLookup.set('FreezeNotInitialized', () => new FreezeNotInitializedError());
+
+/**
+ * MissingFreezePeriod: 'Missing freeze period'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class MissingFreezePeriodError extends Error {
+  readonly code: number = 0x1795;
+  readonly name: string = 'MissingFreezePeriod';
+  constructor() {
+    super('Missing freeze period');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, MissingFreezePeriodError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1795, () => new MissingFreezePeriodError());
+createErrorFromNameLookup.set('MissingFreezePeriod', () => new MissingFreezePeriodError());
+
+/**
+ * FreezeEscrowAlreadyExists: 'The freeze escrow account already exists'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class FreezeEscrowAlreadyExistsError extends Error {
+  readonly code: number = 0x1796;
+  readonly name: string = 'FreezeEscrowAlreadyExists';
+  constructor() {
+    super('The freeze escrow account already exists');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, FreezeEscrowAlreadyExistsError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1796, () => new FreezeEscrowAlreadyExistsError());
+createErrorFromNameLookup.set(
+  'FreezeEscrowAlreadyExists',
+  () => new FreezeEscrowAlreadyExistsError(),
+);
+
+/**
+ * ExceededMaximumFreezePeriod: 'Maximum freeze period exceeded'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ExceededMaximumFreezePeriodError extends Error {
+  readonly code: number = 0x1797;
+  readonly name: string = 'ExceededMaximumFreezePeriod';
+  constructor() {
+    super('Maximum freeze period exceeded');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ExceededMaximumFreezePeriodError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1797, () => new ExceededMaximumFreezePeriodError());
+createErrorFromNameLookup.set(
+  'ExceededMaximumFreezePeriod',
+  () => new ExceededMaximumFreezePeriodError(),
+);
+
+/**
+ * ThawNotEnabled: 'Thaw is not enabled'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ThawNotEnabledError extends Error {
+  readonly code: number = 0x1798;
+  readonly name: string = 'ThawNotEnabled';
+  constructor() {
+    super('Thaw is not enabled');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ThawNotEnabledError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1798, () => new ThawNotEnabledError());
+createErrorFromNameLookup.set('ThawNotEnabled', () => new ThawNotEnabledError());
+
+/**
+ * UnlockNotEnabled: 'Unlock is not enabled (not all NFTs are thawed)'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class UnlockNotEnabledError extends Error {
+  readonly code: number = 0x1799;
+  readonly name: string = 'UnlockNotEnabled';
+  constructor() {
+    super('Unlock is not enabled (not all NFTs are thawed)');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, UnlockNotEnabledError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1799, () => new UnlockNotEnabledError());
+createErrorFromNameLookup.set('UnlockNotEnabled', () => new UnlockNotEnabledError());
 
 /**
  * Attempts to resolve a custom program error from the provided error code.

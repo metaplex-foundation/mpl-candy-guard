@@ -8,7 +8,7 @@ pub enum CandyGuardError {
     DeserializationError,
     #[msg("Public key mismatch")]
     PublicKeyMismatch,
-    #[msg("Missing expected remaining account")]
+    #[msg("Exceeded account increase limit")]
     DataIncrementLimitExceeded,
     #[msg("Account does not have correct owner")]
     IncorrectOwner,
@@ -86,4 +86,21 @@ pub enum CandyGuardError {
     // authority only
     #[msg("Address not authorized")]
     AddressNotAuthorized,
+    // freeze
+    #[msg("Missing freeze instruction data")]
+    MissingFreezeInstruction,
+    #[msg("Freeze guard must be enabled")]
+    FreezeGuardNotEnabled,
+    #[msg("Freeze must be initialized")]
+    FreezeNotInitialized,
+    #[msg("Missing freeze period")]
+    MissingFreezePeriod,
+    #[msg("The freeze escrow account already exists")]
+    FreezeEscrowAlreadyExists,
+    #[msg("Maximum freeze period exceeded")]
+    ExceededMaximumFreezePeriod,
+    #[msg("Thaw is not enabled")]
+    ThawNotEnabled,
+    #[msg("Unlock is not enabled (not all NFTs are thawed)")]
+    UnlockNotEnabled,
 }
