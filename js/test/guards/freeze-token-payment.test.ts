@@ -768,7 +768,7 @@ test('Token Payment (unlock not allowed)', async (t) => {
 
   t.true(updatedMinterATA.amount < minterATA.amount, 'amount after mint must be lower');
 
-  let nftAtaAccount = await getAccount(minterConnection, nftAta);
+  const nftAtaAccount = await getAccount(minterConnection, nftAta);
   t.true(nftAtaAccount.isFrozen);
 
   // unlock
@@ -847,7 +847,7 @@ test('Token Payment (unlock)', async (t) => {
 
   const tokenMint = await createMint(authorityConnection, authority, authority.publicKey, null, 0);
 
-  let destination = await getOrCreateAssociatedTokenAccount(
+  const destination = await getOrCreateAssociatedTokenAccount(
     authorityConnection,
     authority,
     tokenMint,
