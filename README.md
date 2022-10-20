@@ -345,7 +345,7 @@ pub struct FreezeSolPayment {
 }
 ```
 
-The `FreezeSolPayment` guard is used to charge an amount in SOL (lamports) for the mint with a freeze period. The funds are transferred a freeze escrow until all NFTs are thaw, which at this point, can be transferred (unlock) to the destination account.
+The `FreezeSolPayment` guard is used to charge an amount in SOL (lamports) for the mint with a freeze period. The funds are transferred a freeze escrow until all NFTs are thawed, which at this point, can be transferred (unlock) to the destination account.
 
 **Note:** The freeze functionality must be initialized using the `initialize` route instruction before mint starts.
 
