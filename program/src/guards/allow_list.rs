@@ -63,6 +63,10 @@ impl Guard for AllowList {
     ) -> Result<()> {
         msg!("AllowList: validate proof instruction");
 
+        if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
+            return err!(CandyGuardError::Uninitialized);
+        }
+
         // validates the proof
 
         let merkle_proof: Vec<[u8; 32]> = if let Ok(proof) = Vec::try_from_slice(&data[..]) {
