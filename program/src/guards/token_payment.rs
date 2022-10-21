@@ -41,8 +41,8 @@ impl Condition for TokenPayment {
     ) -> Result<()> {
         // token
         let token_account_index = evaluation_context.account_cursor;
-        let token_account_info = get_account_info(ctx, token_account_index)?;
-        let destination_ata = get_account_info(ctx, token_account_index + 1)?;
+        let token_account_info = try_get_account_info(ctx, token_account_index)?;
+        let destination_ata = try_get_account_info(ctx, token_account_index + 1)?;
         evaluation_context.account_cursor += 2;
 
         assert_keys_equal(destination_ata.key, &self.destination_ata)?;
@@ -70,8 +70,8 @@ impl Condition for TokenPayment {
     ) -> Result<()> {
         let index = evaluation_context.indices["token_payment_index"];
         // the accounts have already been validated
-        let token_account_info = get_account_info(ctx, index)?;
-        let destination_ata = get_account_info(ctx, index + 1)?;
+        let token_account_info = try_get_account_info(ctx, index)?;
+        let destination_ata = try_get_account_info(ctx, index + 1)?;
 
         spl_token_transfer(TokenTransferParams {
             source: token_account_info.to_account_info(),

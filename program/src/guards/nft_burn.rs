@@ -42,8 +42,8 @@ impl Condition for NftBurn {
     ) -> Result<()> {
         let index = evaluation_context.account_cursor;
         // validates that we received all required accounts
-        let nft_account = get_account_info(ctx, index)?;
-        let nft_metadata = get_account_info(ctx, index + 1)?;
+        let nft_account = try_get_account_info(ctx, index)?;
+        let nft_metadata = try_get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
         NftGate::verify_collection(
@@ -53,9 +53,9 @@ impl Condition for NftBurn {
             ctx.accounts.payer.key,
         )?;
 
-        let _token_edition = get_account_info(ctx, index + 2)?;
-        let nft_mint_account = get_account_info(ctx, index + 3)?;
-        let _nft_mint_collection_metadata = get_account_info(ctx, index + 4)?;
+        let _token_edition = try_get_account_info(ctx, index + 2)?;
+        let nft_mint_account = try_get_account_info(ctx, index + 3)?;
+        let _nft_mint_collection_metadata = try_get_account_info(ctx, index + 4)?;
         evaluation_context.account_cursor += 3;
 
         let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
@@ -76,12 +76,12 @@ impl Condition for NftBurn {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let index = evaluation_context.indices["nft_burn_index"];
-        let nft_account = get_account_info(ctx, index)?;
+        let nft_account = try_get_account_info(ctx, index)?;
 
-        let nft_metadata = get_account_info(ctx, index + 1)?;
-        let nft_edition = get_account_info(ctx, index + 2)?;
-        let nft_mint_account = get_account_info(ctx, index + 3)?;
-        let nft_mint_collection_metadata = get_account_info(ctx, index + 4)?;
+        let nft_metadata = try_get_account_info(ctx, index + 1)?;
+        let nft_edition = try_get_account_info(ctx, index + 2)?;
+        let nft_mint_account = try_get_account_info(ctx, index + 3)?;
+        let nft_mint_collection_metadata = try_get_account_info(ctx, index + 4)?;
 
         let burn_nft_infos = vec![
             nft_metadata.to_account_info(),

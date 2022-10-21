@@ -47,7 +47,7 @@ impl Condition for Gatekeeper {
     ) -> Result<()> {
         // retrieves the (potential) gateway token
         let gateway_index = evaluation_context.account_cursor;
-        let gateway_token_account = get_account_info(ctx, gateway_index)?;
+        let gateway_token_account = try_get_account_info(ctx, gateway_index)?;
         // consumes the gatekeeper token account
         evaluation_context.account_cursor += 1;
 
@@ -68,9 +68,9 @@ impl Condition for Gatekeeper {
         if self.expire_on_use {
             // if expire on use is true, two more accounts are needed.
             // Ensure they are present and correct
-            let gateway_program_key = get_account_info(ctx, gateway_index + 1)?.key;
+            let gateway_program_key = try_get_account_info(ctx, gateway_index + 1)?.key;
             assert_keys_equal(gateway_program_key, &GATEWAY_PROGRAM_ID)?;
-            let expiry_key = get_account_info(ctx, gateway_index + 2)?.key;
+            let expiry_key = try_get_account_info(ctx, gateway_index + 2)?.key;
             // increment counter for next guard
             evaluation_context.account_cursor += 2;
             let expected_expiry_key = get_expire_address_with_seed(&self.gatekeeper_network).0;
@@ -90,9 +90,9 @@ impl Condition for Gatekeeper {
         if self.expire_on_use {
             let gateway_index = evaluation_context.indices["gateway_index"];
             // the accounts have already been validated
-            let gateway_token_info = get_account_info(ctx, gateway_index)?;
-            let gateway_program_info = get_account_info(ctx, gateway_index + 1)?;
-            let expiry_info = get_account_info(ctx, gateway_index + 2)?;
+            let gateway_token_info = try_get_account_info(ctx, gateway_index)?;
+            let gateway_program_info = try_get_account_info(ctx, gateway_index + 1)?;
+            let expiry_info = try_get_account_info(ctx, gateway_index + 2)?;
 
             invoke(
                 &expire_token(

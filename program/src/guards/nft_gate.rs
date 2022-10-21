@@ -37,8 +37,8 @@ impl Condition for NftGate {
     ) -> Result<()> {
         let index = evaluation_context.account_cursor;
         // validates that we received all required accounts
-        let nft_account = get_account_info(ctx, index)?;
-        let nft_metadata = get_account_info(ctx, index + 1)?;
+        let nft_account = try_get_account_info(ctx, index)?;
+        let nft_metadata = try_get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 2;
 
         Self::verify_collection(

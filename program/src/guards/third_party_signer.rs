@@ -31,7 +31,7 @@ impl Condition for ThirdPartySigner {
     ) -> Result<()> {
         let signer_index = evaluation_context.account_cursor;
         evaluation_context.account_cursor += 1;
-        let signer_account = get_account_info(ctx, signer_index)?;
+        let signer_account = try_get_account_info(ctx, signer_index)?;
 
         if !(cmp_pubkeys(signer_account.key, &self.signer_key) && signer_account.is_signer) {
             return err!(CandyGuardError::MissingRequiredSignature);
