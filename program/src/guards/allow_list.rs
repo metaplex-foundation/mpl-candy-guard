@@ -2,6 +2,7 @@ use solana_program::{program::invoke_signed, system_instruction};
 
 use crate::{
     instructions::Route,
+    state::GuardType,
     utils::{assert_keys_equal, assert_owned_by},
 };
 
@@ -46,7 +47,7 @@ impl Guard for AllowList {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 8
+        GuardType::as_mask(GuardType::AllowList)
     }
 
     /// Instruction to validate an address against the merkle tree.

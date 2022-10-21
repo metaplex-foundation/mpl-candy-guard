@@ -13,6 +13,7 @@ use spl_token::{instruction::close_account, state::Account as TokenAccount};
 use crate::{
     errors::CandyGuardError,
     guards::freeze_sol_payment::{initialize_freeze, thaw_nft},
+    state::GuardType,
     utils::{
         assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys, spl_token_transfer,
         TokenTransferParams,
@@ -45,7 +46,7 @@ impl Guard for FreezeTokenPayment {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 17
+        GuardType::as_mask(GuardType::FreezeTokenPayment)
     }
 
     /// Instructions to interact with the freeze feature:
