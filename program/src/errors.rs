@@ -22,8 +22,8 @@ pub enum CandyGuardError {
     RequiredGroupLabelNotFound,
     #[msg("Group not found")]
     GroupNotFound,
-    #[msg("Group not found")]
-    LabelExceededLength,
+    #[msg("Value exceeded maximum length")]
+    ExceededLength,
     #[msg("Candy machine is empty")]
     CandyMachineEmpty,
     #[msg("No instruction was found")]
