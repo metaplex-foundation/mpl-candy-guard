@@ -37,7 +37,7 @@ export const initializeStruct = new beet.FixableBeetArgsStruct<
  * Accounts required by the _initialize_ instruction
  *
  * @property [_writable_] candyGuard
- * @property [_writable_, **signer**] base
+ * @property [**signer**] base
  * @property [] authority
  * @property [_writable_, **signer**] payer
  * @category Instructions
@@ -81,7 +81,7 @@ export function createInitializeInstruction(
     },
     {
       pubkey: accounts.base,
-      isWritable: true,
+      isWritable: false,
       isSigner: true,
     },
     {
