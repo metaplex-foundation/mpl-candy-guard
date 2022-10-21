@@ -187,7 +187,7 @@ impl Condition for FreezeTokenPayment {
         // validates the additional accounts
 
         let index = evaluation_context.account_cursor;
-        let freeze_pda = Self::get_account_info(ctx, index)?;
+        let freeze_pda = get_account_info(ctx, index)?;
         evaluation_context.account_cursor += 1;
 
         let seeds = [
@@ -204,13 +204,13 @@ impl Condition for FreezeTokenPayment {
             return err!(CandyGuardError::FreezeNotInitialized);
         }
 
-        let nft_ata = Self::get_account_info(ctx, index + 1)?;
+        let nft_ata = get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 1;
         assert_is_ata(nft_ata, ctx.accounts.payer.key, ctx.accounts.nft_mint.key)?;
 
-        let token_account_info = Self::get_account_info(ctx, index + 2)?;
+        let token_account_info = get_account_info(ctx, index + 2)?;
         // validate freeze_pda ata
-        let destination_ata = Self::get_account_info(ctx, index + 3)?;
+        let destination_ata = get_account_info(ctx, index + 3)?;
         assert_is_ata(destination_ata, &freeze_pda.key(), &self.mint)?;
 
         evaluation_context.account_cursor += 2;
@@ -238,8 +238,8 @@ impl Condition for FreezeTokenPayment {
     ) -> Result<()> {
         let index = evaluation_context.indices["freeze_token_payment"];
         // the accounts have already been validated
-        let token_account_info = Self::get_account_info(ctx, index + 2)?;
-        let destination_ata = Self::get_account_info(ctx, index + 3)?;
+        let token_account_info = get_account_info(ctx, index + 2)?;
+        let destination_ata = get_account_info(ctx, index + 3)?;
 
         spl_token_transfer(TokenTransferParams {
             source: token_account_info.to_account_info(),

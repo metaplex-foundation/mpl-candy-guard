@@ -137,7 +137,7 @@ impl Condition for FreezeSolPayment {
         // validates the additional accounts
 
         let index = evaluation_context.account_cursor;
-        let freeze_pda = Self::get_account_info(ctx, index)?;
+        let freeze_pda = get_account_info(ctx, index)?;
         evaluation_context.account_cursor += 1;
 
         let seeds = [
@@ -154,7 +154,7 @@ impl Condition for FreezeSolPayment {
             return err!(CandyGuardError::FreezeNotInitialized);
         }
 
-        let nft_ata = Self::get_account_info(ctx, index + 1)?;
+        let nft_ata = get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 1;
         assert_is_ata(nft_ata, ctx.accounts.payer.key, ctx.accounts.nft_mint.key)?;
 
@@ -181,8 +181,7 @@ impl Condition for FreezeSolPayment {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let freeze_pda =
-            Self::get_account_info(ctx, evaluation_context.indices["freeze_sol_payment"])?;
+        let freeze_pda = get_account_info(ctx, evaluation_context.indices["freeze_sol_payment"])?;
 
         invoke(
             &system_instruction::transfer(

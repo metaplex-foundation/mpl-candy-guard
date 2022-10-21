@@ -143,17 +143,6 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
             Ok(None)
         }
     }
-
-    fn get_account_info<'c, 'info, T>(
-        ctx: &Context<'_, '_, 'c, 'info, T>,
-        index: usize,
-    ) -> Result<&'c AccountInfo<'info>> {
-        if index < ctx.remaining_accounts.len() {
-            Ok(&ctx.remaining_accounts[index])
-        } else {
-            err!(CandyGuardError::MissingRemainingAccount)
-        }
-    }
 }
 pub struct EvaluationContext<'a> {
     /// The cursor for the remaining account list. When a guard "consumes" one of the

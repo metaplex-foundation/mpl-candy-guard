@@ -44,7 +44,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter = Self::get_account_info(ctx, evaluation_context.account_cursor)?;
+        let counter = get_account_info(ctx, evaluation_context.account_cursor)?;
         evaluation_context
             .indices
             .insert("mint_limit_index", evaluation_context.account_cursor);
@@ -87,7 +87,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter = Self::get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
+        let counter = get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
 
         let user = ctx.accounts.payer.key();
         let candy_guard_key = &ctx.accounts.candy_guard.key();

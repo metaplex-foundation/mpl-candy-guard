@@ -34,7 +34,7 @@ impl Condition for TokenGate {
     ) -> Result<()> {
         // retrieves the (potential) token gate account
         let token_gate_index = evaluation_context.account_cursor;
-        let token_gate_account = Self::get_account_info(ctx, token_gate_index)?;
+        let token_gate_account = get_account_info(ctx, token_gate_index)?;
         // consumes the gate token account
         evaluation_context.account_cursor += 1;
 

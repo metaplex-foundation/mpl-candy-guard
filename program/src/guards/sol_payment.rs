@@ -36,7 +36,7 @@ impl Condition for SolPayment {
     ) -> Result<()> {
         let index = evaluation_context.account_cursor;
         // validates that we received all required accounts
-        let destination = Self::get_account_info(ctx, index)?;
+        let destination = get_account_info(ctx, index)?;
         evaluation_context.account_cursor += 1;
         // validates the account information
         assert_keys_equal(destination.key, &self.destination)?;
@@ -65,7 +65,7 @@ impl Condition for SolPayment {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let destination =
-            Self::get_account_info(ctx, evaluation_context.indices["lamports_destination"])?;
+            get_account_info(ctx, evaluation_context.indices["lamports_destination"])?;
 
         invoke(
             &system_instruction::transfer(
