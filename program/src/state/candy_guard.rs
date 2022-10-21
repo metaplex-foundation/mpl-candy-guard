@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anchor_lang::{prelude::*, AnchorDeserialize};
 use solana_program::program_memory::sol_memcmp;
 
@@ -250,5 +252,23 @@ impl CandyGuardData {
         }
 
         size
+    }
+
+    pub fn verify(&self) -> Result<()> {
+        // set of unique labels
+        let mut labels = HashSet::new();
+
+        if let Some(groups) = &self.groups {
+            for group in groups {
+                if labels.contains(&group.label) {
+                    return err!(CandyGuardError::DuplicatedGroupLabel);
+                }
+
+                labels.insert(group.label.clone());
+            }
+        }
+
+        // verify the guards configuration
+        CandyGuardData::verify(self)
     }
 }

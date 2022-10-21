@@ -28,6 +28,8 @@ pub enum CandyGuardError {
     CandyMachineEmpty,
     #[msg("No instruction was found")]
     InstructionNotFound,
+    #[msg("Duplicated group label")]
+    DuplicatedGroupLabel,
     // collection
     #[msg("Collection public key mismatch")]
     CollectionKeyMismatch,
@@ -74,6 +76,8 @@ pub enum CandyGuardError {
     // mint limit
     #[msg("The maximum number of allowed mints was reached")]
     AllowedMintLimitReached,
+    #[msg("Duplicated mint limit id")]
+    DuplicatedMintLimitId,
     // nft burn/gate/payment
     #[msg("Invalid NFT collection")]
     InvalidNftCollection,
