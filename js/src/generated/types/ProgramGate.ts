@@ -9,7 +9,7 @@ import * as web3 from '@solana/web3.js';
 import * as beetSolana from '@metaplex-foundation/beet-solana';
 import * as beet from '@metaplex-foundation/beet';
 export type ProgramGate = {
-  allowList: web3.PublicKey[];
+  programs: web3.PublicKey[];
 };
 
 /**
@@ -17,6 +17,6 @@ export type ProgramGate = {
  * @category generated
  */
 export const programGateBeet = new beet.FixableBeetArgsStruct<ProgramGate>(
-  [['allowList', beet.array(beetSolana.publicKey)]],
+  [['programs', beet.array(beetSolana.publicKey)]],
   'ProgramGate',
 );

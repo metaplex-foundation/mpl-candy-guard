@@ -720,13 +720,14 @@
     {
       "name": "ProgramGate",
       "docs": [
-        "Guard that restricts the programs that can be in a mint transaction."
+        "Guard that restricts the programs that can be in a mint transaction. The guard",
+        "allows the necessary programs and any other program specified in the configuration."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "allowList",
+            "name": "programs",
             "type": {
               "vec": "publicKey"
             }
@@ -1472,6 +1473,11 @@
       "code": 6041,
       "name": "UnlockNotEnabled",
       "msg": "Unlock is not enabled (not all NFTs are thawed)"
+    },
+    {
+      "code": 6042,
+      "name": "UnauthorizedProgramFound",
+      "msg": "An unauthorized program was found in the transaction"
     }
   ],
   "metadata": {

@@ -138,7 +138,7 @@ test('bot tax (extra instruction)', async (t) => {
     connection: minterConnection,
   } = await API.minter();
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const { tx: minterMintTx } = await API.mintExtended(
+  const { tx: minterMintTx } = await API.mintWithInvalidInstruction(
     t,
     candyGuard,
     candyMachine,
