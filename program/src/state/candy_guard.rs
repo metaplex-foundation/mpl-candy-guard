@@ -269,6 +269,6 @@ impl CandyGuardData {
         }
 
         // verify the guards configuration
-        CandyGuardData::verify(self)
+        GuardSet::verify(self)
     }
 }
