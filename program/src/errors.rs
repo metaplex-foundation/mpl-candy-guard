@@ -103,4 +103,7 @@ pub enum CandyGuardError {
     ThawNotEnabled,
     #[msg("Unlock is not enabled (not all NFTs are thawed)")]
     UnlockNotEnabled,
+    // program gate
+    #[msg("An unauthorized program was found in the transaction")]
+    UnauthorizedProgramFound,
 }

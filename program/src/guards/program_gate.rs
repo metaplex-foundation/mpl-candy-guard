@@ -4,9 +4,9 @@ use solana_program::{
 };
 
 use super::*;
-use crate::{errors::CandyGuardError, utils::cmp_pubkeys};
+use crate::{errors::CandyGuardError, state::GuardType, utils::cmp_pubkeys};
 
-// Number of default programs in the allow list.
+// Default list of authorized programs.
 static DEFAULT_PROGRAMS: &[&Pubkey] = &[
     &crate::ID,
     &mpl_candy_machine_core::ID,
@@ -15,19 +15,20 @@ static DEFAULT_PROGRAMS: &[&Pubkey] = &[
     &spl_associated_token_account::ID,
 ];
 
-/// Guard that restricts the programs that can be in a mint transaction.
+/// Guard that restricts the programs that can be in a mint transaction. The guard
+/// allows the necessary programs and any other program specified in the configuration.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProgramGate {
-    pub allow_list: Vec<Pubkey>,
+    pub programs: Vec<Pubkey>,
 }
 
 impl Guard for ProgramGate {
     fn size() -> usize {
-        4 + (5 * 32) // allow_list (5 addresses)
+        4 + (5 * 32) // programs (5 addresses)
     }
 
     fn mask() -> u64 {
-        0b1u64 << 16
+        GuardType::as_mask(GuardType::ProgramGate)
     }
 }
 
@@ -61,7 +62,7 @@ impl Condition for ProgramGate {
 
             let mut found = false;
 
-            for program in &self.allow_list {
+            for program in &self.programs {
                 if cmp_pubkeys(&program_id, program) {
                     found = true;
                     break;
@@ -70,7 +71,7 @@ impl Condition for ProgramGate {
 
             if !found {
                 for program in DEFAULT_PROGRAMS {
-                    if !cmp_pubkeys(&program_id, program) {
+                    if cmp_pubkeys(&program_id, program) {
                         found = true;
                         break;
                     }
@@ -80,8 +81,8 @@ impl Condition for ProgramGate {
             if !found {
                 msg!("Transaction had ix with program id {}", program_id);
                 // if we reach this point, the program id was not found in the
-                // allow list (the validation will fail)
-                return err!(CandyGuardError::MintNotLastTransaction);
+                // programs list (the validation will fail)
+                return err!(CandyGuardError::UnauthorizedProgramFound);
             }
         }
 
