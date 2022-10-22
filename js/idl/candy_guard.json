@@ -338,6 +338,72 @@
       }
     },
     {
+      "name": "FreezeEscrow",
+      "docs": [
+        "PDA to store the frozen funds."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "candyGuard",
+            "docs": [
+              "Candy guard address associated with this escrow."
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "candyMachine",
+            "docs": [
+              "Candy machine address associated with this escrow."
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "frozenCount",
+            "docs": [
+              "Number of NFTs frozen."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "firstMintTime",
+            "docs": [
+              "The timestamp of the first (frozen) mint. This is used to calculate",
+              "when the freeze period is over."
+            ],
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "freezePeriod",
+            "docs": [
+              "The amount of time (in seconds) for the freeze. The NFTs will be",
+              "allowed to thaw after this."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "destination",
+            "docs": [
+              "The destination address for the frozed fund to go to."
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "docs": [
+              "The authority that initialized the freeze. This will be the only",
+              "address able to unlock the funds in case the candy guard account is",
+              "closed."
+            ],
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
       "name": "MintCounter",
       "docs": [
         "PDA to track the number of mints for an individual address."
@@ -452,6 +518,65 @@
           {
             "name": "date",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FreezeSolPayment",
+      "docs": [
+        "Guard that charges an amount in SOL (lamports) for the mint with a freeze period.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_escrow\",",
+        "destination pubkey, candy guard pubkey, candy machine pubkey]`).",
+        "1. `[]` Associate token account of the NFT (seeds `[payer pubkey, token",
+        "program pubkey, nft mint pubkey]`)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lamports",
+            "type": "u64"
+          },
+          {
+            "name": "destination",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FreezeTokenPayment",
+      "docs": [
+        "Guard that charges an amount in a specified spl-token as payment for the mint with a freeze period.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_escrow\",",
+        "destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).",
+        "1. `[]` Associate token account of the NFT (seeds `[payer pubkey, token",
+        "program pubkey, nft mint pubkey]`).",
+        "2. `[writable]` Token account holding the required amount.",
+        "3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA",
+        "pubkey, token program pubkey, nft mint pubkey]`)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "publicKey"
+          },
+          {
+            "name": "destinationAta",
+            "type": "publicKey"
           }
         ]
       }
@@ -760,17 +885,26 @@
     },
     {
       "name": "RouteArgs",
+      "docs": [
+        "Arguments for a route transaction."
+      ],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "guard",
+            "docs": [
+              "The target guard type."
+            ],
             "type": {
               "defined": "GuardType"
             }
           },
           {
             "name": "data",
+            "docs": [
+              "Arguments for the guard instruction."
+            ],
             "type": "bytes"
           }
         ]
@@ -1007,6 +1141,28 @@
             }
           },
           {
+            "name": "freezeSolPayment",
+            "docs": [
+              "Freeze sol payment guard (set the price for the mint in lamports with a freeze period)."
+            ],
+            "type": {
+              "option": {
+                "defined": "FreezeSolPayment"
+              }
+            }
+          },
+          {
+            "name": "freezeTokenPayment",
+            "docs": [
+              "Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period)."
+            ],
+            "type": {
+              "option": {
+                "defined": "FreezeTokenPayment"
+              }
+            }
+          },
+          {
             "name": "programGate",
             "docs": [
               "Program gate guard (restricts the programs that can be in a mint transaction)."
@@ -1016,6 +1172,23 @@
                 "defined": "ProgramGate"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "FreezeInstruction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Initialize"
+          },
+          {
+            "name": "Thaw"
+          },
+          {
+            "name": "UnlockFunds"
           }
         ]
       }
@@ -1077,6 +1250,12 @@
             "name": "TokenBurn"
           },
           {
+            "name": "FreezeSolPayment"
+          },
+          {
+            "name": "FreezeTokenPayment"
+          },
+          {
             "name": "ProgramGate"
           }
         ]
@@ -1102,7 +1281,7 @@
     {
       "code": 6003,
       "name": "DataIncrementLimitExceeded",
-      "msg": "Missing expected remaining account"
+      "msg": "Exceeded account increase limit"
     },
     {
       "code": 6004,
@@ -1253,6 +1432,46 @@
       "code": 6033,
       "name": "AddressNotAuthorized",
       "msg": "Address not authorized"
+    },
+    {
+      "code": 6034,
+      "name": "MissingFreezeInstruction",
+      "msg": "Missing freeze instruction data"
+    },
+    {
+      "code": 6035,
+      "name": "FreezeGuardNotEnabled",
+      "msg": "Freeze guard must be enabled"
+    },
+    {
+      "code": 6036,
+      "name": "FreezeNotInitialized",
+      "msg": "Freeze must be initialized"
+    },
+    {
+      "code": 6037,
+      "name": "MissingFreezePeriod",
+      "msg": "Missing freeze period"
+    },
+    {
+      "code": 6038,
+      "name": "FreezeEscrowAlreadyExists",
+      "msg": "The freeze escrow account already exists"
+    },
+    {
+      "code": 6039,
+      "name": "ExceededMaximumFreezePeriod",
+      "msg": "Maximum freeze period exceeded"
+    },
+    {
+      "code": 6040,
+      "name": "ThawNotEnabled",
+      "msg": "Thaw is not enabled"
+    },
+    {
+      "code": 6041,
+      "name": "UnlockNotEnabled",
+      "msg": "Unlock is not enabled (not all NFTs are thawed)"
     }
   ],
   "metadata": {

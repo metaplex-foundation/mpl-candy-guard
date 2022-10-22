@@ -1,3 +1,5 @@
+use crate::state::GuardType;
+
 use super::*;
 
 /// Guard that stop the mint once the specified amount of items
@@ -13,7 +15,7 @@ impl Guard for RedeemedAmount {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 11
+        GuardType::as_mask(GuardType::RedeemedAmount)
     }
 }
 

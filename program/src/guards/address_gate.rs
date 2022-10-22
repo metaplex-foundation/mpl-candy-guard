@@ -1,4 +1,4 @@
-use crate::utils::cmp_pubkeys;
+use crate::{state::GuardType, utils::cmp_pubkeys};
 
 use super::*;
 
@@ -14,7 +14,7 @@ impl Guard for AddressGate {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 12
+        GuardType::as_mask(GuardType::AddressGate)
     }
 }
 

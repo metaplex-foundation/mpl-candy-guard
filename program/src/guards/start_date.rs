@@ -1,3 +1,5 @@
+use crate::state::GuardType;
+
 use super::*;
 
 /// Guard that sets a specific start date for the mint.
@@ -12,7 +14,7 @@ impl Guard for StartDate {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 3
+        GuardType::as_mask(GuardType::StartDate)
     }
 }
 

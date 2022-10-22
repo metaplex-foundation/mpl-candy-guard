@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::utils::*;
+use crate::{state::GuardType, utils::*};
 
 /// Guard that requires addresses that hold an amount of a specified spl-token
 /// and burns them.
@@ -22,7 +22,7 @@ impl Guard for TokenBurn {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 15
+        GuardType::as_mask(GuardType::TokenBurn)
     }
 }
 
