@@ -1,3 +1,5 @@
+use crate::state::GuardType;
+
 use super::*;
 
 /// Guard that sets a specific date for the mint to stop.
@@ -12,7 +14,7 @@ impl Guard for EndDate {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 7
+        GuardType::as_mask(GuardType::EndDate)
     }
 }
 

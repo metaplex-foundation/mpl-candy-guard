@@ -130,6 +130,12 @@ pub enum GuardType {
     FreezeTokenPayment,
 }
 
+impl GuardType {
+    pub fn as_mask(guard_type: GuardType) -> u64 {
+        0b1u64 << (guard_type as u8)
+    }
+}
+
 impl CandyGuardData {
     /// Serialize the candy guard data into the specified data array.
     pub fn save(&self, data: &mut [u8]) -> Result<()> {
