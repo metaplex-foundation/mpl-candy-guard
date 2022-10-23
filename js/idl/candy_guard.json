@@ -196,6 +196,30 @@
       ]
     },
     {
+      "name": "setAuthority",
+      "docs": [
+        "Set a new authority of the candy guard."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newAuthority",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
       "name": "unwrap",
       "docs": [
         "Remove a candy guard from a candy machine, setting the authority to the",
