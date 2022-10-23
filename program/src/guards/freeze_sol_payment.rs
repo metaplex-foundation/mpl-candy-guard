@@ -15,6 +15,7 @@ use spl_token::{
 
 use crate::{
     errors::CandyGuardError,
+    state::GuardType,
     utils::{assert_is_ata, assert_keys_equal, cmp_pubkeys},
 };
 
@@ -39,7 +40,7 @@ impl Guard for FreezeSolPayment {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 16
+        GuardType::as_mask(GuardType::FreezeSolPayment)
     }
 
     /// Instructions to interact with the freeze feature:

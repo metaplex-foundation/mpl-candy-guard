@@ -6,7 +6,7 @@ use mpl_token_metadata::{
 };
 use solana_program::program::invoke;
 
-use crate::utils::assert_keys_equal;
+use crate::{state::GuardType, utils::assert_keys_equal};
 
 /// Guard that requires another NFT (token) from a specific collection to be burned.
 ///
@@ -28,7 +28,7 @@ impl Guard for NftBurn {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 14
+        GuardType::as_mask(GuardType::NftBurn)
     }
 }
 
