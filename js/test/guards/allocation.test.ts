@@ -8,7 +8,7 @@ import {
   RouteInstructionAccounts,
   RouteInstructionArgs,
 } from '../../src/generated';
-import { multiple } from 'test/utils';
+import { multiple } from '../utils';
 
 const API = new InitTransactions();
 
