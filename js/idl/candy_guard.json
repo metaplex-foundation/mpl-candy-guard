@@ -744,14 +744,14 @@
     {
       "name": "ProgramGate",
       "docs": [
-        "Guard that restricts the programs that can be in a mint transaction. The guard",
-        "allows the necessary programs and any other program specified in the configuration."
+        "Guard that restricts the programs that can be in a mint transaction. The guard allows the",
+        "necessary programs for the mint and any other program specified in the configuration."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "programs",
+            "name": "additional",
             "type": {
               "vec": "publicKey"
             }

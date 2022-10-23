@@ -41,6 +41,7 @@ The Candy Guard program contains a set of core access control guards that can be
 - `NftBurn`: restricts the mint to holders of a specified collection, requiring a burn of the NFT
 - `NftGate`: restricts the mint to holders of a specified collection
 - `NftPayment`: set the price of the mint as an NFT of a specified collection
+- `ProgramGate`: restricts the programs that can be in a mint transaction
 - `RedeemedAmount`: determines the end of the mint based on a total amount minted
 - `SolPayment`: set the price of the mint in SOL
 - `StartDate`: determines the start date of the mint
@@ -659,6 +660,16 @@ The `NftPayment` guard is a payment guard that charges another NFT (token) from 
 | `atoken_progam`    |          |        | `spl-associate-token` program ID.                                                      |
 
 </details>
+
+### `ProgramGate`
+
+```rust
+pub struct ProgramGate {
+    pub additional: Vec<Pubkey>,
+}
+```
+
+The `ProgramGate` guard restricts the programs that can be in a mint transaction. The guard allows the necessary programs for the mint and any other program specified in the configuration.
 
 ### `RedeemedAmount`
 
