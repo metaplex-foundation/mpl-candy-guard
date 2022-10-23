@@ -902,6 +902,72 @@ createErrorFromNameLookup.set(
 );
 
 /**
+ * AllocationNotInitialized: 'Allocation PDA not initialized'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationNotInitializedError extends Error {
+  readonly code: number = 0x179b;
+  readonly name: string = 'AllocationNotInitialized';
+  constructor() {
+    super('Allocation PDA not initialized');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationNotInitializedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179b, () => new AllocationNotInitializedError());
+createErrorFromNameLookup.set(
+  'AllocationNotInitialized',
+  () => new AllocationNotInitializedError(),
+);
+
+/**
+ * AllocationLimitReached: 'Allocation limit was reached'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationLimitReachedError extends Error {
+  readonly code: number = 0x179c;
+  readonly name: string = 'AllocationLimitReached';
+  constructor() {
+    super('Allocation limit was reached');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationLimitReachedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179c, () => new AllocationLimitReachedError());
+createErrorFromNameLookup.set('AllocationLimitReached', () => new AllocationLimitReachedError());
+
+/**
+ * AllocationGuardNotEnabled: 'Allocation guard must be enabled'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationGuardNotEnabledError extends Error {
+  readonly code: number = 0x179d;
+  readonly name: string = 'AllocationGuardNotEnabled';
+  constructor() {
+    super('Allocation guard must be enabled');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationGuardNotEnabledError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179d, () => new AllocationGuardNotEnabledError());
+createErrorFromNameLookup.set(
+  'AllocationGuardNotEnabled',
+  () => new AllocationGuardNotEnabledError(),
+);
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

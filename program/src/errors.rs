@@ -106,4 +106,11 @@ pub enum CandyGuardError {
     // program gate
     #[msg("An unauthorized program was found in the transaction")]
     UnauthorizedProgramFound,
+    // allocation
+    #[msg("Allocation PDA not initialized")]
+    AllocationNotInitialized,
+    #[msg("Allocation limit was reached")]
+    AllocationLimitReached,
+    #[msg("Allocation guard must be enabled")]
+    AllocationGuardNotEnabled,
 }

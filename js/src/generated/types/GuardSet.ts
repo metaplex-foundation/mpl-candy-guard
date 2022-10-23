@@ -25,6 +25,7 @@ import { TokenBurn, tokenBurnBeet } from './TokenBurn';
 import { FreezeSolPayment, freezeSolPaymentBeet } from './FreezeSolPayment';
 import { FreezeTokenPayment, freezeTokenPaymentBeet } from './FreezeTokenPayment';
 import { ProgramGate, programGateBeet } from './ProgramGate';
+import { Allocation, allocationBeet } from './Allocation';
 export type GuardSet = {
   botTax: beet.COption<BotTax>;
   solPayment: beet.COption<SolPayment>;
@@ -45,6 +46,7 @@ export type GuardSet = {
   freezeSolPayment: beet.COption<FreezeSolPayment>;
   freezeTokenPayment: beet.COption<FreezeTokenPayment>;
   programGate: beet.COption<ProgramGate>;
+  allocation: beet.COption<Allocation>;
 };
 
 /**
@@ -72,6 +74,7 @@ export const guardSetBeet = new beet.FixableBeetArgsStruct<GuardSet>(
     ['freezeSolPayment', beet.coption(freezeSolPaymentBeet)],
     ['freezeTokenPayment', beet.coption(freezeTokenPaymentBeet)],
     ['programGate', beet.coption(programGateBeet)],
+    ['allocation', beet.coption(allocationBeet)],
   ],
   'GuardSet',
 );

@@ -2,6 +2,7 @@ import { BN } from 'bn.js';
 import * as beet from '@metaplex-foundation/beet';
 import { logDebug } from './utils/log';
 import {
+  allocationBeet,
   allowListBeet,
   botTaxBeet,
   CandyGuardData,
@@ -69,6 +70,8 @@ import { tokenBurnBeet } from './generated/types/TokenBurn';
  *   pub freeze_token_payment: Option<FreezeTokenPayment>,
  *   /// Program gate guard (restricts the programs that can be in a mint transaction).
  *   pub program_gate: Option<ProgramGate>,
+ *   /// Allocation guard (specify the maximum number of mints in a guard set).
+ *   pub allocation: Option<Allocation>,
  * }
  * ```
  */
@@ -93,6 +96,7 @@ type Guards = {
   /* 17 */ freezeSolPaymentEnabled: boolean;
   /* 18 */ freezeTokenPaymentEnabled: boolean;
   /* 19 */ programGateEnabled: boolean;
+  /* 20 */ allocationEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -115,8 +119,9 @@ const GUARDS_SIZE = {
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
   /* 19 */ programGate: 164,
+  /* 20 */ allocation: 164,
 };
-const GUARDS_COUNT = 18;
+const GUARDS_COUNT = 20;
 const MAX_LABEL_LENGTH = 6;
 
 function determineGuards(buffer: Buffer): Guards {
@@ -147,6 +152,7 @@ function determineGuards(buffer: Buffer): Guards {
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   ] = guards;
 
   return {
@@ -169,6 +175,7 @@ function determineGuards(buffer: Buffer): Guards {
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   };
 }
 
@@ -217,6 +224,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -338,6 +346,11 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     data.programGate = programGate;
     cursor += GUARDS_SIZE.programGate;
   }
+  if (allocationEnabled) {
+    const [allocation] = allocationBeet.deserialize(buffer, cursor);
+    data.allocation = allocation;
+    cursor += GUARDS_SIZE.allocation;
+  }
 
   return {
     guardSet: {
@@ -360,6 +373,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       freezeSolPayment: data.freezeSolPayment ?? null,
       freezeTokenPayment: data.freezeTokenPayment ?? null,
       programGate: data.programGate ?? null,
+      allocation: data.allocation ?? null,
     },
     offset: cursor,
   };

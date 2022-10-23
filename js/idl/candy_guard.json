@@ -323,6 +323,21 @@
   ],
   "accounts": [
     {
+      "name": "MintTracker",
+      "docs": [
+        "PDA to track the number of mints."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "count",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
       "name": "AllowListProof",
       "docs": [
         "PDA to track whether an address has been validated or not."
@@ -451,6 +466,37 @@
           {
             "name": "address",
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Allocation",
+      "docs": [
+        "Gaurd to specify the maximum number of mints in a guard set.",
+        "",
+        "List of accounts required:",
+        "",
+        "0. `[writable]` Mint tracker PDA. The PDA is derived",
+        "using the seed `[\"allocation\", allocation id,",
+        "candy guard pubkey, candy machine pubkey]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "docs": [
+              "Unique identifier of the allocation."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "size",
+            "docs": [
+              "The size of the allocation."
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -1173,6 +1219,17 @@
                 "defined": "ProgramGate"
               }
             }
+          },
+          {
+            "name": "allocation",
+            "docs": [
+              "Allocation guard (specify the maximum number of mints in a guard set)."
+            ],
+            "type": {
+              "option": {
+                "defined": "Allocation"
+              }
+            }
           }
         ]
       }
@@ -1258,6 +1315,9 @@
           },
           {
             "name": "ProgramGate"
+          },
+          {
+            "name": "Allocation"
           }
         ]
       }
@@ -1478,6 +1538,21 @@
       "code": 6042,
       "name": "UnauthorizedProgramFound",
       "msg": "An unauthorized program was found in the transaction"
+    },
+    {
+      "code": 6043,
+      "name": "AllocationNotInitialized",
+      "msg": "Allocation PDA not initialized"
+    },
+    {
+      "code": 6044,
+      "name": "AllocationLimitReached",
+      "msg": "Allocation limit was reached"
+    },
+    {
+      "code": 6045,
+      "name": "AllocationGuardNotEnabled",
+      "msg": "Allocation guard must be enabled"
     }
   ],
   "metadata": {

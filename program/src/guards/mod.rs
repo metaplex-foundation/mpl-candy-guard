@@ -6,6 +6,7 @@ use crate::instructions::{Route, RouteContext};
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
 
 pub use address_gate::AddressGate;
+pub use allocation::Allocation;
 pub use allow_list::AllowList;
 pub use bot_tax::BotTax;
 pub use end_date::EndDate;
@@ -26,6 +27,7 @@ pub use token_gate::TokenGate;
 pub use token_payment::TokenPayment;
 
 mod address_gate;
+mod allocation;
 mod allow_list;
 mod bot_tax;
 mod end_date;

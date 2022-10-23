@@ -1,4 +1,5 @@
 export * from './AddressGate';
+export * from './Allocation';
 export * from './AllowList';
 export * from './BotTax';
 export * from './CandyGuardData';

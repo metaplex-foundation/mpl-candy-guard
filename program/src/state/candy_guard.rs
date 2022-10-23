@@ -51,6 +51,7 @@ pub struct CandyGuard {
     // 17) freeze sol payment
     // 18) freeze token payment
     // 19) program gate
+    // 20) allocation
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -108,6 +109,8 @@ pub struct GuardSet {
     pub freeze_token_payment: Option<FreezeTokenPayment>,
     /// Program gate guard (restricts the programs that can be in a mint transaction).
     pub program_gate: Option<ProgramGate>,
+    /// Allocation guard (specify the maximum number of mints in a guard set).
+    pub allocation: Option<Allocation>,
 }
 
 /// Available guard types.
@@ -132,6 +135,7 @@ pub enum GuardType {
     FreezeSolPayment,
     FreezeTokenPayment,
     ProgramGate,
+    Allocation,
 }
 
 impl GuardType {
