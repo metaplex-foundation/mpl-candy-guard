@@ -68,12 +68,12 @@ test('Program Gate: invalid program', async (t) => {
   await minterMintTx.assertError(t, /unauthorized program was found/i);
 });
 
-test.only('Program Gate: authorized program', async (t) => {
+test('Program Gate: authorized program', async (t) => {
   const { fstTxHandler: handler, authorityPair: authority, connection } = await API.authority();
 
   const data = newCandyGuardData();
   data.default.programGate = {
-    // will validate against the standard program only
+    // authorize Stake program
     programs: [StakeProgram.programId],
   };
 
@@ -101,8 +101,6 @@ test.only('Program Gate: authorized program', async (t) => {
   // building the instruction correctly, but for the purpose of the test this is not
   // important because we are testing whether the Stake program is "authorized" to be
   // the mint transaction
-
-  await minterMintTx.assertError(t, /Invalid account owner/i);
-  //minterMintTx.then((x) => x.assertLogs(t, [/Invalid account owner/i]));
-  //await minterMintTx.assertError(t);
+  minterMintTx.then((x) => x.assertLogs(t, [/Invalid account owner/i]));
+  await minterMintTx.assertError(t);
 });
