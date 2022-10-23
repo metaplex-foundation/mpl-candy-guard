@@ -31,6 +31,7 @@ A **guard** is a modular piece of code that can be easily added to the Candy Gua
 The Candy Guard program contains a set of core access control guards that can be enabled/disabled:
 
 - `AddressGate`: restricts the mint to a single address
+- `Allocation`: specify the maximum number of mints in a group (guard set)
 - `AllowList`: uses a wallet address list to determine who is allowed to mint
 - `BotTax`: configurable tax (amount) to charge invalid transactions
 - `EndDate`: determines a date to end the mint
@@ -268,6 +269,49 @@ pub struct AddressGate {
 ```
 
 The `AddressGate` guard restricts the mint to a single `address` &mdash; the `address` must match the payer's address of the mint transaction.
+
+### `Allocation`
+
+```rust
+pub struct Allocation {
+    pub id: u8,
+    pub size: u16,
+}
+```
+
+The `Allocation` guard specifies the maximum number of mints allowed in a group (guard set). The `id` configuration represents the unique identification for the allocation &mdash; changing the `id` has the effect of restarting the limit, since a different tracking account will be created. The `size` indicates the maximum number of mints allocated.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name           | Writable | Signer | Description                                                                                                                              |
+| -------------- | :------: | :----: | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `mint_tracker` |    ✅    |        | Mint tracker PDA. The PDA is derived using the seed `["allocation", allocation id, candy guard pubkey, candy machine pubkey]` |
+
+</details>
+
+#### Route Instruction
+
+The allocation PDA needs to be created before the first mint transaction is validated. This is done by a `route` instruction with the following accounts and `RouteArgs`:
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description                                                                                                                      |
+| ---------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `proof_pda`      |    ✅    |        | PDA to represent the allocation (seed `["allocation", allocation id, candy guard pubkey, candy machine pubkey]`). |
+| `system_program` |          |        | System program account.                                                                                                          |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description               |
+| -------------| ---- | ------------------------- |
+| `args`       |      | `RouteArgs` struct        |
+| - *guard*    | 1    | `GuardType.Allocation`    |
+| - *data*     | 0    | Empty                     |
+</details>
 
 ### `AllowList`
 
