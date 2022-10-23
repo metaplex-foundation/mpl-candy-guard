@@ -29,7 +29,6 @@ pub struct Initialize<'info> {
     )]
     pub candy_guard: Account<'info, CandyGuard>,
     // Base key of the candy guard PDA
-    #[account(mut)]
     pub base: Signer<'info>,
     /// CHECK: authority can be any account and is not written to or read
     authority: UncheckedAccount<'info>,
