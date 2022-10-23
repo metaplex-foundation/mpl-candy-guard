@@ -100,5 +100,5 @@ test('route (non-existing instruction)', async (t) => {
   const tx = new Transaction().add(createRouteInstruction(accounts, args));
   const h = fstTxHandler.sendAndConfirmTransaction(tx, [payerPair], 'tx: Route');
 
-  await h.assertError(t, /No instruction was foun/i);
+  await h.assertError(t, /No instruction was found/i);
 });

@@ -2,6 +2,7 @@ use super::*;
 
 use crate::{
     errors::CandyGuardError,
+    state::GuardType,
     utils::{assert_is_ata, assert_keys_equal, spl_token_transfer, TokenTransferParams},
 };
 
@@ -26,7 +27,7 @@ impl Guard for TokenPayment {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 2
+        GuardType::as_mask(GuardType::TokenPayment)
     }
 }
 
