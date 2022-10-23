@@ -38,6 +38,11 @@ pub mod candy_guard {
         instructions::route(ctx, args, label)
     }
 
+    /// Set a new authority of the candy guard.
+    pub fn set_authority(ctx: Context<SetAuthority>, new_authority: Pubkey) -> Result<()> {
+        instructions::set_authority(ctx, new_authority)
+    }
+
     /// Remove a candy guard from a candy machine, setting the authority to the
     /// candy guard authority.
     pub fn unwrap(ctx: Context<Unwrap>) -> Result<()> {
