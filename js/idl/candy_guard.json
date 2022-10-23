@@ -15,7 +15,7 @@
         },
         {
           "name": "base",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
         },
         {
