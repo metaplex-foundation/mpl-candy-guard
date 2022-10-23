@@ -12,6 +12,7 @@ export * from './Group';
 export * from './GuardSet';
 export * from './GuardType';
 export * from './MintLimit';
+export * from './MintTracker';
 export * from './NftBurn';
 export * from './NftGate';
 export * from './NftPayment';

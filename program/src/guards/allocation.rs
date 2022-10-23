@@ -22,8 +22,7 @@ pub struct Allocation {
 }
 
 /// PDA to track the number of mints.
-#[account]
-#[derive(Default)]
+#[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct MintTracker {
     pub count: u32,
 }
