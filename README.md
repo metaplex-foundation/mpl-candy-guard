@@ -34,6 +34,8 @@ The Candy Guard program contains a set of core access control guards that can be
 - `AllowList`: uses a wallet address list to determine who is allowed to mint
 - `BotTax`: configurable tax (amount) to charge invalid transactions
 - `EndDate`: determines a date to end the mint
+- `FreezeSolPayment`: set the price of the mint in SOL with a freeze period.
+- `FreezeTokenPayment`: set the price of the mint in spl-token amount with a freeze period.
 - `Gatekeeper`: captcha integration
 - `MintLimit`: specified a limit on the number of mints per wallet
 - `NftBurn`: restricts the mint to holders of a specified collection, requiring a burn of the NFT
@@ -333,6 +335,220 @@ pub struct EndDate {
 ```
 
 The `EndDate` guard is used to specify a date to end the mint. Any transaction received after the end date will fail.
+
+### `FreezeSolPayment`
+
+```rust
+pub struct FreezeSolPayment {
+    pub lamports: u64,
+    pub destination: Pubkey,
+}
+```
+
+The `FreezeSolPayment` guard is used to charge an amount in SOL (lamports) for the mint with a freeze period. The funds are transferred a freeze escrow until all NFTs are thawed, which at this point, can be transferred (unlock) to the destination account.
+
+**Note:** The freeze functionality must be initialized using the `initialize` route instruction before mint starts.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name         | Writable | Signer | Description                                                                                                            |
+| ------------ | :------: | :----: | ---------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda` |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`). |
+| `nft_ata` |          |        | Associate token account of the NFT (seeds `[payer pubkey, token program pubkey, nft mint pubkey]`). |
+
+</details>
+
+#### Route Instructions
+
+##### `initialize`: initializes the freeze escrow PDA.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description                                                                                                                      |
+| ---------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`     |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`). |
+| `authority`      |         |   ✅   | Candy Guard authority. |
+| `system_program` |         |        | System program account. |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeSolPayment`               |
+| - *data*     | ~    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.Initialize`             |
+| -- *period*  | 8    | Freeze period in seconds (maximum 30 days) |
+</details>
+
+##### `thaw`: thaw an eligible NFT.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                 | Writable | Signer | Description                                                                                                                      |
+| -------------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`         |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`).     |
+| `nft_mint`           |          |        | Mint account for the NFT. |
+| `owner`              |          |        | Address of the owner of the NFT. |
+| `nft_ata`            |    ✅    |        | Associate token account of the NFT (seeds `[owner pubkey, token program pubkey, nft mint pubkey]`). |
+| `nft_master_edition` |          |        | Master Edition account of the NFT. |
+| `token_program`      |          |        | `spl-token` program ID.                                                                             |
+| `system_program`     |          |        | `SystemProgram` account.                                                                            |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeSolPayment`             |
+| - *data*     | 1    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.Thaw`                   |
+</details>
+
+##### `unlock_funds`: unlocks frozen funds.
+
+Unlock funds is only enabled after all frozen NFTs are thaw.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name             | Writable | Signer | Description                                                                                                                      |
+| ---------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`     |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`).     |
+| `authority`      |          |   ✅   | Candy Guard authority. |
+| `destination`    |    ✅    |        | Address to receive the funds (must match the `destination` address of the guard configuration). |
+| `system_program` |          |        | `SystemProgram` account.                                                                            |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeSolPayment`             |
+| - *data*     | 1    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.UnlockFunds`            |
+</details>
+
+
+### `FreezeTokenPayment`
+
+```rust
+pub struct FreezeTokenPayment {
+    pub amount: u64,
+    pub mint: Pubkey,
+    pub destination_ata: Pubkey,
+}
+```
+
+The `FreezeTokenPayment` guard is used to charge an amount in a specified spl-token as payment for the mint with a freeze period. The funds are transferred a freeze escrow until all NFTs are thaw, which at this point, can be transferred (unlock) to the destination account.
+
+**Note:** The freeze functionality must be initialized using the `initialize` route instruction before mint starts.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name            | Writable | Signer | Description                                                                                                            |
+| --------------- | :------: | :----: | ---------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`    |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination_ata pubkey, candy guard pubkey, candy machine pubkey]`). |
+| `nft_ata`       |          |        | Associate token account of the NFT (seeds `[payer pubkey, token program pubkey, nft mint pubkey]`). |
+| `token_account` |    ✅    |        | Token account holding the required amount (seeds `[payer pubkey, token program pubkey, mint pubkey]`). |
+| `freeze_ata`    |    ✅    |        | Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, token program pubkey, nft mint pubkey]`).
+
+</details>
+
+#### Route Instructions
+
+##### `initialize`: initializes the freeze escrow PDA.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                      | Writable | Signer | Description                                                                                                                      |
+| ------------------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`              |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination_ata pubkey, candy guard pubkey, candy machine pubkey]`). |
+| `authority`               |          |   ✅   | Candy Guard authority. |
+| `system_program`          |          |        | System program account. |
+| `freeze_ata`              |    ✅    |        | Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, token program pubkey, nft mint pubkey]`). |
+| `token_mint`              |          |        | Token mint account (must match the `mint` address of the guard configuration). |
+| `token_program`           |          |        | `spl-token` program ID. |
+| `associate_token_program` |          |        | Associate token program account. |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeTokenPayment`             |
+| - *data*     | 9    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.Initialize`             |
+| -- *period*  | 8    | Freeze period in seconds (maximum 30 days) |
+</details>
+
+##### `thaw`: thaw an eligible NFT.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name                 | Writable | Signer | Description                                                                                                                      |
+| -------------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`         |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).     |
+| `nft_mint`           |          |        | Mint account for the NFT. |
+| `owner`              |          |        | Address of the owner of the NFT. |
+| `nft_ata`            |    ✅    |        | Associate token account of the NFT (seeds `[owner pubkey, token program pubkey, nft mint pubkey]`). |
+| `nft_master_edition` |          |        | Master Edition account of the NFT. |
+| `token_program`      |          |        | `spl-token` program ID.                                                                             |
+| `system_program`     |          |        | `SystemProgram` account.                                                                            |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeTokenPayment`             |
+| - *data*     | 1    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.Thaw`                   |
+</details>
+
+##### `unlock_funds`: unlocks frozen funds.
+
+Unlock funds is only enabled after all frozen NFTs are thaw.
+
+<details>
+  <summary>Accounts</summary>
+
+| Name              | Writable | Signer | Description                                                                                                                      |
+| ----------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`      |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination_ata pubkey, candy guard pubkey, candy machine pubkey]`).     |
+| `authority`       |          |   ✅   | Candy Guard authority. |
+| `freeze_ata`      |    ✅    |        | Associate token account of the Freeze PDA (seeds `[freeze PDA pubkey, token program pubkey, nft mint pubkey]`). |
+| `destination_ata` |    ✅    |        | Address to receive the funds (must match the `destination_ata` address of the guard configuration). |
+| `token_program`   |          |        | `spl-token` program ID. |
+| `system_program`  |          |        | `SystemProgram` account.                                                                            |
+
+</details>
+<details>
+  <summary>Arguments</summary>
+  
+| Argument     | Size | Description                                |
+| -------------| ---- | ------------------------------------------ |
+| `args`       |      | `RouteArgs` struct                         |
+| - *guard*    | 1    | `GuardType.FreezeTokenPayment`             |
+| - *data*     | 1    |                                            |
+| -- *ix*      | 1    | `FreezeInstruction.UnlockFunds`            |
+</details>
 
 ### `Gatekeeper`
 

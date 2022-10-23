@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
     errors::CandyGuardError,
+    state::GuardType,
     utils::{assert_is_token_account, assert_keys_equal},
 };
 use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
@@ -22,7 +23,7 @@ impl Guard for NftGate {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 13
+        GuardType::as_mask(GuardType::NftGate)
     }
 }
 

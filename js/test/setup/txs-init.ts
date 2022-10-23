@@ -31,6 +31,7 @@ import {
   createSetAuthorityInstruction,
   createUnwrapInstruction,
   createUpdateInstruction,
+  createWithdrawInstruction,
   createWrapInstruction,
   InitializeInstructionAccounts,
   InitializeInstructionArgs,
@@ -42,6 +43,7 @@ import {
   UnwrapInstructionAccounts,
   UpdateInstructionAccounts,
   UpdateInstructionArgs,
+  WithdrawInstructionAccounts,
   WrapInstructionAccounts,
 } from '../../src/generated';
 import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
@@ -338,6 +340,24 @@ export class InitTransactions {
     const tx = new Transaction().add(...ixs);
 
     return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard Mint') };
+  }
+
+  async withdraw(
+    t: Test,
+    candyGuard: PublicKey,
+    payer: Keypair,
+    handler: PayerTransactionHandler,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const accounts: WithdrawInstructionAccounts = {
+      candyGuard: candyGuard,
+      authority: payer.publicKey,
+    };
+
+    const tx = new Transaction().add(createWithdrawInstruction(accounts));
+
+    return {
+      tx: handler.sendAndConfirmTransaction(tx, [payer], 'tx: Withdraw'),
+    };
   }
 
   async deploy(

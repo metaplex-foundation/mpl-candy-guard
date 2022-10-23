@@ -2,6 +2,7 @@ use solana_program::{program::invoke_signed, system_instruction};
 
 use crate::{
     instructions::Route,
+    state::GuardType,
     utils::{assert_keys_equal, assert_owned_by},
 };
 
@@ -46,7 +47,7 @@ impl Guard for AllowList {
     }
 
     fn mask() -> u64 {
-        0b1u64 << 8
+        GuardType::as_mask(GuardType::AllowList)
     }
 
     /// Instruction to validate an address against the merkle tree.
@@ -58,10 +59,14 @@ impl Guard for AllowList {
     ///   1. `[]` System program account.
     fn instruction<'info>(
         ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
-        guard_set: &GuardSet,
+        route_context: RouteContext<'info>,
         data: Vec<u8>,
     ) -> Result<()> {
         msg!("AllowList: validate proof instruction");
+
+        if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
+            return err!(CandyGuardError::Uninitialized);
+        }
 
         // validates the proof
 
@@ -73,6 +78,12 @@ impl Guard for AllowList {
 
         let user = ctx.accounts.payer.key();
         let leaf = solana_program::keccak::hashv(&[user.to_string().as_bytes()]);
+
+        let guard_set = if let Some(guard_set) = route_context.guard_set {
+            guard_set
+        } else {
+            return err!(CandyGuardError::AllowedListNotEnabled);
+        };
 
         let merkle_root = if let Some(allow_list) = &guard_set.allow_list {
             &allow_list.merkle_root
@@ -91,7 +102,7 @@ impl Guard for AllowList {
 
         let proof_pda = Self::get_account_info(ctx, 0)?;
         let seeds = [
-            b"allow_list",
+            AllowListProof::PREFIX_SEED,
             &merkle_root[..],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -103,7 +114,7 @@ impl Guard for AllowList {
 
         if proof_pda.data_is_empty() {
             let signer = [
-                b"allow_list",
+                AllowListProof::PREFIX_SEED,
                 &merkle_root[..],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -160,7 +171,7 @@ impl Condition for AllowList {
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         let seeds = [
-            b"allow_list",
+            AllowListProof::PREFIX_SEED,
             &self.merkle_root[..],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -185,4 +196,9 @@ impl Condition for AllowList {
 #[derive(Default)]
 pub struct AllowListProof {
     pub timestamp: i64,
+}
+
+impl AllowListProof {
+    /// Prefix used as seed.
+    pub const PREFIX_SEED: &'static [u8] = b"allow_list";
 }
