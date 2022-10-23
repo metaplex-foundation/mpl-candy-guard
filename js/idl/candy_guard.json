@@ -15,7 +15,7 @@
         },
         {
           "name": "base",
-          "isMut": true,
+          "isMut": false,
           "isSigner": true
         },
         {
@@ -192,6 +192,30 @@
           "type": {
             "option": "string"
           }
+        }
+      ]
+    },
+    {
+      "name": "setAuthority",
+      "docs": [
+        "Set a new authority of the candy guard."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newAuthority",
+          "type": "publicKey"
         }
       ]
     },
@@ -766,14 +790,14 @@
     {
       "name": "ProgramGate",
       "docs": [
-        "Guard that restricts the programs that can be in a mint transaction. The guard",
-        "allows the necessary programs and any other program specified in the configuration."
+        "Guard that restricts the programs that can be in a mint transaction. The guard allows the",
+        "necessary programs for the mint and any other program specified in the configuration."
       ],
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "programs",
+            "name": "additional",
             "type": {
               "vec": "publicKey"
             }

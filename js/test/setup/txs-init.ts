@@ -30,6 +30,7 @@ import {
   CandyGuardData,
   createInitializeInstruction,
   createMintInstruction,
+  createSetAuthorityInstruction,
   createUnwrapInstruction,
   createUpdateInstruction,
   createWithdrawInstruction,
@@ -39,6 +40,8 @@ import {
   MintInstructionAccounts,
   MintInstructionArgs,
   PROGRAM_ID,
+  SetAuthorityInstructionAccounts,
+  SetAuthorityInstructionArgs,
   UnwrapInstructionAccounts,
   UpdateInstructionAccounts,
   UpdateInstructionArgs,
@@ -219,6 +222,29 @@ export class InitTransactions {
 
     return {
       tx: handler.sendAndConfirmTransaction(tx, [payer], 'tx: Update'),
+    };
+  }
+
+  async setAuthority(
+    t: Test,
+    candyGuard: PublicKey,
+    authority: Keypair,
+    newAuthority: PublicKey,
+    handler: PayerTransactionHandler,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const accounts: SetAuthorityInstructionAccounts = {
+      candyGuard,
+      authority: authority.publicKey,
+    };
+
+    const args: SetAuthorityInstructionArgs = {
+      newAuthority,
+    };
+
+    const tx = new Transaction().add(createSetAuthorityInstruction(accounts, args));
+
+    return {
+      tx: handler.sendAndConfirmTransaction(tx, [authority], 'tx: SetAuthority'),
     };
   }
 

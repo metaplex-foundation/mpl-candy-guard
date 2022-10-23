@@ -15,11 +15,11 @@ static DEFAULT_PROGRAMS: &[&Pubkey] = &[
     &spl_associated_token_account::ID,
 ];
 
-/// Guard that restricts the programs that can be in a mint transaction. The guard
-/// allows the necessary programs and any other program specified in the configuration.
+/// Guard that restricts the programs that can be in a mint transaction. The guard allows the
+/// necessary programs for the mint and any other program specified in the configuration.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProgramGate {
-    pub programs: Vec<Pubkey>,
+    pub additional: Vec<Pubkey>,
 }
 
 impl Guard for ProgramGate {
@@ -62,7 +62,7 @@ impl Condition for ProgramGate {
 
             let mut found = false;
 
-            for program in &self.programs {
+            for program in &self.additional {
                 if cmp_pubkeys(&program_id, program) {
                     found = true;
                     break;
