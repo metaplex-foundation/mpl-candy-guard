@@ -1,7 +1,9 @@
+use std::collections::HashSet;
+
 use anchor_lang::{prelude::*, AnchorDeserialize};
 use solana_program::program_memory::sol_memcmp;
 
-use crate::{errors::CandyGuardError, guards::*};
+use crate::{errors::CandyGuardError, guards::*, utils::fixed_length_string};
 use mpl_candy_guard_derive::GuardSet;
 
 // Bytes offset for the start of the data section:
@@ -162,10 +164,8 @@ impl CandyGuardData {
         if let Some(groups) = &self.groups {
             for group in groups {
                 // label
-                if group.label.len() > MAX_LABEL_SIZE {
-                    return err!(CandyGuardError::LabelExceededLength);
-                }
-                data[cursor..cursor + group.label.len()].copy_from_slice(group.label.as_bytes());
+                let label = fixed_length_string(group.label.to_string(), MAX_LABEL_SIZE)?;
+                data[cursor..cursor + MAX_LABEL_SIZE].copy_from_slice(label.as_bytes());
                 cursor += MAX_LABEL_SIZE;
                 // guard set
                 let _ = group.guards.to_data(&mut data[cursor..])?;
@@ -217,8 +217,9 @@ impl CandyGuardData {
 
         if group_counter > 0 {
             if let Some(label) = label {
-                let label_slice = label.as_bytes();
-                // retrieves the selected gorup
+                let group_label = fixed_length_string(label, MAX_LABEL_SIZE)?;
+                let label_slice = group_label.as_bytes();
+                // retrieves the selected group
                 for _i in 0..group_counter {
                     if sol_memcmp(label_slice, &data[cursor..], label_slice.len()) == 0 {
                         cursor += MAX_LABEL_SIZE;
@@ -255,5 +256,23 @@ impl CandyGuardData {
         }
 
         size
+    }
+
+    pub fn verify(&self) -> Result<()> {
+        // set of unique labels
+        let mut labels = HashSet::new();
+
+        if let Some(groups) = &self.groups {
+            for group in groups {
+                if labels.contains(&group.label) {
+                    return err!(CandyGuardError::DuplicatedGroupLabel);
+                }
+
+                labels.insert(group.label.clone());
+            }
+        }
+
+        // verify the guards configuration
+        GuardSet::verify(self)
     }
 }

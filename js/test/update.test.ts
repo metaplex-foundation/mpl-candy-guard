@@ -115,7 +115,7 @@ test('update: disable guards', async (t) => {
   let accountInfo = await connection.getAccountInfo(address);
   const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
 
-  t.true(candyGuardData.groups?.length === 2, 'expected 2 group2');
+  t.true(candyGuardData.groups?.length === 2, 'expected 2 groups');
 
   const group1 = candyGuardData.groups!.at(0)!;
   // group 1
@@ -153,4 +153,66 @@ test('update: disable guards', async (t) => {
   const updatedBalance = accountInfo!.lamports!;
 
   t.true(updatedBalance > balance, 'balance after update must be greater');
+});
+
+test('Update (duplicated groups)', async (t) => {
+  const { fstTxHandler, payerPair } = await API.payer();
+
+  // default guardSet
+  const data = newCandyGuardData();
+  const { tx: transaction, candyGuard: address } = await API.initialize(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await transaction.assertSuccess(t);
+
+  const updateData = newCandyGuardData();
+
+  updateData.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  updateData.default.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  updateData.groups = [];
+
+  // VIP
+  const vipGroup1 = newGuardSet();
+  vipGroup1.startDate = {
+    date: 1662394820,
+  };
+  vipGroup1.solPayment = {
+    lamports: new BN(500),
+    destination: payerPair.publicKey,
+  };
+  updateData.groups?.push({
+    label: 'VIP',
+    guards: vipGroup1,
+  });
+
+  // OGs
+  const vipGroup2 = newGuardSet();
+  vipGroup2.solPayment = {
+    lamports: new BN(1000),
+    destination: payerPair.publicKey,
+  };
+  updateData.groups?.push({
+    label: 'VIP',
+    guards: vipGroup2,
+  });
+
+  const { tx: updateTransaction } = await API.update(
+    t,
+    address,
+    updateData,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await updateTransaction.assertError(t, /Duplicated group label/i);
 });

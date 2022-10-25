@@ -137,7 +137,7 @@ impl Condition for FreezeSolPayment {
         // validates the additional accounts
 
         let index = evaluation_context.account_cursor;
-        let freeze_pda = Self::get_account_info(ctx, index)?;
+        let freeze_pda = try_get_account_info(ctx, index)?;
         evaluation_context.account_cursor += 1;
 
         let seeds = [
@@ -154,7 +154,7 @@ impl Condition for FreezeSolPayment {
             return err!(CandyGuardError::FreezeNotInitialized);
         }
 
-        let nft_ata = Self::get_account_info(ctx, index + 1)?;
+        let nft_ata = try_get_account_info(ctx, index + 1)?;
         evaluation_context.account_cursor += 1;
         assert_is_ata(nft_ata, ctx.accounts.payer.key, ctx.accounts.nft_mint.key)?;
 
@@ -182,7 +182,7 @@ impl Condition for FreezeSolPayment {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let freeze_pda =
-            Self::get_account_info(ctx, evaluation_context.indices["freeze_sol_payment"])?;
+            try_get_account_info(ctx, evaluation_context.indices["freeze_sol_payment"])?;
 
         invoke(
             &system_instruction::transfer(
@@ -307,7 +307,7 @@ pub fn freeze_nft<'info>(
     account_index: usize,
     destination: &Pubkey,
 ) -> Result<()> {
-    let freeze_pda = get_account_info(ctx, account_index)?;
+    let freeze_pda = try_get_account_info(ctx, account_index)?;
 
     let mut freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
     freeze_escrow.frozen_count += 1;
@@ -339,7 +339,7 @@ pub fn freeze_nft<'info>(
         &[bump],
     ];
 
-    let nft_ata = get_account_info(ctx, account_index + 1)?;
+    let nft_ata = try_get_account_info(ctx, account_index + 1)?;
 
     let mut freeze_ix = freeze_delegated_account(
         mpl_token_metadata::ID,
@@ -398,10 +398,10 @@ pub fn initialize_freeze<'info>(
     ];
     let (pda, bump) = Pubkey::find_program_address(&seeds, &crate::ID);
 
-    let freeze_pda = get_account_info(ctx, 0)?;
+    let freeze_pda = try_get_account_info(ctx, 0)?;
     assert_keys_equal(freeze_pda.key, &pda)?;
 
-    let authority = get_account_info(ctx, 1)?;
+    let authority = try_get_account_info(ctx, 1)?;
 
     if let Some(candy_guard) = route_context.candy_guard {
         if !(cmp_pubkeys(authority.key, &candy_guard.authority) && authority.is_signer) {
@@ -413,7 +413,7 @@ pub fn initialize_freeze<'info>(
 
     if freeze_pda.data_is_empty() {
         // checking if we got the correct system_program
-        let system_program = get_account_info(ctx, 2)?;
+        let system_program = try_get_account_info(ctx, 2)?;
         assert_keys_equal(&system_program::ID, &system_program.key())?;
 
         let signer = [
@@ -479,7 +479,7 @@ pub fn thaw_nft<'info>(
 ) -> Result<()> {
     let current_timestamp = Clock::get()?.unix_timestamp;
 
-    let freeze_pda = get_account_info(ctx, 0)?;
+    let freeze_pda = try_get_account_info(ctx, 0)?;
     let mut freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
 
     // thaw is automatically enabled if the candy machine account is closed, so
@@ -490,20 +490,20 @@ pub fn thaw_nft<'info>(
         }
     }
 
-    let nft_mint = get_account_info(ctx, 1)?;
-    let nft_owner = get_account_info(ctx, 2)?;
+    let nft_mint = try_get_account_info(ctx, 1)?;
+    let nft_owner = try_get_account_info(ctx, 2)?;
 
-    let nft_ata = get_account_info(ctx, 3)?;
+    let nft_ata = try_get_account_info(ctx, 3)?;
     let nft_token_account = TokenAccount::unpack(&nft_ata.try_borrow_data()?)?;
 
     assert_keys_equal(nft_mint.key, &nft_token_account.mint)?;
     assert_keys_equal(nft_owner.key, &nft_token_account.owner)?;
 
-    let nft_master_edition = get_account_info(ctx, 4)?;
+    let nft_master_edition = try_get_account_info(ctx, 4)?;
     let payer = &ctx.accounts.payer;
 
-    let token_program = get_account_info(ctx, 5)?;
-    let token_metadata_program = get_account_info(ctx, 6)?;
+    let token_program = try_get_account_info(ctx, 5)?;
+    let token_metadata_program = try_get_account_info(ctx, 6)?;
 
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
@@ -573,7 +573,7 @@ fn unlock_funds<'info>(
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
 
-    let freeze_pda = get_account_info(ctx, 0)?;
+    let freeze_pda = try_get_account_info(ctx, 0)?;
     let freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
 
     let seeds = [
@@ -586,7 +586,7 @@ fn unlock_funds<'info>(
     assert_keys_equal(freeze_pda.key, &pda)?;
 
     // authority must the a signer
-    let authority = get_account_info(ctx, 1)?;
+    let authority = try_get_account_info(ctx, 1)?;
 
     // if the candy guard account is present, we check the authority against
     // the candy guard authority; otherwise we use the freeze escrow authority
@@ -605,7 +605,7 @@ fn unlock_funds<'info>(
         return err!(CandyGuardError::UnlockNotEnabled);
     }
 
-    let destination_address = get_account_info(ctx, 2)?;
+    let destination_address = try_get_account_info(ctx, 2)?;
     // funds should go to the destination account
     assert_keys_equal(destination_address.key, &freeze_escrow.destination)?;
 

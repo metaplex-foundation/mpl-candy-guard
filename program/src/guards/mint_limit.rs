@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use solana_program::{program::invoke_signed, system_instruction};
 
 use super::*;
@@ -30,6 +32,28 @@ impl Guard for MintLimit {
     fn mask() -> u64 {
         GuardType::as_mask(GuardType::MintLimit)
     }
+
+    fn verify(data: &CandyGuardData) -> Result<()> {
+        let mut ids = HashSet::new();
+
+        if let Some(mint_limit) = &data.default.mint_limit {
+            ids.insert(mint_limit.id);
+        }
+
+        if let Some(groups) = &data.groups {
+            for group in groups {
+                if let Some(mint_limit) = &group.guards.mint_limit {
+                    if ids.contains(&mint_limit.id) {
+                        return err!(CandyGuardError::DuplicatedMintLimitId);
+                    }
+
+                    ids.insert(mint_limit.id);
+                }
+            }
+        }
+
+        Ok(())
+    }
 }
 
 impl Condition for MintLimit {
@@ -40,7 +64,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter = Self::get_account_info(ctx, evaluation_context.account_cursor)?;
+        let counter = try_get_account_info(ctx, evaluation_context.account_cursor)?;
         evaluation_context
             .indices
             .insert("mint_limit_index", evaluation_context.account_cursor);
@@ -86,7 +110,7 @@ impl Condition for MintLimit {
         _guard_set: &GuardSet,
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
-        let counter = Self::get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
+        let counter = try_get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
 
         if counter.data_is_empty() {
             let user = ctx.accounts.payer.key();

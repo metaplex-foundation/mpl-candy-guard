@@ -66,6 +66,9 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
         account_info.realloc(data.size(), false)?;
     }
 
+    // validates the input data
+    data.verify()?;
+
     // save the guards information to the account data and stores
     // the updated feature flag
     let mut account_data = account_info.data.borrow_mut();

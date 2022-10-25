@@ -9,6 +9,9 @@ use spl_associated_token_account::get_associated_token_address;
 
 use crate::errors::CandyGuardError;
 
+// Empty value used for string padding.
+const NULL_STRING: &str = "\0";
+
 /// TokenBurnParams
 pub struct TokenBurnParams<'a: 'b, 'b> {
     /// mint
@@ -93,6 +96,18 @@ pub fn assert_keys_equal(key1: &Pubkey, key2: &Pubkey) -> Result<()> {
     } else {
         Ok(())
     }
+}
+
+/// Return a padded string up to the specified length. If the specified
+/// string `value` is longer than the allowed `length`, return an error.
+pub fn fixed_length_string(value: String, length: usize) -> Result<String> {
+    if length < value.len() {
+        // the value is larger than the allowed length
+        return err!(CandyGuardError::ExceededLength);
+    }
+
+    let padding = NULL_STRING.repeat(length - value.len());
+    Ok(value + &padding)
 }
 
 pub fn assert_owned_by(account: &AccountInfo, owner: &Pubkey) -> Result<()> {
