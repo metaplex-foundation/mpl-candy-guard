@@ -60,7 +60,7 @@ pub fn verify_programs(sysvar: AccountInfo, programs: &[Pubkey]) -> Result<()> {
     let num_instructions =
         read_u16(&mut index, &sysvar_data).map_err(|_| ProgramError::InvalidAccountData)?;
 
-    for index in 0..num_instructions {
+    'outer: for index in 0..num_instructions {
         let mut offset = 2 + (index * 2) as usize;
 
         // offset for the number of accounts
@@ -71,21 +71,16 @@ pub fn verify_programs(sysvar: AccountInfo, programs: &[Pubkey]) -> Result<()> {
         offset += (num_accounts as usize) * (1 + 32);
         let program_id = read_pubkey(&mut offset, &sysvar_data).unwrap();
 
-        let mut found = false;
-
         for program in programs {
             if cmp_pubkeys(&program_id, program) {
-                found = true;
-                break;
+                continue 'outer;
             }
         }
 
-        if !found {
-            msg!("Transaction had ix with program id {}", program_id);
-            // if we reach this point, the program id was not found in the
-            // programs list (the validation will fail)
-            return err!(CandyGuardError::UnauthorizedProgramFound);
-        }
+        msg!("Transaction had ix with program id {}", program_id);
+        // if we reach this point, the program id was not found in the
+        // programs list (the validation will fail)
+        return err!(CandyGuardError::UnauthorizedProgramFound);
     }
 
     Ok(())
