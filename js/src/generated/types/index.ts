@@ -1,5 +1,6 @@
 export * from './AddressGate';
 export * from './AllowList';
+export * from './AllowListProof';
 export * from './BotTax';
 export * from './CandyGuardData';
 export * from './EndDate';
@@ -10,6 +11,7 @@ export * from './Gatekeeper';
 export * from './Group';
 export * from './GuardSet';
 export * from './GuardType';
+export * from './MintCounter';
 export * from './MintLimit';
 export * from './NftBurn';
 export * from './NftGate';

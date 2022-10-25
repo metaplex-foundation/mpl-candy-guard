@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use solana_program::{program::invoke_signed, system_instruction};
 
 use super::*;
-use crate::{state::GuardType, utils::assert_keys_equal};
+use crate::{
+    state::GuardType,
+    utils::{assert_keys_equal, assert_owned_by},
+};
 
 /// Gaurd to set a limit of mints per wallet.
 ///
@@ -18,13 +21,6 @@ pub struct MintLimit {
     pub id: u8,
     /// Limit of mints per individual address.
     pub limit: u16,
-}
-
-/// PDA to track the number of mints for an individual address.
-#[account]
-#[derive(Default)]
-pub struct MintCounter {
-    pub count: u16,
 }
 
 impl Guard for MintLimit {
@@ -79,7 +75,7 @@ impl Condition for MintLimit {
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         let seeds = [
-            b"mint_limit".as_ref(),
+            MintCounter::PREFIX_SEED.as_ref(),
             &[self.id],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -90,6 +86,9 @@ impl Condition for MintLimit {
         assert_keys_equal(counter.key, &pda)?;
 
         if !counter.data_is_empty() {
+            // check the owner of the account
+            assert_owned_by(&counter, &crate::ID)?;
+
             let account_data = counter.data.borrow();
             let mint_counter = MintCounter::try_from_slice(&account_data)?;
 
@@ -113,13 +112,13 @@ impl Condition for MintLimit {
     ) -> Result<()> {
         let counter = try_get_account_info(ctx, evaluation_context.indices["mint_limit_index"])?;
 
-        let user = ctx.accounts.payer.key();
-        let candy_guard_key = &ctx.accounts.candy_guard.key();
-        let candy_machine_key = &ctx.accounts.candy_machine.key();
-
         if counter.data_is_empty() {
+            let user = ctx.accounts.payer.key();
+            let candy_guard_key = &ctx.accounts.candy_guard.key();
+            let candy_machine_key = &ctx.accounts.candy_machine.key();
+
             let seeds = [
-                b"mint_limit".as_ref(),
+                MintCounter::PREFIX_SEED.as_ref(),
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -129,7 +128,7 @@ impl Condition for MintLimit {
 
             let rent = Rent::get()?;
             let signer = [
-                b"mint_limit".as_ref(),
+                MintCounter::PREFIX_SEED.as_ref(),
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -162,4 +161,15 @@ impl Condition for MintLimit {
 
         Ok(())
     }
+}
+
+/// PDA to track the number of mints for an individual address.
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct MintCounter {
+    pub count: u16,
+}
+
+impl MintCounter {
+    /// Prefix used as seed.
+    pub const PREFIX_SEED: &'static [u8] = b"mint_limit";
 }

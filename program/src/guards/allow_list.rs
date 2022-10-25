@@ -192,8 +192,7 @@ impl Condition for AllowList {
 }
 
 /// PDA to track whether an address has been validated or not.
-#[account]
-#[derive(Default)]
+#[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct AllowListProof {
     pub timestamp: i64,
 }
