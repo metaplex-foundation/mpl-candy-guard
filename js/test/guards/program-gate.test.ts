@@ -1,7 +1,7 @@
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { StakeProgram, VoteProgram } from '@solana/web3.js';
 import test from 'tape';
-import { CANDY_MACHINE_PROGRAM, METAPLEX_PROGRAM_ID } from 'test/utils';
+import { CANDY_MACHINE_PROGRAM, METAPLEX_PROGRAM_ID } from '../utils';
 import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 
 const API = new InitTransactions();
