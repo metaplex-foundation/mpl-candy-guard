@@ -919,6 +919,29 @@ createErrorFromCodeLookup.set(0x179b, () => new DuplicatedMintLimitIdError());
 createErrorFromNameLookup.set('DuplicatedMintLimitId', () => new DuplicatedMintLimitIdError());
 
 /**
+ * UnauthorizedProgramFound: 'An unauthorized program was found in the transaction'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class UnauthorizedProgramFoundError extends Error {
+  readonly code: number = 0x179c;
+  readonly name: string = 'UnauthorizedProgramFound';
+  constructor() {
+    super('An unauthorized program was found in the transaction');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, UnauthorizedProgramFoundError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179c, () => new UnauthorizedProgramFoundError());
+createErrorFromNameLookup.set(
+  'UnauthorizedProgramFound',
+  () => new UnauthorizedProgramFoundError(),
+);
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

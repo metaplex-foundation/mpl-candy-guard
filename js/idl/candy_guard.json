@@ -496,8 +496,8 @@
       "name": "BotTax",
       "docs": [
         "Guard is used to:",
-        "* charge a penalty for invalid transactions.",
-        "* validate that the mint transaction is the last transaction.",
+        "* charge a penalty for invalid transactions",
+        "* validate that the mint transaction is the last transaction",
         "* verify that only authorized programs have instructions",
         "",
         "The `bot_tax` is applied to any error that occurs during the",
@@ -1508,6 +1508,11 @@
       "code": 6043,
       "name": "DuplicatedMintLimitId",
       "msg": "Duplicated mint limit id"
+    },
+    {
+      "code": 6044,
+      "name": "UnauthorizedProgramFound",
+      "msg": "An unauthorized program was found in the transaction"
     }
   ],
   "metadata": {
