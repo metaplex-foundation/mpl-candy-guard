@@ -66,12 +66,12 @@ import {
   Metaplex,
 } from '@metaplex-foundation/js';
 
-const HELPER = new CandyMachineHelper();
-
 export class InitTransactions {
+  readonly HELPER: CandyMachineHelper;
   readonly getKeypair: LoadOrGenKeypair | GenLabeledKeypair;
   constructor(readonly resuseKeypairs = false) {
     this.getKeypair = resuseKeypairs ? amman.loadOrGenKeypair : amman.genLabeledKeypair;
+    this.HELPER = new CandyMachineHelper();
   }
 
   // wallets
@@ -424,7 +424,7 @@ export class InitTransactions {
       hiddenSettings: null,
     };
 
-    const { tx: createTxCM } = await HELPER.initialize(
+    const { tx: createTxCM } = await this.HELPER.initialize(
       t,
       payer,
       candyMachine,
@@ -445,7 +445,7 @@ export class InitTransactions {
 
       lines.push(line);
     }
-    const { txs } = await HELPER.addConfigLines(t, candyMachine.publicKey, payer, lines);
+    const { txs } = await this.HELPER.addConfigLines(t, candyMachine.publicKey, payer, lines);
     // confirms that all lines have been written
     for (const tx of txs) {
       await handler.sendAndConfirmTransaction(tx, [payer], 'tx: AddConfigLines').assertNone();

@@ -942,6 +942,26 @@ createErrorFromNameLookup.set(
 );
 
 /**
+ * ExceededProgramListSize: 'Exceeded the maximum number of programs in the additional list'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ExceededProgramListSizeError extends Error {
+  readonly code: number = 0x179d;
+  readonly name: string = 'ExceededProgramListSize';
+  constructor() {
+    super('Exceeded the maximum number of programs in the additional list');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ExceededProgramListSizeError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179d, () => new ExceededProgramListSizeError());
+createErrorFromNameLookup.set('ExceededProgramListSize', () => new ExceededProgramListSizeError());
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

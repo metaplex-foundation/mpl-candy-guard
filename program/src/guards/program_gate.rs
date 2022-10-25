@@ -15,6 +15,9 @@ pub static DEFAULT_PROGRAMS: &[Pubkey] = &[
     spl_associated_token_account::ID,
 ];
 
+// Maximum number of programs in the additional list.
+const MAXIMUM_SIZE: usize = 5;
+
 /// Guard that restricts the programs that can be in a mint transaction. The guard allows the
 /// necessary programs for the mint and any other program specified in the configuration.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -24,11 +27,31 @@ pub struct ProgramGate {
 
 impl Guard for ProgramGate {
     fn size() -> usize {
-        4 + (5 * 32) // programs (5 addresses)
+        4 + (MAXIMUM_SIZE * 32) // programs
     }
 
     fn mask() -> u64 {
         GuardType::as_mask(GuardType::ProgramGate)
+    }
+
+    fn verify(data: &CandyGuardData) -> Result<()> {
+        if let Some(program_gate) = &data.default.program_gate {
+            if program_gate.additional.len() > MAXIMUM_SIZE {
+                return err!(CandyGuardError::ExceededProgramListSize);
+            }
+        }
+
+        if let Some(groups) = &data.groups {
+            for group in groups {
+                if let Some(program_gate) = &group.guards.program_gate {
+                    if program_gate.additional.len() > MAXIMUM_SIZE {
+                        return err!(CandyGuardError::ExceededProgramListSize);
+                    }
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 

@@ -92,4 +92,6 @@ pub enum CandyGuardError {
     DuplicatedMintLimitId,
     #[msg("An unauthorized program was found in the transaction")]
     UnauthorizedProgramFound,
+    #[msg("Exceeded the maximum number of programs in the additional list")]
+    ExceededProgramListSize,
 }

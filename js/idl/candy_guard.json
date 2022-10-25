@@ -1513,6 +1513,11 @@
       "code": 6044,
       "name": "UnauthorizedProgramFound",
       "msg": "An unauthorized program was found in the transaction"
+    },
+    {
+      "code": 6045,
+      "name": "ExceededProgramListSize",
+      "msg": "Exceeded the maximum number of programs in the additional list"
     }
   ],
   "metadata": {
