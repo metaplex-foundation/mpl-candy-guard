@@ -51,7 +51,7 @@ impl Condition for MintLimit {
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         let seeds = [
-            MintCounter::PREFIX_SEED.as_ref(),
+            MintCounter::PREFIX_SEED,
             &[self.id],
             user.as_ref(),
             candy_guard_key.as_ref(),
@@ -63,7 +63,7 @@ impl Condition for MintLimit {
 
         if !counter.data_is_empty() {
             // check the owner of the account
-            assert_owned_by(&counter, &crate::ID)?;
+            assert_owned_by(counter, &crate::ID)?;
 
             let account_data = counter.data.borrow();
             let mint_counter = MintCounter::try_from_slice(&account_data)?;
@@ -94,7 +94,7 @@ impl Condition for MintLimit {
             let candy_machine_key = &ctx.accounts.candy_machine.key();
 
             let seeds = [
-                MintCounter::PREFIX_SEED.as_ref(),
+                MintCounter::PREFIX_SEED,
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
@@ -104,7 +104,7 @@ impl Condition for MintLimit {
 
             let rent = Rent::get()?;
             let signer = [
-                MintCounter::PREFIX_SEED.as_ref(),
+                MintCounter::PREFIX_SEED,
                 &[self.id],
                 user.as_ref(),
                 candy_guard_key.as_ref(),
