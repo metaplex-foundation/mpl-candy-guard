@@ -36,14 +36,14 @@ impl Condition for TokenBurn {
     ) -> Result<()> {
         // retrieves the (potential) token gate account
         let token_gate_index = evaluation_context.account_cursor;
-        let token_gate_account = Self::get_account_info(ctx, token_gate_index)?;
+        let token_gate_account = try_get_account_info(ctx, token_gate_index)?;
         // consumes the gate token account
         evaluation_context.account_cursor += 1;
 
         let account = assert_is_ata(token_gate_account, &ctx.accounts.payer.key(), &self.mint)?;
 
         if account.amount >= self.amount {
-            let token_gate_mint = Self::get_account_info(ctx, token_gate_index + 1)?;
+            let token_gate_mint = try_get_account_info(ctx, token_gate_index + 1)?;
             // consumes the remaning account
             evaluation_context.account_cursor += 1;
 
@@ -69,8 +69,8 @@ impl Condition for TokenBurn {
     ) -> Result<()> {
         let token_gate_index = evaluation_context.indices["token_burn_index"];
         // the accounts have already being validated
-        let token_gate_account = Self::get_account_info(ctx, token_gate_index)?;
-        let token_gate_mint = Self::get_account_info(ctx, token_gate_index + 1)?;
+        let token_gate_account = try_get_account_info(ctx, token_gate_index)?;
+        let token_gate_mint = try_get_account_info(ctx, token_gate_index + 1)?;
 
         spl_token_burn(TokenBurnParams {
             mint: token_gate_mint.to_account_info(),

@@ -1,5 +1,11 @@
 import test from 'tape';
-import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
+import {
+  amman,
+  InitTransactions,
+  killStuckProcess,
+  newCandyGuardData,
+  newGuardSet,
+} from '../setup';
 import { PublicKey } from '@solana/web3.js';
 import { PROGRAM_ID } from '../../src/generated';
 
@@ -7,7 +13,7 @@ const API = new InitTransactions();
 
 killStuckProcess();
 
-test('mint limit', async (t) => {
+test('Mint Limit', async (t) => {
   // deploys a candy guard with a mint limit
 
   const { fstTxHandler, payerPair, connection } = await API.payer();
@@ -129,7 +135,7 @@ test('mint limit', async (t) => {
   await minterMintTx3.assertSuccess(t);
 });
 
-test('mint limit (limit = 2)', async (t) => {
+test('Mint Limit (limit = 2)', async (t) => {
   // deploys a candy guard with a mint limit
 
   const { fstTxHandler, payerPair, connection } = await API.payer();
@@ -271,4 +277,34 @@ test('mint limit (limit = 2)', async (t) => {
   );
 
   await minterMintTx4.assertSuccess(t);
+});
+
+test.only('Mint Limit (duplicated id)', async (t) => {
+  const { fstTxHandler, payerPair } = await API.payer();
+
+  // default guardSet
+  const data = newCandyGuardData();
+  data.default.mintLimit = {
+    id: 0,
+    limit: 1,
+  };
+  data.groups = [];
+
+  // VIP
+  const vipGroup1 = newGuardSet();
+  vipGroup1.startDate = {
+    date: 1662394820,
+  };
+  vipGroup1.mintLimit = {
+    id: 0,
+    limit: 1,
+  };
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup1,
+  });
+
+  const { tx: transaction } = await API.initialize(t, data, payerPair, fstTxHandler);
+  // executes the transaction
+  await transaction.assertError(t, /Duplicated mint limit id/i);
 });

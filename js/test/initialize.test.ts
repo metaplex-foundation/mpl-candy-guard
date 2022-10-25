@@ -1,7 +1,7 @@
 import test from 'tape';
 import spok from 'spok';
 import { BN } from 'bn.js';
-import { newCandyGuardData, InitTransactions, killStuckProcess } from './setup';
+import { newCandyGuardData, InitTransactions, killStuckProcess, newGuardSet } from './setup';
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { parseData } from '../src';
@@ -91,4 +91,50 @@ test('initialize: new candy guard (with guards)', async (t) => {
   spok(t, candyGuardData.default.thirdPartySigner, {
     signerKey: spokSamePubkey(payerPair.publicKey),
   });
+});
+
+test('Update (duplicated groups)', async (t) => {
+  const { fstTxHandler, payerPair } = await API.payer();
+
+  // default guardSet
+  const data = newCandyGuardData();
+
+  data.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  data.default.solPayment = {
+    lamports: new BN(100000000),
+    destination: payerPair.publicKey,
+  };
+  data.groups = [];
+
+  // VIP
+  const vipGroup1 = newGuardSet();
+  vipGroup1.startDate = {
+    date: 1662394820,
+  };
+  vipGroup1.solPayment = {
+    lamports: new BN(500),
+    destination: payerPair.publicKey,
+  };
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup1,
+  });
+
+  // OGs
+  const vipGroup2 = newGuardSet();
+  vipGroup2.solPayment = {
+    lamports: new BN(1000),
+    destination: payerPair.publicKey,
+  };
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup2,
+  });
+
+  const { tx: transaction } = await API.initialize(t, data, payerPair, fstTxHandler);
+  // executes the transaction
+  await transaction.assertError(t, /Duplicated group label/i);
 });

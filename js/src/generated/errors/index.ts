@@ -218,24 +218,24 @@ createErrorFromCodeLookup.set(0x1779, () => new GroupNotFoundError());
 createErrorFromNameLookup.set('GroupNotFound', () => new GroupNotFoundError());
 
 /**
- * LabelExceededLength: 'Group not found'
+ * ExceededLength: 'Value exceeded maximum length'
  *
  * @category Errors
  * @category generated
  */
-export class LabelExceededLengthError extends Error {
+export class ExceededLengthError extends Error {
   readonly code: number = 0x177a;
-  readonly name: string = 'LabelExceededLength';
+  readonly name: string = 'ExceededLength';
   constructor() {
-    super('Group not found');
+    super('Value exceeded maximum length');
     if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, LabelExceededLengthError);
+      Error.captureStackTrace(this, ExceededLengthError);
     }
   }
 }
 
-createErrorFromCodeLookup.set(0x177a, () => new LabelExceededLengthError());
-createErrorFromNameLookup.set('LabelExceededLength', () => new LabelExceededLengthError());
+createErrorFromCodeLookup.set(0x177a, () => new ExceededLengthError());
+createErrorFromNameLookup.set('ExceededLength', () => new ExceededLengthError());
 
 /**
  * CandyMachineEmpty: 'Candy machine is empty'
@@ -877,6 +877,46 @@ export class UnlockNotEnabledError extends Error {
 
 createErrorFromCodeLookup.set(0x1799, () => new UnlockNotEnabledError());
 createErrorFromNameLookup.set('UnlockNotEnabled', () => new UnlockNotEnabledError());
+
+/**
+ * DuplicatedGroupLabel: 'Duplicated group label'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class DuplicatedGroupLabelError extends Error {
+  readonly code: number = 0x179a;
+  readonly name: string = 'DuplicatedGroupLabel';
+  constructor() {
+    super('Duplicated group label');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, DuplicatedGroupLabelError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179a, () => new DuplicatedGroupLabelError());
+createErrorFromNameLookup.set('DuplicatedGroupLabel', () => new DuplicatedGroupLabelError());
+
+/**
+ * DuplicatedMintLimitId: 'Duplicated mint limit id'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class DuplicatedMintLimitIdError extends Error {
+  readonly code: number = 0x179b;
+  readonly name: string = 'DuplicatedMintLimitId';
+  constructor() {
+    super('Duplicated mint limit id');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, DuplicatedMintLimitIdError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179b, () => new DuplicatedMintLimitIdError());
+createErrorFromNameLookup.set('DuplicatedMintLimitId', () => new DuplicatedMintLimitIdError());
 
 /**
  * Attempts to resolve a custom program error from the provided error code.

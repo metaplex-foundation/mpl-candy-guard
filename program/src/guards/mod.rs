@@ -2,8 +2,11 @@ use std::collections::BTreeMap;
 
 pub use anchor_lang::prelude::*;
 
-use crate::instructions::{Route, RouteContext};
 pub use crate::{errors::CandyGuardError, instructions::mint::*, state::GuardSet};
+use crate::{
+    instructions::{Route, RouteContext},
+    state::CandyGuardData,
+};
 
 pub use address_gate::AddressGate;
 pub use allow_list::AllowList;
@@ -91,10 +94,10 @@ pub trait Condition {
 }
 
 pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
-    /// Return the number of bytes used by the guard configuration.
+    /// Returns the number of bytes used by the guard configuration.
     fn size() -> usize;
 
-    /// Return the feature mask for the guard.
+    /// Returns the feature mask for the guard.
     fn mask() -> u64;
 
     /// Executes an instruction. This function is called from the `route` instruction
@@ -112,17 +115,17 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
         features & Self::mask() > 0
     }
 
-    /// Enable the guard on the specified `features` value.
+    /// Enables the guard on the specified `features` value.
     fn enable(features: u64) -> u64 {
         features | Self::mask()
     }
 
-    /// Disable the guard on the specified `features` value.
+    /// Disables the guard on the specified `features` value.
     fn disable(features: u64) -> u64 {
         features & !Self::mask()
     }
 
-    /// Serialize the guard into the specified data array.
+    /// Serializes the guard into the specified data array.
     fn save(&self, data: &mut [u8], offset: usize) -> Result<()> {
         let mut result = Vec::with_capacity(Self::size());
         self.serialize(&mut result)?;
@@ -144,15 +147,10 @@ pub trait Guard: Condition + AnchorSerialize + AnchorDeserialize {
         }
     }
 
-    fn get_account_info<'c, 'info, T>(
-        ctx: &Context<'_, '_, 'c, 'info, T>,
-        index: usize,
-    ) -> Result<&'c AccountInfo<'info>> {
-        if index < ctx.remaining_accounts.len() {
-            Ok(&ctx.remaining_accounts[index])
-        } else {
-            err!(CandyGuardError::MissingRemainingAccount)
-        }
+    /// Verifies that the candy guard configuration is valid according to the rules
+    /// of the guard.
+    fn verify(_data: &CandyGuardData) -> Result<()> {
+        Ok(())
     }
 }
 pub struct EvaluationContext<'a> {
@@ -168,7 +166,9 @@ pub struct EvaluationContext<'a> {
     pub indices: BTreeMap<&'a str, usize>,
 }
 
-pub fn get_account_info<'c, 'info, T>(
+/// Utility function to try to get the account from the remaining accounts
+/// array at the specified index.
+pub fn try_get_account_info<'c, 'info, T>(
     ctx: &Context<'_, '_, 'c, 'info, T>,
     index: usize,
 ) -> Result<&'c AccountInfo<'info>> {

@@ -47,9 +47,9 @@ impl Condition for NftPayment {
 
         // validates that we received all required accounts
 
-        let nft_account = Self::get_account_info(ctx, index)?;
-        let nft_metadata = Self::get_account_info(ctx, index + 1)?;
-        let nft_mint = Self::get_account_info(ctx, index + 2)?;
+        let nft_account = try_get_account_info(ctx, index)?;
+        let nft_metadata = try_get_account_info(ctx, index + 1)?;
+        let nft_mint = try_get_account_info(ctx, index + 2)?;
         evaluation_context.account_cursor += 3;
 
         NftGate::verify_collection(
@@ -62,9 +62,9 @@ impl Condition for NftPayment {
         let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
         assert_keys_equal(&metadata.mint, nft_mint.key)?;
 
-        let destination = Self::get_account_info(ctx, index + 3)?;
-        let destination_ata = Self::get_account_info(ctx, index + 4)?;
-        let _atoken_program = Self::get_account_info(ctx, index + 5)?;
+        let destination = try_get_account_info(ctx, index + 3)?;
+        let destination_ata = try_get_account_info(ctx, index + 4)?;
+        let _atoken_program = try_get_account_info(ctx, index + 5)?;
         evaluation_context.account_cursor += 3;
 
         assert_keys_equal(destination.key, &self.destination)?;
@@ -95,10 +95,10 @@ impl Condition for NftPayment {
         evaluation_context: &mut EvaluationContext,
     ) -> Result<()> {
         let index = evaluation_context.indices["nft_payment_index"];
-        let nft_account = Self::get_account_info(ctx, index)?;
-        let nft_mint = Self::get_account_info(ctx, index + 2)?;
-        let destination = Self::get_account_info(ctx, index + 3)?;
-        let destination_ata = Self::get_account_info(ctx, index + 4)?;
+        let nft_account = try_get_account_info(ctx, index)?;
+        let nft_mint = try_get_account_info(ctx, index + 2)?;
+        let destination = try_get_account_info(ctx, index + 3)?;
+        let destination_ata = try_get_account_info(ctx, index + 4)?;
 
         // creates the ATA to receive the NFT
 

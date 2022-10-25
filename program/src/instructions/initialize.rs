@@ -8,6 +8,9 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> 
     candy_guard.bump = *ctx.bumps.get("candy_guard").unwrap();
     candy_guard.authority = ctx.accounts.authority.key();
 
+    // validates the input data
+    data.verify()?;
+
     let account_info = candy_guard.to_account_info();
     let mut account_data = account_info.data.borrow_mut();
 

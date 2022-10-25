@@ -1308,8 +1308,8 @@
     },
     {
       "code": 6010,
-      "name": "LabelExceededLength",
-      "msg": "Group not found"
+      "name": "ExceededLength",
+      "msg": "Value exceeded maximum length"
     },
     {
       "code": 6011,
@@ -1465,6 +1465,16 @@
       "code": 6041,
       "name": "UnlockNotEnabled",
       "msg": "Unlock is not enabled (not all NFTs are thawed)"
+    },
+    {
+      "code": 6042,
+      "name": "DuplicatedGroupLabel",
+      "msg": "Duplicated group label"
+    },
+    {
+      "code": 6043,
+      "name": "DuplicatedMintLimitId",
+      "msg": "Duplicated mint limit id"
     }
   ],
   "metadata": {

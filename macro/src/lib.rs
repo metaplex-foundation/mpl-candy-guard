@@ -169,6 +169,17 @@ pub fn derive(input: TokenStream) -> TokenStream {
         }
     });
 
+    let verify = fields.iter().map(|f| {
+        if is_option_t(&f.ty) {
+            let ty = unwrap_option_t(&f.ty);
+            quote! {
+                #ty::verify(data)?;
+            }
+        } else {
+            quote! {}
+        }
+    });
+
     let expanded = quote! {
         impl #name {
             pub fn from_data(data: &[u8]) -> anchor_lang::Result<(Self, u64)> {
@@ -230,6 +241,12 @@ pub fn derive(input: TokenStream) -> TokenStream {
                     #(#route_arm,)*
                     _ => err!(CandyGuardError::InstructionNotFound)
                 }
+            }
+
+            pub fn verify(data: &CandyGuardData) -> Result<()> {
+                #(#verify)*
+
+                Ok(())
             }
         }
         /*
