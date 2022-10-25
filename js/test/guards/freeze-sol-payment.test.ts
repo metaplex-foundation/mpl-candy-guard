@@ -779,6 +779,8 @@ test('Freeze Sol Payment (thaw with closed candy guard)', async (t) => {
 
   // thaw
 
+  await sleep(1000); // make sure that the freeze period is over
+
   const thaw_accounts: RouteInstructionAccounts = {
     candyGuard: candyGuard,
     candyMachine: candyMachine,

@@ -347,21 +347,6 @@
   ],
   "accounts": [
     {
-      "name": "AllowListProof",
-      "docs": [
-        "PDA to track whether an address has been validated or not."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
       "name": "FreezeEscrow",
       "docs": [
         "PDA to store the frozen funds."
@@ -428,21 +413,6 @@
       }
     },
     {
-      "name": "MintCounter",
-      "docs": [
-        "PDA to track the number of mints for an individual address."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "count",
-            "type": "u16"
-          }
-        ]
-      }
-    },
-    {
       "name": "CandyGuard",
       "type": {
         "kind": "struct",
@@ -503,6 +473,21 @@
                 32
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AllowListProof",
+      "docs": [
+        "PDA to track whether an address has been validated or not."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -665,6 +650,21 @@
             "docs": [
               "Limit of mints per individual address."
             ],
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintCounter",
+      "docs": [
+        "PDA to track the number of mints for an individual address."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "count",
             "type": "u16"
           }
         ]
