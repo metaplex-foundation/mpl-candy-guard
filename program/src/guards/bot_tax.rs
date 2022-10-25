@@ -49,7 +49,7 @@ impl Condition for BotTax {
                 return err!(CandyGuardError::MintNotLastTransaction);
             }
 
-            // verifies that only authorizes programs have instructions in the transaction
+            // verifies that only authorized programs have instructions in the transaction
             verify_programs(ix_sysvar_account_info, DEFAULT_PROGRAMS)?;
         }
 

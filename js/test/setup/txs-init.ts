@@ -382,7 +382,7 @@ export class InitTransactions {
       tx: handler.sendAndConfirmTransaction(
         tx,
         [payer, mint, extendedMint],
-        'tx: Candy Guard Mint (invalid program)',
+        'tx: Candy Guard Mint (invalid instruction)',
       ),
     };
   }
