@@ -7,12 +7,12 @@ use super::*;
 use crate::{errors::CandyGuardError, state::GuardType, utils::cmp_pubkeys};
 
 // Default list of authorized programs.
-static DEFAULT_PROGRAMS: &[&Pubkey] = &[
-    &crate::ID,
-    &mpl_candy_machine_core::ID,
-    &system_program::ID,
-    &spl_token::ID,
-    &spl_associated_token_account::ID,
+pub static DEFAULT_PROGRAMS: &[Pubkey] = &[
+    crate::ID,
+    mpl_candy_machine_core::ID,
+    system_program::ID,
+    spl_token::ID,
+    spl_associated_token_account::ID,
 ];
 
 /// Guard that restricts the programs that can be in a mint transaction. The guard allows the
@@ -42,50 +42,51 @@ impl Condition for ProgramGate {
     ) -> Result<()> {
         let ix_sysvar_account = &ctx.accounts.instruction_sysvar_account;
         let ix_sysvar_account_info = ix_sysvar_account.to_account_info();
-        let ix_sysvar = ix_sysvar_account_info.data.borrow();
 
-        let mut index = 0;
-        // determines the total number of instructions in the transaction
-        let num_instructions =
-            read_u16(&mut index, &ix_sysvar).map_err(|_| ProgramError::InvalidAccountData)?;
+        let mut programs: Vec<Pubkey> =
+            Vec::with_capacity(DEFAULT_PROGRAMS.len() + self.additional.len());
+        programs.extend(DEFAULT_PROGRAMS);
+        programs.extend(&self.additional);
 
-        for index in 0..num_instructions {
-            let mut offset = 2 + (index * 2) as usize;
+        verify_programs(ix_sysvar_account_info, &programs)
+    }
+}
 
-            // offset for the number of accounts
-            offset = read_u16(&mut offset, &ix_sysvar).unwrap() as usize;
-            let num_accounts = read_u16(&mut offset, &ix_sysvar).unwrap();
+pub fn verify_programs(sysvar: AccountInfo, programs: &[Pubkey]) -> Result<()> {
+    let sysvar_data = sysvar.data.borrow();
 
-            // offset for the program id
-            offset += (num_accounts as usize) * (1 + 32);
-            let program_id = read_pubkey(&mut offset, &ix_sysvar).unwrap();
+    let mut index = 0;
+    // determines the total number of instructions in the transaction
+    let num_instructions =
+        read_u16(&mut index, &sysvar_data).map_err(|_| ProgramError::InvalidAccountData)?;
 
-            let mut found = false;
+    for index in 0..num_instructions {
+        let mut offset = 2 + (index * 2) as usize;
 
-            for program in &self.additional {
-                if cmp_pubkeys(&program_id, program) {
-                    found = true;
-                    break;
-                }
-            }
+        // offset for the number of accounts
+        offset = read_u16(&mut offset, &sysvar_data).unwrap() as usize;
+        let num_accounts = read_u16(&mut offset, &sysvar_data).unwrap();
 
-            if !found {
-                for program in DEFAULT_PROGRAMS {
-                    if cmp_pubkeys(&program_id, program) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
+        // offset for the program id
+        offset += (num_accounts as usize) * (1 + 32);
+        let program_id = read_pubkey(&mut offset, &sysvar_data).unwrap();
 
-            if !found {
-                msg!("Transaction had ix with program id {}", program_id);
-                // if we reach this point, the program id was not found in the
-                // programs list (the validation will fail)
-                return err!(CandyGuardError::UnauthorizedProgramFound);
+        let mut found = false;
+
+        for program in programs {
+            if cmp_pubkeys(&program_id, program) {
+                found = true;
+                break;
             }
         }
 
-        Ok(())
+        if !found {
+            msg!("Transaction had ix with program id {}", program_id);
+            // if we reach this point, the program id was not found in the
+            // programs list (the validation will fail)
+            return err!(CandyGuardError::UnauthorizedProgramFound);
+        }
     }
+
+    Ok(())
 }

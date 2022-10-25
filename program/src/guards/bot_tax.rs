@@ -2,12 +2,16 @@ use solana_program::{
     program::invoke, system_instruction, sysvar::instructions::get_instruction_relative,
 };
 
-use super::*;
+use super::{
+    program_gate::{verify_programs, DEFAULT_PROGRAMS},
+    *,
+};
 use crate::{errors::CandyGuardError, state::GuardType};
 
 /// Guard is used to:
-/// * charge a penalty for invalid transactions.
-/// * validate that the mint transaction is the last transaction.
+/// * charge a penalty for invalid transactions
+/// * validate that the mint transaction is the last transaction
+/// * verify that only authorized programs have instructions
 ///
 /// The `bot_tax` is applied to any error that occurs during the
 /// validation of the guards.
@@ -44,6 +48,9 @@ impl Condition for BotTax {
                 msg!("Failing and halting due to an extra unauthorized instruction");
                 return err!(CandyGuardError::MintNotLastTransaction);
             }
+
+            // verifies that only authorizes programs have instructions in the transaction
+            verify_programs(ix_sysvar_account_info, DEFAULT_PROGRAMS)?;
         }
 
         Ok(())
