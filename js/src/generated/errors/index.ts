@@ -919,6 +919,49 @@ createErrorFromCodeLookup.set(0x179b, () => new DuplicatedMintLimitIdError());
 createErrorFromNameLookup.set('DuplicatedMintLimitId', () => new DuplicatedMintLimitIdError());
 
 /**
+ * UnauthorizedProgramFound: 'An unauthorized program was found in the transaction'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class UnauthorizedProgramFoundError extends Error {
+  readonly code: number = 0x179c;
+  readonly name: string = 'UnauthorizedProgramFound';
+  constructor() {
+    super('An unauthorized program was found in the transaction');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, UnauthorizedProgramFoundError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179c, () => new UnauthorizedProgramFoundError());
+createErrorFromNameLookup.set(
+  'UnauthorizedProgramFound',
+  () => new UnauthorizedProgramFoundError(),
+);
+
+/**
+ * ExceededProgramListSize: 'Exceeded the maximum number of programs in the additional list'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ExceededProgramListSizeError extends Error {
+  readonly code: number = 0x179d;
+  readonly name: string = 'ExceededProgramListSize';
+  constructor() {
+    super('Exceeded the maximum number of programs in the additional list');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ExceededProgramListSizeError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179d, () => new ExceededProgramListSizeError());
+createErrorFromNameLookup.set('ExceededProgramListSize', () => new ExceededProgramListSizeError());
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

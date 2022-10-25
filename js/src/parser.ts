@@ -12,6 +12,7 @@ import {
   GuardSet,
   mintLimitBeet,
   nftPaymentBeet,
+  programGateBeet,
   startDateBeet,
   thirdPartySignerBeet,
   tokenGateBeet,
@@ -66,6 +67,8 @@ import { tokenBurnBeet } from './generated/types/TokenBurn';
  *   pub freeze_sol_payment: Option<FreezeSolPayment>,
  *   /// Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period).
  *   pub freeze_token_payment: Option<FreezeTokenPayment>,
+ *   /// Program gate guard (restricts the programs that can be in a mint transaction).
+ *   pub program_gate: Option<ProgramGate>,
  * }
  * ```
  */
@@ -89,6 +92,7 @@ type Guards = {
   /* 16 */ tokenBurnEnabled: boolean;
   /* 17 */ freezeSolPaymentEnabled: boolean;
   /* 18 */ freezeTokenPaymentEnabled: boolean;
+  /* 19 */ programGateEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -110,6 +114,7 @@ const GUARDS_SIZE = {
   /* 16 */ tokenBurn: 40,
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
+  /* 19 */ programGate: 164,
 };
 const GUARDS_COUNT = 18;
 const MAX_LABEL_LENGTH = 6;
@@ -141,6 +146,7 @@ function determineGuards(buffer: Buffer): Guards {
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   ] = guards;
 
   return {
@@ -162,6 +168,7 @@ function determineGuards(buffer: Buffer): Guards {
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   };
 }
 
@@ -209,6 +216,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -325,6 +333,11 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     data.freezeTokenPayment = freezeTokenPayment;
     cursor += GUARDS_SIZE.freezeTokenPayment;
   }
+  if (programGateEnabled) {
+    const [programGate] = programGateBeet.deserialize(buffer, cursor);
+    data.programGate = programGate;
+    cursor += GUARDS_SIZE.programGate;
+  }
 
   return {
     guardSet: {
@@ -346,6 +359,7 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
       tokenBurn: data.tokenBurn ?? null,
       freezeSolPayment: data.freezeSolPayment ?? null,
       freezeTokenPayment: data.freezeTokenPayment ?? null,
+      programGate: data.programGate ?? null,
     },
     offset: cursor,
   };

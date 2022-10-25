@@ -16,6 +16,7 @@ export * from './MintLimit';
 export * from './NftBurn';
 export * from './NftGate';
 export * from './NftPayment';
+export * from './ProgramGate';
 export * from './RedeemedAmount';
 export * from './RouteArgs';
 export * from './SolPayment';
