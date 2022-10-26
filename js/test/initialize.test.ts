@@ -10,7 +10,7 @@ const API = new InitTransactions();
 
 killStuckProcess();
 
-test.only('initialize: new candy guard (no guards)', async (t) => {
+test('initialize: new candy guard (no guards)', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();

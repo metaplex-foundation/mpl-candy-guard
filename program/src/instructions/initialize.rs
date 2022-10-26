@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 use crate::state::{CandyGuard, CandyGuardData, DATA_OFFSET, SEED};
 
 pub fn initialize(ctx: Context<Initialize>, data: Vec<u8>) -> Result<()> {
-    msg!("----> Size: {}", data.len());
     // deserializes the candy guard data
     let data = CandyGuardData::load(&data)?;
     // validates guard settings
@@ -26,7 +25,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        space = data.len(),
+        space = DATA_OFFSET + data.len(),
         seeds = [SEED, base.key().as_ref()],
         bump
     )]
