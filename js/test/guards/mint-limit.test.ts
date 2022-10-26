@@ -279,7 +279,7 @@ test('Mint Limit (limit = 2)', async (t) => {
   await minterMintTx4.assertSuccess(t);
 });
 
-test.only('Mint Limit (duplicated id)', async (t) => {
+test('Mint Limit (duplicated id)', async (t) => {
   const { fstTxHandler, payerPair } = await API.payer();
 
   // default guardSet

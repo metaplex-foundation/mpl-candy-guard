@@ -10,7 +10,7 @@ const API = new InitTransactions();
 
 killStuckProcess();
 
-test('update: enable guards', async (t) => {
+test('Update: enable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
@@ -62,7 +62,7 @@ test('update: enable guards', async (t) => {
   t.true(updatedBalance < balance, 'balance after update must be lower');
 });
 
-test('update: disable guards', async (t) => {
+test('Update: disable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   // default guardSet
@@ -155,7 +155,7 @@ test('update: disable guards', async (t) => {
   t.true(updatedBalance > balance, 'balance after update must be greater');
 });
 
-test.only('Update (duplicated groups)', async (t) => {
+test('Update: duplicated groups', async (t) => {
   const { fstTxHandler, payerPair } = await API.payer();
 
   // default guardSet
@@ -217,43 +217,74 @@ test.only('Update (duplicated groups)', async (t) => {
   await updateTransaction.assertError(t, /Duplicated group label/i);
 });
 
-test('Update: serialization', async (t) => {
+test('Update: disable all', async (t) => {
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
   // default guardSet
   const data = newCandyGuardData();
+  const { tx: transaction, candyGuard: address } = await API.initialize(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await transaction.assertSuccess(t);
 
-  data.default.botTax = {
+  // default guardSet
+  const updated = newCandyGuardData();
+
+  updated.default.botTax = {
     lamports: new BN(100000000),
     lastInstruction: true,
   };
-  data.groups = [];
+  updated.groups = [];
 
-  // VIP
-  const vipGroup1 = newGuardSet();
-  vipGroup1.startDate = {
+  // group1
+  const group1 = newGuardSet();
+  group1.startDate = {
     date: 1662394820,
   };
-  vipGroup1.mintLimit = {
+  group1.mintLimit = {
     id: 0,
     limit: 5,
   };
-  data.groups?.push({
-    label: 'VIP',
-    guards: vipGroup1,
+  updated.groups?.push({
+    label: 'group1',
+    guards: group1,
   });
 
-  // OGs
-  const vipGroup2 = newGuardSet();
-  data.groups?.push({
-    label: 'VIP',
-    guards: vipGroup2,
+  // group2
+  const group2 = newGuardSet();
+  group2.programGate = {
+    additional: [],
+  };
+  updated.groups?.push({
+    label: 'group2',
+    guards: group2,
   });
 
-  const buffer = serialize(data);
+  const { tx: updateTransaction } = await API.update(t, address, updated, payerPair, fstTxHandler);
+  // executes the transaction
+  await updateTransaction.assertSuccess(t);
 
-  const otherData = deserialize(buffer);
+  // disable all guards
 
-  console.log(data);
-  console.log(otherData);
+  const disabled = newCandyGuardData();
 
-  t.same(data.groups.length, otherData.groups?.length);
+  const { tx: disableTransaction } = await API.update(
+    t,
+    address,
+    disabled,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await disableTransaction.assertSuccess(t, [/Withdrawing/i]);
+
+  // parse the guards configuration
+  const accountInfo = await connection.getAccountInfo(address);
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET));
+
+  spok(t, candyGuardData, disabled);
 });
