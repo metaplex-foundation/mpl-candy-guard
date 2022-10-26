@@ -4,7 +4,7 @@ import { newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess } fr
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { BN } from 'bn.js';
-import { deserialize, serialize } from '../src';
+import { deserialize } from '../src';
 
 const API = new InitTransactions();
 
