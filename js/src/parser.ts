@@ -24,51 +24,7 @@ import { addressGateBeet } from './generated/types/AddressGate';
 import { nftGateBeet } from './generated/types/NftGate';
 import { nftBurnBeet } from './generated/types/NftBurn';
 import { tokenBurnBeet } from './generated/types/TokenBurn';
-
-/**
- * Matching the guards of the related struct in the Rust program.
- * Make sure to update this whenever the Rust struct changes.
- * ```
- * pub struct GuardSet {
- *   /// Last instruction check and bot tax (penalty for invalid transactions).
- *   pub bot_tax: Option<BotTax>,
- *   /// Sol payment guard (set the price for the mint in lamports).
- *   pub sol_payment: Option<SolPayment>,
- *   /// Token payment guard (set the price for the mint in spl-token amount).
- *   pub token_payment: Option<TokenPayment>,
- *   /// Start data guard (controls when minting is allowed).
- *   pub start_date: Option<StartDate>,
- *   /// Third party signer guard (requires an extra signer for the transaction).
- *   pub third_party_signer: Option<ThirdPartySigner>,
- *   /// Token gate guard (restrict access to holders of a specific token).
- *   pub token_gate: Option<TokenGate>,
- *   /// Gatekeeper guard (captcha challenge).
- *   pub gatekeeper: Option<Gatekeeper>,
- *   /// End date guard (set an end date to stop the mint).
- *   pub end_date: Option<EndDate>,
- *   /// Allow list guard (curated list of allowed addresses).
- *   pub allow_list: Option<AllowList>,
- *   /// Mint limit guard (add a limit on the number of mints per wallet).
- *   pub mint_limit: Option<MintLimit>,
- *   /// NFT Payment (charge an NFT in order to mint).
- *   pub nft_payment: Option<NftPayment>,
- *   /// Redeemed amount guard (add a limit on the overall number of items minted).
- *   pub redeemed_amount: Option<RedeemedAmount>,
- *   /// Address gate (check access against a specified address).
- *   pub address_gate: Option<AddressGate>,
- *   /// NFT gate guard (check access based on holding a specified NFT).
- *   pub nft_gate: Option<NftGate>,
- *   /// NFT burn guard (burn a specified NFT).
- *   pub nft_burn: Option<NftBurn>,
- *   /// Token burn guard (burn a specified amount of spl-token).
- *   pub token_burn: Option<TokenBurn>,
- *   /// Freeze sol payment (set the price for the mint in lamports with a freeze period).
- *   pub freeze_sol_payment: Option<FreezeSolPayment>,
- *   /// Freeze token payment guard (set the price for the mint in spl-token amount with a freeze period).
- *   pub freeze_token_payment: Option<FreezeTokenPayment>,
- * }
- * ```
- */
+import { u32, u64 } from '@metaplex-foundation/beet';
 
 type Guards = {
   /* 01 */ botTaxEnabled: boolean;
@@ -111,10 +67,32 @@ const GUARDS_SIZE = {
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
 };
-const GUARDS_COUNT = 18;
+
+const GUARDS_NAME = [
+  /* 01 */ 'botTax',
+  /* 02 */ 'solPayment',
+  /* 03 */ 'tokenPayment',
+  /* 04 */ 'startDate',
+  /* 05 */ 'thirdPartySigner',
+  /* 06 */ 'tokenGate',
+  /* 07 */ 'gatekeeper',
+  /* 08 */ 'endDate',
+  /* 09 */ 'allowList',
+  /* 10 */ 'mintLimit',
+  /* 11 */ 'nftPayment',
+  /* 12 */ 'redeemedAmount',
+  /* 13 */ 'addressGate',
+  /* 14 */ 'nftGate',
+  /* 15 */ 'nftBurn',
+  /* 16 */ 'tokenBurn',
+  /* 17 */ 'freezeSolPayment',
+  /* 18 */ 'freezeTokenPayment',
+];
+
+const GUARDS_COUNT = GUARDS_NAME.length;
 const MAX_LABEL_LENGTH = 6;
 
-function determineGuards(buffer: Buffer): Guards {
+function guardsFromData(buffer: Buffer): Guards {
   const enabled = new BN(beet.u64.read(buffer, 0)).toNumber();
 
   const guards: boolean[] = [];
@@ -164,10 +142,60 @@ function determineGuards(buffer: Buffer): Guards {
     freezeTokenPaymentEnabled,
   };
 }
+/*
+function guardsFromObject(guardSet: GuardSet): Guards {
+  type ObjectKey = keyof typeof guardSet;
+  const guards: boolean[] = [];
+  for (let i = 0; i < GUARDS_COUNT; i++) {
+    guards.push(!guardSet[GUARDS_NAME[i] as ObjectKey]);
+  }
 
-export function parseData(buffer: Buffer): CandyGuardData {
+  const [
+    botTaxEnabled,
+    solPaymentEnabled,
+    tokenPaymentEnabled,
+    startDateEnabled,
+    thirdPartySignerEnabled,
+    tokenGateEnabled,
+    gatekeeperEnabled,
+    endDateEnabled,
+    allowListEnabled,
+    mintLimitEnabled,
+    nftPaymentEnabled,
+    redeemedAmountEnabled,
+    addressGateEnabled,
+    nftGateEnabled,
+    nftBurnEnabled,
+    tokenBurnEnabled,
+    freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
+  ] = guards;
+
+  return {
+    botTaxEnabled,
+    solPaymentEnabled,
+    tokenPaymentEnabled,
+    startDateEnabled,
+    thirdPartySignerEnabled,
+    tokenGateEnabled,
+    gatekeeperEnabled,
+    endDateEnabled,
+    allowListEnabled,
+    mintLimitEnabled,
+    nftPaymentEnabled,
+    redeemedAmountEnabled,
+    addressGateEnabled,
+    nftGateEnabled,
+    nftBurnEnabled,
+    tokenBurnEnabled,
+    freezeSolPaymentEnabled,
+    freezeTokenPaymentEnabled,
+  };
+}
+*/
+export function deserialize(buffer: Buffer): CandyGuardData {
   // parses the default guard set
-  const { guardSet: defaultSet, offset } = parseGuardSet(buffer);
+  const { guardSet: defaultSet, offset } = deserializeGuardSet(buffer);
   // retrieves the number of groups
   const groupsCount = new BN(beet.u32.read(buffer, offset)).toNumber();
   const groups: Group[] = [];
@@ -177,7 +205,7 @@ export function parseData(buffer: Buffer): CandyGuardData {
     // parses each individual group
     const label = buffer.subarray(cursor, cursor + MAX_LABEL_LENGTH).toString();
     cursor += MAX_LABEL_LENGTH;
-    const { guardSet: guards, offset } = parseGuardSet(buffer.subarray(cursor));
+    const { guardSet: guards, offset } = deserializeGuardSet(buffer.subarray(cursor));
     groups.push({ label, guards });
     cursor += offset;
   }
@@ -188,8 +216,60 @@ export function parseData(buffer: Buffer): CandyGuardData {
   };
 }
 
-function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
-  const guards = determineGuards(buffer);
+export function serialize(data: CandyGuardData): Buffer {
+  const buffer = Buffer.alloc(size(data));
+  // serializes the default guard set
+  let offset = serializeGuardSet(buffer, 0, data.default);
+
+  // write the number of groups
+  const groupsCount = data.groups ? data.groups.length : 0;
+  u32.write(buffer, offset, groupsCount);
+  offset += u32.byteSize;
+
+  for (let i = 0; i < groupsCount; i++) {
+    // serializes each individual group
+    const group = data.groups!.at(i);
+    // label
+    buffer.write(group!.label, offset, MAX_LABEL_LENGTH, 'utf8');
+    offset += MAX_LABEL_LENGTH;
+    // guards
+    offset = serializeGuardSet(buffer, offset, group!.guards);
+  }
+
+  return buffer;
+}
+
+function size(data: CandyGuardData): number {
+  let size = guardSetSize(data.default);
+  size += u32.byteSize;
+
+  if (data.groups) {
+    for (let i = 0; i < data.groups.length; i++) {
+      size += MAX_LABEL_LENGTH;
+      size += guardSetSize(data.groups.at(i)!.guards);
+    }
+  }
+
+  return size;
+}
+
+function guardSetSize(guardSet: GuardSet): number {
+  type ObjectKey = keyof typeof guardSet;
+  const guards: number[] = [];
+  for (let i = 0; i < GUARDS_COUNT; i++) {
+    const index = GUARDS_NAME[i] as ObjectKey;
+    if (guardSet[index]) {
+      guards.push(GUARDS_SIZE[index]);
+    }
+  }
+
+  return (
+    u64.byteSize + guards.reduce((previousValue, currentValue) => previousValue + currentValue, 0)
+  );
+}
+
+function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
+  const guards = guardsFromData(buffer);
   const {
     botTaxEnabled,
     startDateEnabled,
@@ -214,7 +294,6 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
 
   // data offset for deserialization (skip u64 features flag)
   let cursor = beet.u64.byteSize;
-  // deserialized guards
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
   const data: Record<string, any> = {};
 
@@ -349,4 +428,144 @@ function parseGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
     },
     offset: cursor,
   };
+}
+
+function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): number {
+  // saves the initial position to write the features flag
+  const start = offset;
+  // skip the bytes for the feature flag
+  offset += u64.byteSize;
+
+  let features = 0;
+  let index = 0;
+
+  if (guardSet.botTax) {
+    botTaxBeet.write(buffer, offset, guardSet.botTax);
+    offset += GUARDS_SIZE.botTax;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.solPayment) {
+    solPaymentBeet.write(buffer, offset, guardSet.solPayment);
+    offset += GUARDS_SIZE.solPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.tokenPayment) {
+    tokenPaymentBeet.write(buffer, offset, guardSet.tokenPayment);
+    offset += GUARDS_SIZE.tokenPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.startDate) {
+    startDateBeet.write(buffer, offset, guardSet.startDate);
+    offset += GUARDS_SIZE.startDate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.thirdPartySigner) {
+    thirdPartySignerBeet.write(buffer, offset, guardSet.thirdPartySigner);
+    offset += GUARDS_SIZE.thirdPartySigner;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.tokenGate) {
+    tokenGateBeet.write(buffer, offset, guardSet.tokenGate);
+    offset += GUARDS_SIZE.tokenGate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.gatekeeper) {
+    gatekeeperBeet.write(buffer, offset, guardSet.gatekeeper);
+    offset += GUARDS_SIZE.gatekeeper;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.endDate) {
+    endDateBeet.write(buffer, offset, guardSet.endDate);
+    offset += GUARDS_SIZE.endDate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.allowList) {
+    allowListBeet.write(buffer, offset, guardSet.allowList);
+    offset += GUARDS_SIZE.allowList;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.mintLimit) {
+    mintLimitBeet.write(buffer, offset, guardSet.mintLimit);
+    offset += GUARDS_SIZE.mintLimit;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.nftPayment) {
+    nftPaymentBeet.write(buffer, offset, guardSet.nftPayment);
+    offset += GUARDS_SIZE.nftPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.redeemedAmount) {
+    redeemedAmountBeet.write(buffer, offset, guardSet.redeemedAmount);
+    offset += GUARDS_SIZE.redeemedAmount;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.addressGate) {
+    addressGateBeet.write(buffer, offset, guardSet.addressGate);
+    offset += GUARDS_SIZE.addressGate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.nftGate) {
+    nftGateBeet.write(buffer, offset, guardSet.nftGate);
+    offset += GUARDS_SIZE.nftGate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.nftBurn) {
+    nftBurnBeet.write(buffer, offset, guardSet.nftBurn);
+    offset += GUARDS_SIZE.nftBurn;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.tokenBurn) {
+    tokenBurnBeet.write(buffer, offset, guardSet.tokenBurn);
+    offset += GUARDS_SIZE.tokenBurn;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.freezeSolPayment) {
+    freezeSolPaymentBeet.write(buffer, offset, guardSet.freezeSolPayment);
+    offset += GUARDS_SIZE.freezeSolPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.freezeTokenPayment) {
+    freezeTokenPaymentBeet.write(buffer, offset, guardSet.freezeTokenPayment);
+    offset += GUARDS_SIZE.freezeTokenPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  u64.write(buffer, start, features);
+
+  return offset;
 }

@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
 use instructions::*;
-use state::*;
 
 pub mod errors;
 pub mod guards;
@@ -16,7 +15,7 @@ pub mod candy_guard {
     use super::*;
 
     /// Create a new candy guard account.
-    pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> {
+    pub fn initialize(ctx: Context<Initialize>, data: Vec<u8>) -> Result<()> {
         instructions::initialize(ctx, data)
     }
 
@@ -50,7 +49,7 @@ pub mod candy_guard {
     }
 
     /// Update the candy guard configuration.
-    pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
+    pub fn update(ctx: Context<Update>, data: Vec<u8>) -> Result<()> {
         instructions::update(ctx, data)
     }
 

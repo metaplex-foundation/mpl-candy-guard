@@ -4,7 +4,7 @@ import { newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess } fr
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { BN } from 'bn.js';
-import { parseData } from '../src';
+import { deserialize, serialize } from '../src';
 
 const API = new InitTransactions();
 
@@ -113,7 +113,7 @@ test('update: disable guards', async (t) => {
 
   // parse the guards configuration
   let accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET)!);
 
   t.true(candyGuardData.groups?.length === 2, 'expected 2 groups');
 
@@ -155,7 +155,7 @@ test('update: disable guards', async (t) => {
   t.true(updatedBalance > balance, 'balance after update must be greater');
 });
 
-test('Update (duplicated groups)', async (t) => {
+test.only('Update (duplicated groups)', async (t) => {
   const { fstTxHandler, payerPair } = await API.payer();
 
   // default guardSet
@@ -215,4 +215,45 @@ test('Update (duplicated groups)', async (t) => {
   );
   // executes the transaction
   await updateTransaction.assertError(t, /Duplicated group label/i);
+});
+
+test('Update: serialization', async (t) => {
+  // default guardSet
+  const data = newCandyGuardData();
+
+  data.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  data.groups = [];
+
+  // VIP
+  const vipGroup1 = newGuardSet();
+  vipGroup1.startDate = {
+    date: 1662394820,
+  };
+  vipGroup1.mintLimit = {
+    id: 0,
+    limit: 5,
+  };
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup1,
+  });
+
+  // OGs
+  const vipGroup2 = newGuardSet();
+  data.groups?.push({
+    label: 'VIP',
+    guards: vipGroup2,
+  });
+
+  const buffer = serialize(data);
+
+  const otherData = deserialize(buffer);
+
+  console.log(data);
+  console.log(otherData);
+
+  t.same(data.groups.length, otherData.groups?.length);
 });

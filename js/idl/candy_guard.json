@@ -37,9 +37,7 @@
       "args": [
         {
           "name": "data",
-          "type": {
-            "defined": "CandyGuardData"
-          }
+          "type": "bytes"
         }
       ]
     },
@@ -284,9 +282,7 @@
       "args": [
         {
           "name": "data",
-          "type": {
-            "defined": "CandyGuardData"
-          }
+          "type": "bytes"
         }
       ]
     },

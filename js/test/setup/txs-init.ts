@@ -63,6 +63,7 @@ import {
   keypairIdentity,
   Metaplex,
 } from '@metaplex-foundation/js';
+import { serialize } from '../../src';
 
 const HELPER = new CandyMachineHelper();
 
@@ -143,7 +144,7 @@ export class InitTransactions {
     };
 
     const args: InitializeInstructionArgs = {
-      data: data,
+      data: serialize(data),
     };
 
     const tx = new Transaction().add(createInitializeInstruction(accounts, args));
@@ -213,7 +214,7 @@ export class InitTransactions {
     };
 
     const args: UpdateInstructionArgs = {
-      data,
+      data: serialize(data),
     };
 
     const tx = new Transaction().add(createUpdateInstruction(accounts, args));
