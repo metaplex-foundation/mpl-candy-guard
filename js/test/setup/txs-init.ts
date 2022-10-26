@@ -15,6 +15,8 @@ import {
   TransactionInstruction,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   AccountMeta,
+  StakeProgram,
+  Authorized,
 } from '@solana/web3.js';
 import { Test } from 'tape';
 import { amman } from '.';
@@ -65,12 +67,12 @@ import {
 } from '@metaplex-foundation/js';
 import { serialize } from '../../src';
 
-const HELPER = new CandyMachineHelper();
-
 export class InitTransactions {
+  readonly HELPER: CandyMachineHelper;
   readonly getKeypair: LoadOrGenKeypair | GenLabeledKeypair;
   constructor(readonly resuseKeypairs = false) {
     this.getKeypair = resuseKeypairs ? amman.loadOrGenKeypair : amman.genLabeledKeypair;
+    this.HELPER = new CandyMachineHelper();
   }
 
   // wallets
@@ -259,6 +261,227 @@ export class InitTransactions {
     mintArgs?: Uint8Array | null,
     label?: string | null,
   ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const { instructions } = await this.mintInstruction(
+      t,
+      candyGuard,
+      candyMachine,
+      payer,
+      mint,
+      handler,
+      connection,
+      remainingAccounts,
+      mintArgs,
+      label,
+    );
+
+    const tx = new Transaction().add(...instructions);
+
+    return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard Mint') };
+  }
+
+  async withdraw(
+    t: Test,
+    candyGuard: PublicKey,
+    payer: Keypair,
+    handler: PayerTransactionHandler,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const accounts: WithdrawInstructionAccounts = {
+      candyGuard: candyGuard,
+      authority: payer.publicKey,
+    };
+
+    const tx = new Transaction().add(createWithdrawInstruction(accounts));
+
+    return {
+      tx: handler.sendAndConfirmTransaction(tx, [payer], 'tx: Withdraw'),
+    };
+  }
+
+  async mintWithInvalidProgram(
+    t: Test,
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const { instructions } = await this.mintInstruction(
+      t,
+      candyGuard,
+      candyMachine,
+      payer,
+      mint,
+      handler,
+      connection,
+      remainingAccounts,
+      mintArgs,
+      label,
+    );
+
+    instructions.push(
+      StakeProgram.initialize({
+        stakePubkey: payer.publicKey,
+        authorized: new Authorized(payer.publicKey, payer.publicKey),
+      }),
+    );
+
+    const tx = new Transaction().add(...instructions);
+
+    return {
+      tx: handler.sendAndConfirmTransaction(
+        tx,
+        [payer, mint],
+        'tx: Candy Guard Mint (invalid program)',
+      ),
+    };
+  }
+
+  async mintWithInvalidInstruction(
+    t: Test,
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const { instructions } = await this.mintInstruction(
+      t,
+      candyGuard,
+      candyMachine,
+      payer,
+      mint,
+      handler,
+      connection,
+      remainingAccounts,
+      mintArgs,
+      label,
+    );
+
+    const [, extendedMint] = await amman.genLabeledKeypair('Extended Mint Account');
+
+    instructions.push(
+      SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: extendedMint.publicKey,
+        lamports: await connection.getMinimumBalanceForRentExemption(MintLayout.span),
+        space: MintLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      }),
+    );
+
+    const tx = new Transaction().add(...instructions);
+
+    return {
+      tx: handler.sendAndConfirmTransaction(
+        tx,
+        [payer, mint, extendedMint],
+        'tx: Candy Guard Mint (invalid instruction)',
+      ),
+    };
+  }
+
+  async deploy(
+    t: Test,
+    guards: CandyGuardData,
+    payer: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+  ): Promise<{ candyGuard: PublicKey; candyMachine: PublicKey }> {
+    // candy machine
+
+    const [, candyMachine] = await amman.genLabeledKeypair('Candy Machine Account');
+
+    const items = 10;
+
+    const candyMachineData = {
+      itemsAvailable: items,
+      symbol: 'CORE',
+      sellerFeeBasisPoints: 500,
+      maxSupply: 0,
+      isMutable: true,
+      retainAuthority: true,
+      creators: [
+        {
+          address: payer.publicKey,
+          verified: false,
+          percentageShare: 100,
+        },
+      ],
+      configLineSettings: {
+        prefixName: 'TEST ',
+        nameLength: 10,
+        prefixUri: 'https://arweave.net/',
+        uriLength: 50,
+        isSequential: false,
+      },
+      hiddenSettings: null,
+    };
+
+    const { tx: createTxCM } = await this.HELPER.initialize(
+      t,
+      payer,
+      candyMachine,
+      candyMachineData,
+      handler,
+      connection,
+    );
+    // executes the transaction
+    await createTxCM.assertSuccess(t);
+
+    const lines: { name: string; uri: string }[] = [];
+
+    for (let i = 0; i < items; i++) {
+      const line = {
+        name: `NFT #${i + 1}`,
+        uri: 'uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ',
+      };
+
+      lines.push(line);
+    }
+    const { txs } = await this.HELPER.addConfigLines(t, candyMachine.publicKey, payer, lines);
+    // confirms that all lines have been written
+    for (const tx of txs) {
+      await handler.sendAndConfirmTransaction(tx, [payer], 'tx: AddConfigLines').assertNone();
+    }
+
+    // candy guard
+
+    const { tx: initializeTxCG, candyGuard: address } = await this.initialize(
+      t,
+      guards,
+      payer,
+      handler,
+    );
+    // executes the transaction
+    await initializeTxCG.assertSuccess(t);
+
+    const { tx: wrapTx } = await this.wrap(t, address, candyMachine.publicKey, payer, handler);
+
+    await wrapTx.assertSuccess(t, [/SetMintAuthority/i]);
+
+    return { candyGuard: address, candyMachine: candyMachine.publicKey };
+  }
+
+  async mintInstruction(
+    t: Test,
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ instructions: TransactionInstruction[] }> {
     // candy machine object
     const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
 
@@ -338,108 +561,6 @@ export class InitTransactions {
     }
     ixs.push(mintIx);
 
-    const tx = new Transaction().add(...ixs);
-
-    return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard Mint') };
-  }
-
-  async withdraw(
-    t: Test,
-    candyGuard: PublicKey,
-    payer: Keypair,
-    handler: PayerTransactionHandler,
-  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
-    const accounts: WithdrawInstructionAccounts = {
-      candyGuard: candyGuard,
-      authority: payer.publicKey,
-    };
-
-    const tx = new Transaction().add(createWithdrawInstruction(accounts));
-
-    return {
-      tx: handler.sendAndConfirmTransaction(tx, [payer], 'tx: Withdraw'),
-    };
-  }
-
-  async deploy(
-    t: Test,
-    guards: CandyGuardData,
-    payer: Keypair,
-    handler: PayerTransactionHandler,
-    connection: Connection,
-  ): Promise<{ candyGuard: PublicKey; candyMachine: PublicKey }> {
-    // candy machine
-
-    const [, candyMachine] = await amman.genLabeledKeypair('Candy Machine Account');
-
-    const items = 10;
-
-    const candyMachineData = {
-      itemsAvailable: items,
-      symbol: 'CORE',
-      sellerFeeBasisPoints: 500,
-      maxSupply: 0,
-      isMutable: true,
-      retainAuthority: true,
-      creators: [
-        {
-          address: payer.publicKey,
-          verified: false,
-          percentageShare: 100,
-        },
-      ],
-      configLineSettings: {
-        prefixName: 'TEST ',
-        nameLength: 10,
-        prefixUri: 'https://arweave.net/',
-        uriLength: 50,
-        isSequential: false,
-      },
-      hiddenSettings: null,
-    };
-
-    const { tx: createTxCM } = await HELPER.initialize(
-      t,
-      payer,
-      candyMachine,
-      candyMachineData,
-      handler,
-      connection,
-    );
-    // executes the transaction
-    await createTxCM.assertSuccess(t);
-
-    const lines: { name: string; uri: string }[] = [];
-
-    for (let i = 0; i < items; i++) {
-      const line = {
-        name: `NFT #${i + 1}`,
-        uri: 'uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ',
-      };
-
-      lines.push(line);
-    }
-    const { txs } = await HELPER.addConfigLines(t, candyMachine.publicKey, payer, lines);
-    // confirms that all lines have been written
-    for (const tx of txs) {
-      await handler.sendAndConfirmTransaction(tx, [payer], 'tx: AddConfigLines').assertNone();
-    }
-
-    // candy guard
-
-    const { tx: initializeTxCG, candyGuard: address } = await this.initialize(
-      t,
-      guards,
-      payer,
-      handler,
-    );
-    // executes the transaction
-    await initializeTxCG.assertSuccess(t);
-
-    const { tx: wrapTx } = await this.wrap(t, address, candyMachine.publicKey, payer, handler);
-
-    await wrapTx.assertSuccess(t, [/SetMintAuthority/i]);
-
-    return { candyGuard: address, candyMachine: candyMachine.publicKey };
+    return { instructions: ixs };
   }
 }

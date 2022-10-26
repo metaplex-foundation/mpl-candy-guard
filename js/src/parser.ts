@@ -12,6 +12,7 @@ import {
   GuardSet,
   mintLimitBeet,
   nftPaymentBeet,
+  programGateBeet,
   startDateBeet,
   thirdPartySignerBeet,
   tokenGateBeet,
@@ -45,6 +46,7 @@ type Guards = {
   /* 16 */ tokenBurnEnabled: boolean;
   /* 17 */ freezeSolPaymentEnabled: boolean;
   /* 18 */ freezeTokenPaymentEnabled: boolean;
+  /* 19 */ programGateEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -66,6 +68,7 @@ const GUARDS_SIZE = {
   /* 16 */ tokenBurn: 40,
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
+  /* 19 */ programGate: 164,
 };
 
 const GUARDS_NAME = [
@@ -119,6 +122,7 @@ function guardsFromData(buffer: Buffer): Guards {
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   ] = guards;
 
   return {
@@ -140,6 +144,7 @@ function guardsFromData(buffer: Buffer): Guards {
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   };
 }
 /*
@@ -289,6 +294,7 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
     tokenBurnEnabled,
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
+    programGateEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -404,6 +410,11 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
     data.freezeTokenPayment = freezeTokenPayment;
     cursor += GUARDS_SIZE.freezeTokenPayment;
   }
+  if (programGateEnabled) {
+    const [programGate] = programGateBeet.deserialize(buffer, cursor);
+    data.programGate = programGate;
+    cursor += GUARDS_SIZE.programGate;
+  }
 
   return {
     guardSet: {
@@ -425,6 +436,7 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
       tokenBurn: data.tokenBurn ?? null,
       freezeSolPayment: data.freezeSolPayment ?? null,
       freezeTokenPayment: data.freezeTokenPayment ?? null,
+      programGate: data.programGate ?? null,
     },
     offset: cursor,
   };

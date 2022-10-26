@@ -492,8 +492,9 @@
       "name": "BotTax",
       "docs": [
         "Guard is used to:",
-        "* charge a penalty for invalid transactions.",
-        "* validate that the mint transaction is the last transaction.",
+        "* charge a penalty for invalid transactions",
+        "* validate that the mint transaction is the last transaction",
+        "* verify that only authorized programs have instructions",
         "",
         "The `bot_tax` is applied to any error that occurs during the",
         "validation of the guards."
@@ -733,6 +734,24 @@
           {
             "name": "destination",
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramGate",
+      "docs": [
+        "Guard that restricts the programs that can be in a mint transaction. The guard allows the",
+        "necessary programs for the mint and any other program specified in the configuration."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "additional",
+            "type": {
+              "vec": "publicKey"
+            }
           }
         ]
       }
@@ -1164,6 +1183,17 @@
                 "defined": "FreezeTokenPayment"
               }
             }
+          },
+          {
+            "name": "programGate",
+            "docs": [
+              "Program gate guard (restricts the programs that can be in a mint transaction)."
+            ],
+            "type": {
+              "option": {
+                "defined": "ProgramGate"
+              }
+            }
           }
         ]
       }
@@ -1246,6 +1276,9 @@
           },
           {
             "name": "FreezeTokenPayment"
+          },
+          {
+            "name": "ProgramGate"
           }
         ]
       }
@@ -1471,6 +1504,16 @@
       "code": 6043,
       "name": "DuplicatedMintLimitId",
       "msg": "Duplicated mint limit id"
+    },
+    {
+      "code": 6044,
+      "name": "UnauthorizedProgramFound",
+      "msg": "An unauthorized program was found in the transaction"
+    },
+    {
+      "code": 6045,
+      "name": "ExceededProgramListSize",
+      "msg": "Exceeded the maximum number of programs in the additional list"
     }
   ],
   "metadata": {
