@@ -68,7 +68,7 @@ const GUARDS_SIZE = {
   /* 16 */ tokenBurn: 40,
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
-  /* 19 */ programGate: 164,
+  /* 19 */ programGate: 165,
 };
 
 const GUARDS_NAME = [
@@ -90,11 +90,20 @@ const GUARDS_NAME = [
   /* 16 */ 'tokenBurn',
   /* 17 */ 'freezeSolPayment',
   /* 18 */ 'freezeTokenPayment',
+  /* 19 */ 'programGate',
 ];
 
 const GUARDS_COUNT = GUARDS_NAME.length;
 const MAX_LABEL_LENGTH = 6;
+const MAX_PROGRAM_COUNT = 5;
 
+/**
+ * Returns the guards that are enabled.
+ *
+ * @param buffer bytes representing the guards data.
+ *
+ * @returns a `Guards` object.
+ */
 function guardsFromData(buffer: Buffer): Guards {
   const enabled = new BN(beet.u64.read(buffer, 0)).toNumber();
 
@@ -147,57 +156,14 @@ function guardsFromData(buffer: Buffer): Guards {
     programGateEnabled,
   };
 }
-/*
-function guardsFromObject(guardSet: GuardSet): Guards {
-  type ObjectKey = keyof typeof guardSet;
-  const guards: boolean[] = [];
-  for (let i = 0; i < GUARDS_COUNT; i++) {
-    guards.push(!guardSet[GUARDS_NAME[i] as ObjectKey]);
-  }
 
-  const [
-    botTaxEnabled,
-    solPaymentEnabled,
-    tokenPaymentEnabled,
-    startDateEnabled,
-    thirdPartySignerEnabled,
-    tokenGateEnabled,
-    gatekeeperEnabled,
-    endDateEnabled,
-    allowListEnabled,
-    mintLimitEnabled,
-    nftPaymentEnabled,
-    redeemedAmountEnabled,
-    addressGateEnabled,
-    nftGateEnabled,
-    nftBurnEnabled,
-    tokenBurnEnabled,
-    freezeSolPaymentEnabled,
-    freezeTokenPaymentEnabled,
-  ] = guards;
-
-  return {
-    botTaxEnabled,
-    solPaymentEnabled,
-    tokenPaymentEnabled,
-    startDateEnabled,
-    thirdPartySignerEnabled,
-    tokenGateEnabled,
-    gatekeeperEnabled,
-    endDateEnabled,
-    allowListEnabled,
-    mintLimitEnabled,
-    nftPaymentEnabled,
-    redeemedAmountEnabled,
-    addressGateEnabled,
-    nftGateEnabled,
-    nftBurnEnabled,
-    tokenBurnEnabled,
-    freezeSolPaymentEnabled,
-    freezeTokenPaymentEnabled,
-  };
-}
-*/
+/**
+ * Returns a `CandyGuardData` object from a data buffer.
+ *
+ * @param buffer bytes representing the Candy Guard data.
+ *
+ * @returns a `CandyGuardData` object from a data buffer.
+ */
 export function deserialize(buffer: Buffer): CandyGuardData {
   // parses the default guard set
   const { guardSet: defaultSet, offset } = deserializeGuardSet(buffer);
@@ -221,6 +187,13 @@ export function deserialize(buffer: Buffer): CandyGuardData {
   };
 }
 
+/**
+ * Serializes the Cnady Guard data to a byte buffer.
+ *
+ * @param data the Candy Guard data to be serialized.
+ *
+ * @returns byte buffer.
+ */
 export function serialize(data: CandyGuardData): Buffer {
   const buffer = Buffer.alloc(size(data));
   // serializes the default guard set
@@ -235,6 +208,9 @@ export function serialize(data: CandyGuardData): Buffer {
     // serializes each individual group
     const group = data.groups!.at(i);
     // label
+    if (group!.label.length > MAX_LABEL_LENGTH) {
+      throw `Exceeded maximum label length: ${group!.label.length} > ${MAX_LABEL_LENGTH}`;
+    }
     buffer.write(group!.label, offset, MAX_LABEL_LENGTH, 'utf8');
     offset += MAX_LABEL_LENGTH;
     // guards
@@ -244,6 +220,15 @@ export function serialize(data: CandyGuardData): Buffer {
   return buffer;
 }
 
+/**
+ * Returns the number of bytes needed to serialize the specified
+ * `CandyGuardData` object.
+ *
+ * @param data the `CandyGuardData` object.
+ *
+ * @returns the number of bytes needed to serialize the specified
+ * `CandyGuardData` object.
+ */
 function size(data: CandyGuardData): number {
   let size = guardSetSize(data.default);
   size += u32.byteSize;
@@ -258,6 +243,15 @@ function size(data: CandyGuardData): number {
   return size;
 }
 
+/**
+ * Returns the number of bytes needed to serialize the specified
+ * `GuardSet` object.
+ *
+ * @param data the `GuardSet` object.
+ *
+ * @returns the number of bytes needed to serialize the specified
+ * `GuardSet` object.
+ */
 function guardSetSize(guardSet: GuardSet): number {
   type ObjectKey = keyof typeof guardSet;
   const guards: number[] = [];
@@ -268,11 +262,20 @@ function guardSetSize(guardSet: GuardSet): number {
     }
   }
 
+  // features flag + guards data
   return (
     u64.byteSize + guards.reduce((previousValue, currentValue) => previousValue + currentValue, 0)
   );
 }
 
+/**
+ * Returns a `GuardSet` object from the byte buffer.
+ *
+ * @param buffer the byte buffer to read from.
+ *
+ * @returns an object with a `GuardSet` object from the byte buffer and
+ * the number of bytes (offset) consumed.
+ */
 function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   const guards = guardsFromData(buffer);
   const {
@@ -442,6 +445,15 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
   };
 }
 
+/**
+ * Serializes a `GuardSet` object to the specified buffer.
+ *
+ * @param buffer the byte buffer to write to.
+ * @param offset the byte offset.
+ * @param guardSet the `GuardSet` object.
+ *
+ * @returns the byte offset at the end of the serialization.
+ */
 function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): number {
   // saves the initial position to write the features flag
   const start = offset;
@@ -573,6 +585,22 @@ function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): 
   if (guardSet.freezeTokenPayment) {
     freezeTokenPaymentBeet.write(buffer, offset, guardSet.freezeTokenPayment);
     offset += GUARDS_SIZE.freezeTokenPayment;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.programGate) {
+    if (
+      guardSet.programGate.additional &&
+      guardSet.programGate.additional.length > MAX_PROGRAM_COUNT
+    ) {
+      throw `Exceeded maximum number of programs on additional list:\
+        ${guardSet.programGate.additional.length} > ${MAX_PROGRAM_COUNT}`;
+    }
+
+    const [data] = programGateBeet.serialize(guardSet.programGate, GUARDS_SIZE.programGate);
+    data.copy(buffer, offset);
+    offset += GUARDS_SIZE.programGate;
     features |= 1 << index;
   }
   index++;

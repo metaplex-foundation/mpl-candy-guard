@@ -6,10 +6,10 @@
  */
 
 import * as web3 from '@solana/web3.js';
-import * as beetSolana from '@metaplex-foundation/beet-solana';
 import * as beet from '@metaplex-foundation/beet';
+import * as beetSolana from '@metaplex-foundation/beet-solana';
 export type ProgramGate = {
-  additional: web3.PublicKey[];
+  additional: beet.COption<web3.PublicKey[]>;
 };
 
 /**
@@ -17,6 +17,6 @@ export type ProgramGate = {
  * @category generated
  */
 export const programGateBeet = new beet.FixableBeetArgsStruct<ProgramGate>(
-  [['additional', beet.array(beetSolana.publicKey)]],
+  [['additional', beet.coption(beet.array(beetSolana.publicKey))]],
   'ProgramGate',
 );

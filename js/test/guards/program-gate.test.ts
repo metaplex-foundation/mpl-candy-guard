@@ -1,7 +1,5 @@
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { StakeProgram, VoteProgram } from '@solana/web3.js';
+import { StakeProgram } from '@solana/web3.js';
 import test from 'tape';
-import { CANDY_MACHINE_PROGRAM, METAPLEX_PROGRAM_ID } from '../utils';
 import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 
 const API = new InitTransactions();
@@ -13,8 +11,8 @@ test('Program Gate', async (t) => {
 
   const data = newCandyGuardData();
   data.default.programGate = {
-    // will validate against the standard program only
-    additional: [],
+    // will validate against the standard programs only
+    additional: null,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(t, data, authority, handler, connection);
@@ -44,8 +42,8 @@ test('Program Gate: invalid program', async (t) => {
 
   const data = newCandyGuardData();
   data.default.programGate = {
-    // will validate against the standard program only
-    additional: [],
+    // will validate against the standard programs only
+    additional: null,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(t, data, authority, handler, connection);
@@ -107,25 +105,4 @@ test('Program Gate: authorized program', async (t) => {
     x.assertLogs(t, [/Stake11111111111111111111111111111111111111/i, /Invalid account owner/i]),
   );
   await minterMintTx.assertError(t);
-});
-
-test('Program Gate: too many programs', async (t) => {
-  const { fstTxHandler: handler, authorityPair: authority } = await API.authority();
-
-  const data = newCandyGuardData();
-  data.default.programGate = {
-    // authorize Stake program
-    additional: [
-      StakeProgram.programId,
-      VoteProgram.programId,
-      METAPLEX_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      CANDY_MACHINE_PROGRAM,
-    ],
-  };
-
-  const { tx } = await API.initialize(t, data, authority, handler);
-
-  await tx.assertError(t, /Exceeded the maximum number of programs/i);
 });
