@@ -28,7 +28,7 @@ if [ $RUN_ALL -eq 1 ]; then
     done
 else
     if [ ! -z "$1" ] && [[ -f "$1" ]]; then
-        esr $1 | tap-spec
+        yarn esr $1 | yarn tap-spec
     else
         echo "$(RED "Error: ")Please specify a test file or [-a | --all] to run all tests"
         exit 1
