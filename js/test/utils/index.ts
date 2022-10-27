@@ -2,6 +2,7 @@ export * from './asserts';
 export * from './constants';
 export * from './errors';
 export * from './helper';
+export * from './minter';
 
 import { CandyMachineData } from '@metaplex-foundation/mpl-candy-machine-core';
 import { Keypair, PublicKey } from '@solana/web3.js';

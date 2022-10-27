@@ -962,6 +962,72 @@ createErrorFromCodeLookup.set(0x179d, () => new ExceededProgramListSizeError());
 createErrorFromNameLookup.set('ExceededProgramListSize', () => new ExceededProgramListSizeError());
 
 /**
+ * AllocationNotInitialized: 'Allocation PDA not initialized'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationNotInitializedError extends Error {
+  readonly code: number = 0x179e;
+  readonly name: string = 'AllocationNotInitialized';
+  constructor() {
+    super('Allocation PDA not initialized');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationNotInitializedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179e, () => new AllocationNotInitializedError());
+createErrorFromNameLookup.set(
+  'AllocationNotInitialized',
+  () => new AllocationNotInitializedError(),
+);
+
+/**
+ * AllocationLimitReached: 'Allocation limit was reached'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationLimitReachedError extends Error {
+  readonly code: number = 0x179f;
+  readonly name: string = 'AllocationLimitReached';
+  constructor() {
+    super('Allocation limit was reached');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationLimitReachedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x179f, () => new AllocationLimitReachedError());
+createErrorFromNameLookup.set('AllocationLimitReached', () => new AllocationLimitReachedError());
+
+/**
+ * AllocationGuardNotEnabled: 'Allocation guard must be enabled'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class AllocationGuardNotEnabledError extends Error {
+  readonly code: number = 0x17a0;
+  readonly name: string = 'AllocationGuardNotEnabled';
+  constructor() {
+    super('Allocation guard must be enabled');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, AllocationGuardNotEnabledError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x17a0, () => new AllocationGuardNotEnabledError());
+createErrorFromNameLookup.set(
+  'AllocationGuardNotEnabled',
+  () => new AllocationGuardNotEnabledError(),
+);
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated
