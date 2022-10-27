@@ -203,6 +203,12 @@ impl CandyGuardData {
             None
         };
 
+        // sanity check: the bytes read must match the data size
+        if data.len() != cursor {
+            msg!("Read {} bytes, received {} bytes", cursor, data.len());
+            return err!(CandyGuardError::DeserializationError);
+        }
+
         Ok(Box::new(Self { default, groups }))
     }
 
@@ -244,8 +250,12 @@ impl CandyGuardData {
         Ok(Box::new(default))
     }
 
+    pub fn account_size(&self) -> usize {
+        DATA_OFFSET + self.size()
+    }
+
     pub fn size(&self) -> usize {
-        let mut size = DATA_OFFSET + self.default.size();
+        let mut size = self.default.size();
         size += 4; // u32 (number of groups)
 
         if let Some(groups) = &self.groups {

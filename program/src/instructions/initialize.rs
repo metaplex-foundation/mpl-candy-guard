@@ -2,14 +2,16 @@ use anchor_lang::prelude::*;
 
 use crate::state::{CandyGuard, CandyGuardData, DATA_OFFSET, SEED};
 
-pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> {
+pub fn initialize(ctx: Context<Initialize>, data: Vec<u8>) -> Result<()> {
+    // deserializes the candy guard data
+    let data = CandyGuardData::load(&data)?;
+    // validates guard settings
+    data.verify()?;
+
     let candy_guard = &mut ctx.accounts.candy_guard;
     candy_guard.base = ctx.accounts.base.key();
     candy_guard.bump = *ctx.bumps.get("candy_guard").unwrap();
     candy_guard.authority = ctx.accounts.authority.key();
-
-    // validates the input data
-    data.verify()?;
 
     let account_info = candy_guard.to_account_info();
     let mut account_data = account_info.data.borrow_mut();
@@ -18,12 +20,12 @@ pub fn initialize(ctx: Context<Initialize>, data: CandyGuardData) -> Result<()> 
 }
 
 #[derive(Accounts)]
-#[instruction(data: CandyGuardData)]
+#[instruction(data: Vec<u8>)]
 pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        space = data.size(),
+        space = DATA_OFFSET + data.len(),
         seeds = [SEED, base.key().as_ref()],
         bump
     )]

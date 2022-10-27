@@ -4,13 +4,13 @@ import { newCandyGuardData, newGuardSet, InitTransactions, killStuckProcess } fr
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
 import { BN } from 'bn.js';
-import { parseData } from '../src';
+import { deserialize } from '../src';
 
 const API = new InitTransactions();
 
 killStuckProcess();
 
-test('update: enable guards', async (t) => {
+test('Update: enable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
@@ -62,7 +62,7 @@ test('update: enable guards', async (t) => {
   t.true(updatedBalance < balance, 'balance after update must be lower');
 });
 
-test('update: disable guards', async (t) => {
+test('Update: disable guards', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   // default guardSet
@@ -113,7 +113,7 @@ test('update: disable guards', async (t) => {
 
   // parse the guards configuration
   let accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET)!);
 
   t.true(candyGuardData.groups?.length === 2, 'expected 2 groups');
 
@@ -155,7 +155,7 @@ test('update: disable guards', async (t) => {
   t.true(updatedBalance > balance, 'balance after update must be greater');
 });
 
-test('Update (duplicated groups)', async (t) => {
+test('Update: duplicated groups', async (t) => {
   const { fstTxHandler, payerPair } = await API.payer();
 
   // default guardSet
@@ -215,4 +215,76 @@ test('Update (duplicated groups)', async (t) => {
   );
   // executes the transaction
   await updateTransaction.assertError(t, /Duplicated group label/i);
+});
+
+test('Update: disable all', async (t) => {
+  const { fstTxHandler, payerPair, connection } = await API.payer();
+
+  // default guardSet
+  const data = newCandyGuardData();
+  const { tx: transaction, candyGuard: address } = await API.initialize(
+    t,
+    data,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await transaction.assertSuccess(t);
+
+  // default guardSet
+  const updated = newCandyGuardData();
+
+  updated.default.botTax = {
+    lamports: new BN(100000000),
+    lastInstruction: true,
+  };
+  updated.groups = [];
+
+  // group1
+  const group1 = newGuardSet();
+  group1.startDate = {
+    date: 1662394820,
+  };
+  group1.mintLimit = {
+    id: 0,
+    limit: 5,
+  };
+  updated.groups?.push({
+    label: 'group1',
+    guards: group1,
+  });
+
+  // group2
+  const group2 = newGuardSet();
+  group2.programGate = {
+    additional: [],
+  };
+  updated.groups?.push({
+    label: 'group2',
+    guards: group2,
+  });
+
+  const { tx: updateTransaction } = await API.update(t, address, updated, payerPair, fstTxHandler);
+  // executes the transaction
+  await updateTransaction.assertSuccess(t);
+
+  // disable all guards
+
+  const disabled = newCandyGuardData();
+
+  const { tx: disableTransaction } = await API.update(
+    t,
+    address,
+    disabled,
+    payerPair,
+    fstTxHandler,
+  );
+  // executes the transaction
+  await disableTransaction.assertSuccess(t, [/Withdrawing/i]);
+
+  // parse the guards configuration
+  const accountInfo = await connection.getAccountInfo(address);
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET));
+
+  spok(t, candyGuardData, disabled);
 });

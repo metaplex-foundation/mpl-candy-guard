@@ -8,13 +8,18 @@ use crate::{
     state::{CandyGuard, CandyGuardData, DATA_OFFSET, SEED},
 };
 
-pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
+pub fn update(ctx: Context<Update>, data: Vec<u8>) -> Result<()> {
+    // deserializes the candy guard data
+    let data = CandyGuardData::load(&data)?;
+    // validates guard settings
+    data.verify()?;
+
     let account_info = ctx.accounts.candy_guard.to_account_info();
 
     // check whether we need to grow or shrink the account size or not
-    if data.size() != account_info.data_len() {
+    if data.account_size() != account_info.data_len() {
         // no risk of overflow here since the sizes will range from DATA_OFFSET to 10_000_000
-        let difference = data.size() as i64 - account_info.data_len() as i64;
+        let difference = data.account_size() as i64 - account_info.data_len() as i64;
         let snapshot = account_info.lamports();
 
         if difference > 0 {
@@ -23,7 +28,7 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
             }
 
             let lamports_diff = Rent::get()?
-                .minimum_balance(data.size())
+                .minimum_balance(data.account_size())
                 .checked_sub(snapshot)
                 .ok_or(CandyGuardError::NumericalOverflowError)?;
 
@@ -43,7 +48,7 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
             )?;
         } else {
             let lamports_diff = snapshot
-                .checked_sub(Rent::get()?.minimum_balance(data.size()))
+                .checked_sub(Rent::get()?.minimum_balance(data.account_size()))
                 .ok_or(CandyGuardError::NumericalOverflowError)?;
 
             msg!(
@@ -63,11 +68,8 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
         msg!("Account realloc by {} bytes", difference);
         // changes the account size to fit the size required by the guards
         // this means that the size can grow or shrink
-        account_info.realloc(data.size(), false)?;
+        account_info.realloc(data.account_size(), false)?;
     }
-
-    // validates the input data
-    data.verify()?;
 
     // save the guards information to the account data and stores
     // the updated feature flag
@@ -78,7 +80,7 @@ pub fn update(ctx: Context<Update>, data: CandyGuardData) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction(data: CandyGuardData)]
+#[instruction(data: Vec<u8>)]
 pub struct Update<'info> {
     #[account(
         mut,

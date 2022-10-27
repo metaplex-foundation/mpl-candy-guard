@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# To run this script, you need:
+#  - npm install -g esbuild-runner 
+#  - npm install -g tap-spec
 
 # error output colour
 RED() { echo $'\e[1;31m'$1$'\e[0m'; }

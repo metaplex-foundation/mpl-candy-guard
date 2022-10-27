@@ -7,7 +7,6 @@
 
 import * as beet from '@metaplex-foundation/beet';
 import * as web3 from '@solana/web3.js';
-import { CandyGuardData, candyGuardDataBeet } from '../types/CandyGuardData';
 
 /**
  * @category Instructions
@@ -15,7 +14,7 @@ import { CandyGuardData, candyGuardDataBeet } from '../types/CandyGuardData';
  * @category generated
  */
 export type InitializeInstructionArgs = {
-  data: CandyGuardData;
+  data: Uint8Array;
 };
 /**
  * @category Instructions
@@ -29,7 +28,7 @@ export const initializeStruct = new beet.FixableBeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['data', candyGuardDataBeet],
+    ['data', beet.bytes],
   ],
   'InitializeInstructionArgs',
 );

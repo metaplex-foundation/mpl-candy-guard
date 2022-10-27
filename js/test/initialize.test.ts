@@ -4,7 +4,7 @@ import { BN } from 'bn.js';
 import { newCandyGuardData, InitTransactions, killStuckProcess, newGuardSet } from './setup';
 import { CandyGuard } from '../src/generated';
 import { DATA_OFFSET, spokSameBignum, spokSamePubkey } from './utils';
-import { parseData } from '../src';
+import { deserialize } from '../src';
 
 const API = new InitTransactions();
 
@@ -32,7 +32,7 @@ test('initialize: new candy guard (no guards)', async (t) => {
 
   // parse the guards configuration
   const accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET));
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET));
 
   spok(t, candyGuardData, data);
 });
@@ -73,7 +73,7 @@ test('initialize: new candy guard (with guards)', async (t) => {
 
   // parse the guards configuration
   const accountInfo = await connection.getAccountInfo(address);
-  const candyGuardData = parseData(accountInfo!.data.subarray(DATA_OFFSET)!);
+  const candyGuardData = deserialize(accountInfo!.data.subarray(DATA_OFFSET)!);
 
   spok(t, candyGuardData.default.botTax, {
     lamports: spokSameBignum(data.default.botTax.lamports),

@@ -95,7 +95,9 @@ This instruction creates and initializes a new `CandyGuard` account.
   
 | Argument                      | Offset | Size | Description               |
 | ----------------------------- | ------ | ---- | ------------------------- |
-| `data`                        | 0      | ~    | `CandyGuardData` object. |
+| `data`                        | 0      | ~    | Serialized `CandyGuardData` object as `[u8]`. |
+
+The instruction uses a [custom serialization](https://docs.rs/mpl-candy-guard/0.1.1/mpl_candy_guard/state/candy_guard/struct.CandyGuardData.html#method.save) in order to maintain backwards compatibility with previous versions of the `CandyGuardData` struct.
 </details>
 
 ### 📄 `mint`
@@ -211,7 +213,9 @@ This instruction updates the Candy Guard configuration. Given that there is a fl
   
 | Argument                      | Offset | Size | Description               |
 | ----------------------------- | ------ | ---- | ------------------------- |
-| `data`                        | 0      | ~    | `CandyGuardData` object. |
+| `data`                        | 0      | ~    | Serialized `CandyGuardData` object as `[u8]`. |
+
+The instruction uses a [custom serialization](https://docs.rs/mpl-candy-guard/0.1.1/mpl_candy_guard/state/candy_guard/struct.CandyGuardData.html#method.save) in order to maintain backwards compatibility with previous versions of the `CandyGuardData` struct.
 </details>
 
 ### 📄 `withdraw`
