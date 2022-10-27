@@ -22,12 +22,12 @@ const MAXIMUM_SIZE: usize = 5;
 /// necessary programs for the mint and any other program specified in the configuration.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProgramGate {
-    pub additional: Option<Vec<Pubkey>>,
+    pub additional: Vec<Pubkey>,
 }
 
 impl Guard for ProgramGate {
     fn size() -> usize {
-        5 + (MAXIMUM_SIZE * 32) // programs
+        4 + (MAXIMUM_SIZE * 32) // programs
     }
 
     fn mask() -> u64 {
@@ -36,20 +36,16 @@ impl Guard for ProgramGate {
 
     fn verify(data: &CandyGuardData) -> Result<()> {
         if let Some(program_gate) = &data.default.program_gate {
-            if let Some(additional) = &program_gate.additional {
-                if additional.len() > MAXIMUM_SIZE {
-                    return err!(CandyGuardError::ExceededProgramListSize);
-                }
+            if program_gate.additional.len() > MAXIMUM_SIZE {
+                return err!(CandyGuardError::ExceededProgramListSize);
             }
         }
 
         if let Some(groups) = &data.groups {
             for group in groups {
                 if let Some(program_gate) = &group.guards.program_gate {
-                    if let Some(additional) = &program_gate.additional {
-                        if additional.len() > MAXIMUM_SIZE {
-                            return err!(CandyGuardError::ExceededProgramListSize);
-                        }
+                    if program_gate.additional.len() > MAXIMUM_SIZE {
+                        return err!(CandyGuardError::ExceededProgramListSize);
                     }
                 }
             }
@@ -72,10 +68,7 @@ impl Condition for ProgramGate {
 
         let mut programs: Vec<Pubkey> = Vec::with_capacity(DEFAULT_PROGRAMS.len());
         programs.extend(DEFAULT_PROGRAMS);
-
-        if let Some(additional) = &self.additional {
-            programs.extend(additional);
-        }
+        programs.extend(&self.additional);
 
         verify_programs(ix_sysvar_account_info, &programs)
     }

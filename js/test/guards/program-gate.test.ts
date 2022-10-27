@@ -12,7 +12,7 @@ test('Program Gate', async (t) => {
   const data = newCandyGuardData();
   data.default.programGate = {
     // will validate against the standard programs only
-    additional: null,
+    additional: [],
   };
 
   const { candyGuard, candyMachine } = await API.deploy(t, data, authority, handler, connection);
@@ -43,7 +43,7 @@ test('Program Gate: invalid program', async (t) => {
   const data = newCandyGuardData();
   data.default.programGate = {
     // will validate against the standard programs only
-    additional: null,
+    additional: [],
   };
 
   const { candyGuard, candyMachine } = await API.deploy(t, data, authority, handler, connection);

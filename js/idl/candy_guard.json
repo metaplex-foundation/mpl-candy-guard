@@ -750,9 +750,7 @@
           {
             "name": "additional",
             "type": {
-              "option": {
-                "vec": "publicKey"
-              }
+              "vec": "publicKey"
             }
           }
         ]

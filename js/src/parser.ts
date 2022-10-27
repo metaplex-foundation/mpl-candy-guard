@@ -68,7 +68,7 @@ const GUARDS_SIZE = {
   /* 16 */ tokenBurn: 40,
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
-  /* 19 */ programGate: 165,
+  /* 19 */ programGate: 164,
 };
 
 const GUARDS_NAME = [
