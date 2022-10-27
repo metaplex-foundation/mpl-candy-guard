@@ -66,7 +66,8 @@ impl Condition for ProgramGate {
         let ix_sysvar_account = &ctx.accounts.instruction_sysvar_account;
         let ix_sysvar_account_info = ix_sysvar_account.to_account_info();
 
-        let mut programs: Vec<Pubkey> = Vec::with_capacity(DEFAULT_PROGRAMS.len());
+        let mut programs: Vec<Pubkey> =
+            Vec::with_capacity(DEFAULT_PROGRAMS.len() + self.additional.len());
         programs.extend(DEFAULT_PROGRAMS);
         programs.extend(&self.additional);
 
