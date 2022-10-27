@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# To run this script, you need:
+#  - npm install -g esbuild-runner 
+#  - npm install -g tap-spec
 
 # error output colour
 RED() { echo $'\e[1;31m'$1$'\e[0m'; }
@@ -28,7 +32,7 @@ if [ $RUN_ALL -eq 1 ]; then
     done
 else
     if [ ! -z "$1" ] && [[ -f "$1" ]]; then
-        yarn esr $1 | yarn tap-spec
+        esr $1 | tap-spec
     else
         echo "$(RED "Error: ")Please specify a test file or [-a | --all] to run all tests"
         exit 1

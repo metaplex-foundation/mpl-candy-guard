@@ -62,7 +62,6 @@
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "debug": "^4.3.4",
-    "ers": "1.0.8",
     "esbuild": "0.15.12",
     "esbuild-runner": "^2.2.1",
     "eslint": "^8.3.0",
@@ -72,7 +71,6 @@
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
     "spok": "^1.4.3",
-    "tap-spec": "^5.0.0",
     "tape": "^5.5.0",
     "typedoc": "^0.23.16",
     "typescript": "^4.6.2"
