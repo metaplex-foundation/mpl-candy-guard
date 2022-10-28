@@ -18,7 +18,7 @@ const serializedData = serialize(data);
 If you are using the `mpl-candy-guard` Rust crate, you can serialize the `CandyMachineData` struct using:
 ```rust
 let data = CandyGuardData { ... };
-let mut serialized_data = Vec::with_capacity(data.size());
+let mut serialized_data = vec![0; data.size()];
 data.save(&mut serialized_data)?;
 ```
 ---
