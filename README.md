@@ -8,7 +8,7 @@
 Candy Guard v0.2.0 updated the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the arrgument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
 
 If you are using the `mpl-candy-guard` npm package, you can serialize the `CandyMachineData` object using:
-```
+```typescript
 import { serialize } from '@metaplex-foundation/mpl-candy-guard'
 
 const data = { ... };
@@ -16,7 +16,8 @@ const serializedData = serialize(data);
 ```
 
 If you are using the `mpl-candy-guard` Rust crate, you can serialize the `CandyMachineData` struct using:
-```
+```rust
+let data = CandyGuardData { ... };
 let mut serialized_data = Vec::with_capacity(data.size());
 data.save(&mut serialized_data)?;
 ```
