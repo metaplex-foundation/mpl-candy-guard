@@ -5,7 +5,7 @@
 
 ---
 ### 💡 Update:
-Candy Guard v0.2.0 updated the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the arrgument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
+Candy Guard v0.2.0 updated the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the argument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
 
 If you are using the `mpl-candy-guard` npm package, you can serialize the `CandyMachineData` object using:
 ```typescript
