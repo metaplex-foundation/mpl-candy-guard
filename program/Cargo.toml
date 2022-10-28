@@ -21,7 +21,7 @@ default = []
 [dependencies]
 anchor-lang = "0.25.0"
 arrayref = "0.3.6"
-mpl-candy-guard-derive = { path = "../macro" }
+mpl-candy-guard-derive = { path = "../macro", version = "0.2.0" }
 mpl-candy-machine-core = { version = "0.1.2", features = ["cpi"] }
 mpl-token-metadata = { version = "1.5.0", features = ["no-entrypoint"] }
 solana-program = "1.10.29"
