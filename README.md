@@ -9,7 +9,7 @@ Candy Guard v0.2.0 updated the serialization logic for the arguments of the `ini
 
 If you are using the `mpl-candy-guard` npm package, you can serialize the `CandyMachineData` object using:
 ```typescript
-import { serialize } from '@metaplex-foundation/mpl-candy-guard'
+import { serialize } from '@metaplex-foundation/mpl-candy-guard';
 
 const data = { ... };
 const serializedData = serialize(data);
