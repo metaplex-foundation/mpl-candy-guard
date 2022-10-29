@@ -14,7 +14,7 @@
 <li><a href="GuardType.html">GuardType</a></li></ul>
 <h1>Enumeration GuardType</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L13">src/generated/types/GuardType.ts:13</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L13">src/generated/types/GuardType.ts:13</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -26,11 +26,14 @@
 <a href="GuardType.html#AllowList" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Allow<wbr/>List</span></a>
 <a href="GuardType.html#BotTax" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Bot<wbr/>Tax</span></a>
 <a href="GuardType.html#EndDate" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>End<wbr/>Date</span></a>
+<a href="GuardType.html#FreezeSolPayment" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Freeze<wbr/>Sol<wbr/>Payment</span></a>
+<a href="GuardType.html#FreezeTokenPayment" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Freeze<wbr/>Token<wbr/>Payment</span></a>
 <a href="GuardType.html#Gatekeeper" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Gatekeeper</span></a>
 <a href="GuardType.html#MintLimit" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Mint<wbr/>Limit</span></a>
 <a href="GuardType.html#NftBurn" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Nft<wbr/>Burn</span></a>
 <a href="GuardType.html#NftGate" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Nft<wbr/>Gate</span></a>
 <a href="GuardType.html#NftPayment" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Nft<wbr/>Payment</span></a>
+<a href="GuardType.html#ProgramGate" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Program<wbr/>Gate</span></a>
 <a href="GuardType.html#RedeemedAmount" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Redeemed<wbr/>Amount</span></a>
 <a href="GuardType.html#SolPayment" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Sol<wbr/>Payment</span></a>
 <a href="GuardType.html#StartDate" class="tsd-index-link tsd-kind-enum-member tsd-parent-kind-enum"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>Start<wbr/>Date</span></a>
@@ -45,82 +48,97 @@
 <h3 class="tsd-anchor-link"><span>Address<wbr/>Gate</span><a href="#AddressGate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <div class="tsd-signature">Address<wbr/>Gate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">12</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L26">src/generated/types/GuardType.ts:26</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L26">src/generated/types/GuardType.ts:26</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="AllowList" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Allow<wbr/>List</span><a href="#AllowList" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Allow<wbr/>List<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">8</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L22">src/generated/types/GuardType.ts:22</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L22">src/generated/types/GuardType.ts:22</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="BotTax" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Bot<wbr/>Tax</span><a href="#BotTax" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Bot<wbr/>Tax<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L14">src/generated/types/GuardType.ts:14</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L14">src/generated/types/GuardType.ts:14</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="EndDate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>End<wbr/>Date</span><a href="#EndDate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">End<wbr/>Date<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">7</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L21">src/generated/types/GuardType.ts:21</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L21">src/generated/types/GuardType.ts:21</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="FreezeSolPayment" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>Freeze<wbr/>Sol<wbr/>Payment</span><a href="#FreezeSolPayment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">Freeze<wbr/>Sol<wbr/>Payment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">16</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L30">src/generated/types/GuardType.ts:30</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="FreezeTokenPayment" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>Freeze<wbr/>Token<wbr/>Payment</span><a href="#FreezeTokenPayment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">Freeze<wbr/>Token<wbr/>Payment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">17</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L31">src/generated/types/GuardType.ts:31</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="Gatekeeper" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Gatekeeper</span><a href="#Gatekeeper" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Gatekeeper<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">6</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L20">src/generated/types/GuardType.ts:20</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L20">src/generated/types/GuardType.ts:20</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="MintLimit" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Mint<wbr/>Limit</span><a href="#MintLimit" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Mint<wbr/>Limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">9</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L23">src/generated/types/GuardType.ts:23</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L23">src/generated/types/GuardType.ts:23</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="NftBurn" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Nft<wbr/>Burn</span><a href="#NftBurn" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Nft<wbr/>Burn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">14</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L28">src/generated/types/GuardType.ts:28</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L28">src/generated/types/GuardType.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="NftGate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Nft<wbr/>Gate</span><a href="#NftGate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Nft<wbr/>Gate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">13</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L27">src/generated/types/GuardType.ts:27</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L27">src/generated/types/GuardType.ts:27</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="NftPayment" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Nft<wbr/>Payment</span><a href="#NftPayment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Nft<wbr/>Payment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">10</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L24">src/generated/types/GuardType.ts:24</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L24">src/generated/types/GuardType.ts:24</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="ProgramGate" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>Program<wbr/>Gate</span><a href="#ProgramGate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">Program<wbr/>Gate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">18</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L32">src/generated/types/GuardType.ts:32</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="RedeemedAmount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Redeemed<wbr/>Amount</span><a href="#RedeemedAmount" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Redeemed<wbr/>Amount<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">11</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L25">src/generated/types/GuardType.ts:25</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L25">src/generated/types/GuardType.ts:25</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="SolPayment" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Sol<wbr/>Payment</span><a href="#SolPayment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Sol<wbr/>Payment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L15">src/generated/types/GuardType.ts:15</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L15">src/generated/types/GuardType.ts:15</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="StartDate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Start<wbr/>Date</span><a href="#StartDate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Start<wbr/>Date<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L17">src/generated/types/GuardType.ts:17</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L17">src/generated/types/GuardType.ts:17</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="ThirdPartySigner" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Third<wbr/>Party<wbr/>Signer</span><a href="#ThirdPartySigner" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Third<wbr/>Party<wbr/>Signer<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">4</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L18">src/generated/types/GuardType.ts:18</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L18">src/generated/types/GuardType.ts:18</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="TokenBurn" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Token<wbr/>Burn</span><a href="#TokenBurn" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Token<wbr/>Burn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">15</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L29">src/generated/types/GuardType.ts:29</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L29">src/generated/types/GuardType.ts:29</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="TokenGate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Token<wbr/>Gate</span><a href="#TokenGate" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Token<wbr/>Gate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">5</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L19">src/generated/types/GuardType.ts:19</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L19">src/generated/types/GuardType.ts:19</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum"><a id="TokenPayment" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>Token<wbr/>Payment</span><a href="#TokenPayment" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">Token<wbr/>Payment<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/metaplex-foundation/candy-guard/blob/8e4ddf8/js/src/generated/types/GuardType.ts#L16">src/generated/types/GuardType.ts:16</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/metaplex-foundation/mpl-candy-guard/blob/f3b4fc8/js/src/generated/types/GuardType.ts#L16">src/generated/types/GuardType.ts:16</a></li></ul></aside></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -149,11 +167,14 @@
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#AllowList" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Allow<wbr/>List</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#BotTax" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Bot<wbr/>Tax</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#EndDate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>End<wbr/>Date</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#FreezeSolPayment" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Freeze<wbr/>Sol<wbr/>Payment</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#FreezeTokenPayment" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Freeze<wbr/>Token<wbr/>Payment</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#Gatekeeper" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Gatekeeper</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#MintLimit" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Mint<wbr/>Limit</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#NftBurn" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Nft<wbr/>Burn</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#NftGate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Nft<wbr/>Gate</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#NftPayment" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Nft<wbr/>Payment</a></li>
+<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#ProgramGate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Program<wbr/>Gate</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#RedeemedAmount" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Redeemed<wbr/>Amount</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#SolPayment" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Sol<wbr/>Payment</a></li>
 <li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="GuardType.html#StartDate" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>Start<wbr/>Date</a></li>
