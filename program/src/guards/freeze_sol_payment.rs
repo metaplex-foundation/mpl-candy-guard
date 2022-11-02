@@ -16,7 +16,7 @@ use spl_token::{
 use crate::{
     errors::CandyGuardError,
     state::GuardType,
-    utils::{assert_is_ata, assert_keys_equal, cmp_pubkeys},
+    utils::{assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys},
 };
 
 /// Guard that charges an amount in SOL (lamports) for the mint with a freeze period.
@@ -222,24 +222,18 @@ impl Condition for FreezeSolPayment {
 pub struct FreezeEscrow {
     /// Candy guard address associated with this escrow.
     pub candy_guard: Pubkey,
-
     /// Candy machine address associated with this escrow.
     pub candy_machine: Pubkey,
-
     /// Number of NFTs frozen.
     pub frozen_count: u64,
-
     /// The timestamp of the first (frozen) mint. This is used to calculate
     /// when the freeze period is over.
     pub first_mint_time: Option<i64>,
-
     /// The amount of time (in seconds) for the freeze. The NFTs will be
     /// allowed to thaw after this.
     pub freeze_period: i64,
-
     /// The destination address for the frozed fund to go to.
     pub destination: Pubkey,
-
     /// The authority that initialized the freeze. This will be the only
     /// address able to unlock the funds in case the candy guard account is
     /// closed.
@@ -253,7 +247,7 @@ impl FreezeEscrow {
         + 32    // candy machine
         + 8     // frozen count
         + 1 + 8 // option + first mint time
-        + 8     // freeze time
+        + 8     // freeze period
         + 32    // destination
         + 32; // authority
 
@@ -440,7 +434,13 @@ pub fn initialize_freeze<'info>(
             &[&signer],
         )?;
     } else {
-        return err!(CandyGuardError::FreezeEscrowAlreadyExists);
+        if let Some(candy_machine) = route_context.candy_machine {
+            if candy_machine.items_redeemed > 0 {
+                return err!(CandyGuardError::FreezeEscrowAlreadyExists);
+            }
+        }
+
+        assert_owned_by(freeze_pda, &crate::ID)?;
     }
 
     // offset 1 to 9 (8 bytes) since the first byte is the freeze
