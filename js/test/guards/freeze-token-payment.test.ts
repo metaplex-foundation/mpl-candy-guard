@@ -168,7 +168,7 @@ test('Token Payment', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -436,7 +436,7 @@ test('Token Payment (thaw)', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -710,7 +710,7 @@ test('Token Payment (unlock not allowed)', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -977,7 +977,7 @@ test('Token Payment (unlock)', async (t) => {
     authority,
     tokenMint,
     minterAta.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
