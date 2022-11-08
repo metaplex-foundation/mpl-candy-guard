@@ -135,6 +135,11 @@ test('Token Payment', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -403,6 +408,11 @@ test('Token Payment (thaw)', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -556,6 +566,11 @@ test('Token Payment (thaw)', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -674,6 +689,11 @@ test('Token Payment (unlock not allowed)', async (t) => {
       },
       {
         pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: destination.address,
         isSigner: false,
         isWritable: false,
       },
@@ -941,6 +961,11 @@ test('Token Payment (unlock)', async (t) => {
       },
       {
         pubkey: ASSOCIATED_TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: destination.address,
         isSigner: false,
         isWritable: false,
       },

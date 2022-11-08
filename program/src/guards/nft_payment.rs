@@ -64,7 +64,10 @@ impl Condition for NftPayment {
 
         let destination = try_get_account_info(ctx, index + 3)?;
         let destination_ata = try_get_account_info(ctx, index + 4)?;
-        let _atoken_program = try_get_account_info(ctx, index + 5)?;
+
+        let atoken_program = try_get_account_info(ctx, index + 5)?;
+        assert_keys_equal(atoken_program.key, &spl_associated_token_account::ID)?;
+
         evaluation_context.account_cursor += 3;
 
         assert_keys_equal(destination.key, &self.destination)?;

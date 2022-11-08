@@ -26,7 +26,11 @@ done
 # runs single or multiple tests
 
 if [ $RUN_ALL -eq 1 ]; then
-    for file in `ls test/**/*.test.ts`
+    for file in `ls test/*.test.ts`
+    do
+        esr $file | tap-spec
+    done
+    for file in `ls test/*/*.test.ts`
     do
         esr $file | tap-spec
     done
