@@ -506,6 +506,7 @@ The `FreezeTokenPayment` guard is used to charge an amount in a specified spl-to
 | `token_mint`              |          |        | Token mint account (must match the `mint` address of the guard configuration). |
 | `token_program`           |          |        | `spl-token` program ID. |
 | `associate_token_program` |          |        | Associate token program account. |
+| `destination_ata`         |    ✅    |        | Address to receive the funds (must match the `destination_ata` address of the guard configuration). |
 
 </details>
 <details>

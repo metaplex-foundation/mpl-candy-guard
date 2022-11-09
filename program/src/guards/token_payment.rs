@@ -3,7 +3,10 @@ use super::*;
 use crate::{
     errors::CandyGuardError,
     state::GuardType,
-    utils::{assert_is_ata, assert_keys_equal, spl_token_transfer, TokenTransferParams},
+    utils::{
+        assert_initialized, assert_is_ata, assert_keys_equal, spl_token_transfer,
+        TokenTransferParams,
+    },
 };
 
 /// Guard that charges an amount in a specified spl-token as payment for the mint.
@@ -46,6 +49,8 @@ impl Condition for TokenPayment {
         evaluation_context.account_cursor += 2;
 
         assert_keys_equal(destination_ata.key, &self.destination_ata)?;
+        let ata_account: spl_token::state::Account = assert_initialized(destination_ata)?;
+        assert_keys_equal(&ata_account.mint, &self.mint)?;
 
         let token_account =
             assert_is_ata(token_account_info, &ctx.accounts.payer.key(), &self.mint)?;
