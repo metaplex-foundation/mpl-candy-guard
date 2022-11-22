@@ -18,6 +18,7 @@ jobs:
     outputs:
       package: ${{ steps.filter.outputs.package }}
       workflow: ${{ steps.filter.outputs.workflow }}
+      parser: ${{ steps.filter.outputs.parser }}
     steps:
     - uses: actions/checkout@v3
     # For pull requests it's not necessary to checkout the code
@@ -29,12 +30,14 @@ jobs:
             - 'program/**'
           workflow:
             - '.github/workflows/integration-test.yml'
+          parser:
+            - 'js/src/parser.ts'
   build-and-integration-test:
     runs-on: buildjet-8vcpu-ubuntu-2004
     env:
       cache_id: program-candy-guard 
     needs: changes
-    if: ${{ needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' }}
+    if: ${{ needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' || needs.changes.outputs.parser == 'true'  }}
     steps:
       # Setup Deps
       - uses: actions/checkout@v3

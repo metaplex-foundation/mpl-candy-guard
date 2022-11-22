@@ -1,31 +1,10 @@
 import { BN } from 'bn.js';
 import * as beet from '@metaplex-foundation/beet';
 import { logDebug } from './utils/log';
-import {
-  allowListBeet,
-  botTaxBeet,
-  CandyGuardData,
-  freezeSolPaymentBeet,
-  freezeTokenPaymentBeet,
-  gatekeeperBeet,
-  Group,
-  GuardSet,
-  mintLimitBeet,
-  nftPaymentBeet,
-  programGateBeet,
-  startDateBeet,
-  thirdPartySignerBeet,
-  tokenGateBeet,
-} from './generated';
-import { solPaymentBeet } from './generated/types/SolPayment';
-import { tokenPaymentBeet } from './generated/types/TokenPayment';
-import { endDateBeet } from './generated/types/EndDate';
-import { redeemedAmountBeet } from './generated/types/RedeemedAmount';
-import { addressGateBeet } from './generated/types/AddressGate';
-import { nftGateBeet } from './generated/types/NftGate';
-import { nftBurnBeet } from './generated/types/NftBurn';
-import { tokenBurnBeet } from './generated/types/TokenBurn';
-import { u32, u64 } from '@metaplex-foundation/beet';
+import * as beets from './generated';
+import { BeetArgsStruct, u32, u64 } from '@metaplex-foundation/beet';
+import { CandyGuardData, Group, GuardSet } from './generated';
+import { strict as assert } from 'assert';
 
 type Guards = {
   /* 01 */ botTaxEnabled: boolean;
@@ -49,28 +28,6 @@ type Guards = {
   /* 19 */ programGateEnabled: boolean;
 };
 
-const GUARDS_SIZE = {
-  /* 01 */ botTax: 9,
-  /* 02 */ solPayment: 40,
-  /* 03 */ tokenPayment: 72,
-  /* 04 */ startDate: 8,
-  /* 05 */ thirdPartySigner: 32,
-  /* 06 */ tokenGate: 40,
-  /* 07 */ gatekeeper: 33,
-  /* 08 */ endDate: 8,
-  /* 09 */ allowList: 32,
-  /* 10 */ mintLimit: 3,
-  /* 11 */ nftPayment: 64,
-  /* 12 */ redeemedAmount: 8,
-  /* 13 */ addressGate: 32,
-  /* 14 */ nftGate: 32,
-  /* 15 */ nftBurn: 32,
-  /* 16 */ tokenBurn: 40,
-  /* 17 */ freezeSolPayment: 40,
-  /* 18 */ freezeTokenPayment: 72,
-  /* 19 */ programGate: 164,
-};
-
 const GUARDS_NAME = [
   /* 01 */ 'botTax',
   /* 02 */ 'solPayment',
@@ -91,7 +48,31 @@ const GUARDS_NAME = [
   /* 17 */ 'freezeSolPayment',
   /* 18 */ 'freezeTokenPayment',
   /* 19 */ 'programGate',
-];
+] as const;
+
+type GuardsKey = typeof GUARDS_NAME[number];
+
+const GUARDS_SIZE: Record<GuardsKey, number> = {
+  /* 01 */ botTax: 9,
+  /* 02 */ solPayment: 40,
+  /* 03 */ tokenPayment: 72,
+  /* 04 */ startDate: 8,
+  /* 05 */ thirdPartySigner: 32,
+  /* 06 */ tokenGate: 40,
+  /* 07 */ gatekeeper: 33,
+  /* 08 */ endDate: 8,
+  /* 09 */ allowList: 32,
+  /* 10 */ mintLimit: 3,
+  /* 11 */ nftPayment: 64,
+  /* 12 */ redeemedAmount: 8,
+  /* 13 */ addressGate: 32,
+  /* 14 */ nftGate: 32,
+  /* 15 */ nftBurn: 32,
+  /* 16 */ tokenBurn: 40,
+  /* 17 */ freezeSolPayment: 40,
+  /* 18 */ freezeTokenPayment: 72,
+  /* 19 */ programGate: 164,
+};
 
 const GUARDS_COUNT = GUARDS_NAME.length;
 const MAX_LABEL_LENGTH = 6;
@@ -247,7 +228,7 @@ function size(data: CandyGuardData): number {
  * Returns the number of bytes needed to serialize the specified
  * `GuardSet` object.
  *
- * @param data the `GuardSet` object.
+ * @param guardSet the `GuardSet` object.
  *
  * @returns the number of bytes needed to serialize the specified
  * `GuardSet` object.
@@ -268,6 +249,27 @@ function guardSetSize(guardSet: GuardSet): number {
   );
 }
 
+function addGuardIfEnabled(
+  guards: Guards,
+  guardsSize: typeof GUARDS_SIZE,
+  key: GuardsKey,
+  buffer: Buffer,
+  cursor: number,
+  data: Partial<Record<GuardsKey, any>>,
+): number {
+  const enbledKey: keyof Guards = `${key}Enabled`;
+  if (!guards[enbledKey]) return cursor;
+
+  const beetKey = `${key}Beet` as keyof typeof beet;
+  const beet = (beets as any)[beetKey] as BeetArgsStruct<any>;
+  assert(beet != null, `Beet for ${key} not found`);
+  assert(typeof beet.deserialize === 'function', `Beet for ${key} is missing deserialize function`);
+
+  const [val] = beet.deserialize(buffer, cursor);
+  data[key] = val;
+  return cursor + guardsSize[key];
+}
+
 /**
  * Returns a `GuardSet` object from the byte buffer.
  *
@@ -278,145 +280,15 @@ function guardSetSize(guardSet: GuardSet): number {
  */
 function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: number } {
   const guards = guardsFromData(buffer);
-  const {
-    botTaxEnabled,
-    startDateEnabled,
-    solPaymentEnabled,
-    tokenPaymentEnabled,
-    thirdPartySignerEnabled,
-    tokenGateEnabled,
-    gatekeeperEnabled,
-    endDateEnabled,
-    allowListEnabled,
-    mintLimitEnabled,
-    nftPaymentEnabled,
-    redeemedAmountEnabled,
-    addressGateEnabled,
-    nftGateEnabled,
-    nftBurnEnabled,
-    tokenBurnEnabled,
-    freezeSolPaymentEnabled,
-    freezeTokenPaymentEnabled,
-    programGateEnabled,
-  } = guards;
   logDebug('Guards: %O', guards);
 
   // data offset for deserialization (skip u64 features flag)
   let cursor = beet.u64.byteSize;
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-  const data: Record<string, any> = {};
+  const data: Partial<Record<GuardsKey, any>> = {};
 
-  if (botTaxEnabled) {
-    const [botTax] = botTaxBeet.deserialize(buffer, cursor);
-    data.botTax = botTax;
-    cursor += GUARDS_SIZE.botTax;
-  }
-
-  if (solPaymentEnabled) {
-    const [solPayment] = solPaymentBeet.deserialize(buffer, cursor);
-    data.solPayment = solPayment;
-    cursor += GUARDS_SIZE.solPayment;
-  }
-
-  if (tokenPaymentEnabled) {
-    const [tokenPayment] = tokenPaymentBeet.deserialize(buffer, cursor);
-    data.tokenPayment = tokenPayment;
-    cursor += GUARDS_SIZE.tokenPayment;
-  }
-
-  if (startDateEnabled) {
-    const [startDate] = startDateBeet.deserialize(buffer, cursor);
-    data.startDate = startDate;
-    cursor += GUARDS_SIZE.startDate;
-  }
-
-  if (thirdPartySignerEnabled) {
-    const [thirdPartySigner] = thirdPartySignerBeet.deserialize(buffer, cursor);
-    data.thirdPartySigner = thirdPartySigner;
-    cursor += GUARDS_SIZE.thirdPartySigner;
-  }
-
-  if (tokenGateEnabled) {
-    const [tokenGate] = tokenGateBeet.deserialize(buffer, cursor);
-    data.tokenGate = tokenGate;
-    cursor += GUARDS_SIZE.tokenGate;
-  }
-
-  if (gatekeeperEnabled) {
-    const [gatekeeper] = gatekeeperBeet.deserialize(buffer, cursor);
-    data.gatekeeper = gatekeeper;
-    cursor += GUARDS_SIZE.gatekeeper;
-  }
-
-  if (endDateEnabled) {
-    const [endDate] = endDateBeet.deserialize(buffer, cursor);
-    data.endDate = endDate;
-    cursor += GUARDS_SIZE.endDate;
-  }
-
-  if (allowListEnabled) {
-    const [allowList] = allowListBeet.deserialize(buffer, cursor);
-    data.allowList = allowList;
-    cursor += GUARDS_SIZE.allowList;
-  }
-
-  if (mintLimitEnabled) {
-    const [mintLimit] = mintLimitBeet.deserialize(buffer, cursor);
-    data.mintLimit = mintLimit;
-    cursor += GUARDS_SIZE.mintLimit;
-  }
-
-  if (nftPaymentEnabled) {
-    const [nftPayment] = nftPaymentBeet.deserialize(buffer, cursor);
-    data.nftPayment = nftPayment;
-    cursor += GUARDS_SIZE.nftPayment;
-  }
-
-  if (redeemedAmountEnabled) {
-    const [redeemedAmount] = redeemedAmountBeet.deserialize(buffer, cursor);
-    data.redeemedAmount = redeemedAmount;
-    cursor += GUARDS_SIZE.redeemedAmount;
-  }
-
-  if (addressGateEnabled) {
-    const [addressGate] = addressGateBeet.deserialize(buffer, cursor);
-    data.addressGate = addressGate;
-    cursor += GUARDS_SIZE.addressGate;
-  }
-
-  if (nftGateEnabled) {
-    const [nftGate] = nftGateBeet.deserialize(buffer, cursor);
-    data.nftGate = nftGate;
-    cursor += GUARDS_SIZE.nftGate;
-  }
-
-  if (nftBurnEnabled) {
-    const [nftBurn] = nftBurnBeet.deserialize(buffer, cursor);
-    data.nftBurn = nftBurn;
-    cursor += GUARDS_SIZE.nftBurn;
-  }
-
-  if (tokenBurnEnabled) {
-    const [tokenBurn] = tokenBurnBeet.deserialize(buffer, cursor);
-    data.tokenBurn = tokenBurn;
-    cursor += GUARDS_SIZE.tokenBurn;
-  }
-
-  if (freezeSolPaymentEnabled) {
-    const [freezeSolPayment] = freezeSolPaymentBeet.deserialize(buffer, cursor);
-    data.freezeSolPayment = freezeSolPayment;
-    cursor += GUARDS_SIZE.freezeSolPayment;
-  }
-
-  if (freezeTokenPaymentEnabled) {
-    const [freezeTokenPayment] = freezeTokenPaymentBeet.deserialize(buffer, cursor);
-    data.freezeTokenPayment = freezeTokenPayment;
-    cursor += GUARDS_SIZE.freezeTokenPayment;
-  }
-  if (programGateEnabled) {
-    const [programGate] = programGateBeet.deserialize(buffer, cursor);
-    data.programGate = programGate;
-    cursor += GUARDS_SIZE.programGate;
+  for (const key of GUARDS_NAME) {
+    cursor = addGuardIfEnabled(guards, GUARDS_SIZE, key, buffer, cursor, data);
   }
 
   return {
@@ -427,7 +299,7 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
       startDate: data.startDate ?? null,
       thirdPartySigner: data.thirdPartySigner ?? null,
       tokenGate: data.tokenGate ?? null,
-      gatekeeper: data.gateKeeper ?? null,
+      gatekeeper: data.gatekeeper ?? null,
       endDate: data.endDate ?? null,
       allowList: data.allowList ?? null,
       mintLimit: data.mintLimit ?? null,
@@ -464,126 +336,126 @@ function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): 
   let index = 0;
 
   if (guardSet.botTax) {
-    botTaxBeet.write(buffer, offset, guardSet.botTax);
+    beets.botTaxBeet.write(buffer, offset, guardSet.botTax);
     offset += GUARDS_SIZE.botTax;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.solPayment) {
-    solPaymentBeet.write(buffer, offset, guardSet.solPayment);
+    beets.solPaymentBeet.write(buffer, offset, guardSet.solPayment);
     offset += GUARDS_SIZE.solPayment;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.tokenPayment) {
-    tokenPaymentBeet.write(buffer, offset, guardSet.tokenPayment);
+    beets.tokenPaymentBeet.write(buffer, offset, guardSet.tokenPayment);
     offset += GUARDS_SIZE.tokenPayment;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.startDate) {
-    startDateBeet.write(buffer, offset, guardSet.startDate);
+    beets.startDateBeet.write(buffer, offset, guardSet.startDate);
     offset += GUARDS_SIZE.startDate;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.thirdPartySigner) {
-    thirdPartySignerBeet.write(buffer, offset, guardSet.thirdPartySigner);
+    beets.thirdPartySignerBeet.write(buffer, offset, guardSet.thirdPartySigner);
     offset += GUARDS_SIZE.thirdPartySigner;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.tokenGate) {
-    tokenGateBeet.write(buffer, offset, guardSet.tokenGate);
+    beets.tokenGateBeet.write(buffer, offset, guardSet.tokenGate);
     offset += GUARDS_SIZE.tokenGate;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.gatekeeper) {
-    gatekeeperBeet.write(buffer, offset, guardSet.gatekeeper);
+    beets.gatekeeperBeet.write(buffer, offset, guardSet.gatekeeper);
     offset += GUARDS_SIZE.gatekeeper;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.endDate) {
-    endDateBeet.write(buffer, offset, guardSet.endDate);
+    beets.endDateBeet.write(buffer, offset, guardSet.endDate);
     offset += GUARDS_SIZE.endDate;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.allowList) {
-    allowListBeet.write(buffer, offset, guardSet.allowList);
+    beets.allowListBeet.write(buffer, offset, guardSet.allowList);
     offset += GUARDS_SIZE.allowList;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.mintLimit) {
-    mintLimitBeet.write(buffer, offset, guardSet.mintLimit);
+    beets.mintLimitBeet.write(buffer, offset, guardSet.mintLimit);
     offset += GUARDS_SIZE.mintLimit;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.nftPayment) {
-    nftPaymentBeet.write(buffer, offset, guardSet.nftPayment);
+    beets.nftPaymentBeet.write(buffer, offset, guardSet.nftPayment);
     offset += GUARDS_SIZE.nftPayment;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.redeemedAmount) {
-    redeemedAmountBeet.write(buffer, offset, guardSet.redeemedAmount);
+    beets.redeemedAmountBeet.write(buffer, offset, guardSet.redeemedAmount);
     offset += GUARDS_SIZE.redeemedAmount;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.addressGate) {
-    addressGateBeet.write(buffer, offset, guardSet.addressGate);
+    beets.addressGateBeet.write(buffer, offset, guardSet.addressGate);
     offset += GUARDS_SIZE.addressGate;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.nftGate) {
-    nftGateBeet.write(buffer, offset, guardSet.nftGate);
+    beets.nftGateBeet.write(buffer, offset, guardSet.nftGate);
     offset += GUARDS_SIZE.nftGate;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.nftBurn) {
-    nftBurnBeet.write(buffer, offset, guardSet.nftBurn);
+    beets.nftBurnBeet.write(buffer, offset, guardSet.nftBurn);
     offset += GUARDS_SIZE.nftBurn;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.tokenBurn) {
-    tokenBurnBeet.write(buffer, offset, guardSet.tokenBurn);
+    beets.tokenBurnBeet.write(buffer, offset, guardSet.tokenBurn);
     offset += GUARDS_SIZE.tokenBurn;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.freezeSolPayment) {
-    freezeSolPaymentBeet.write(buffer, offset, guardSet.freezeSolPayment);
+    beets.freezeSolPaymentBeet.write(buffer, offset, guardSet.freezeSolPayment);
     offset += GUARDS_SIZE.freezeSolPayment;
     features |= 1 << index;
   }
   index++;
 
   if (guardSet.freezeTokenPayment) {
-    freezeTokenPaymentBeet.write(buffer, offset, guardSet.freezeTokenPayment);
+    beets.freezeTokenPaymentBeet.write(buffer, offset, guardSet.freezeTokenPayment);
     offset += GUARDS_SIZE.freezeTokenPayment;
     features |= 1 << index;
   }
@@ -598,7 +470,7 @@ function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): 
         ${guardSet.programGate.additional.length} > ${MAX_PROGRAM_COUNT}`;
     }
 
-    const [data] = programGateBeet.serialize(guardSet.programGate, GUARDS_SIZE.programGate);
+    const [data] = beets.programGateBeet.serialize(guardSet.programGate, GUARDS_SIZE.programGate);
     data.copy(buffer, offset);
     offset += GUARDS_SIZE.programGate;
     features |= 1 << index;
