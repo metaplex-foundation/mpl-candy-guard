@@ -414,7 +414,7 @@ pub fn initialize_freeze<'info>(
     if freeze_pda.data_is_empty() {
         // checking if we got the correct system_program
         let system_program = try_get_account_info(ctx, 2)?;
-        assert_keys_equal(&system_program::ID, &system_program.key())?;
+        assert_keys_equal(system_program.key, &system_program::ID)?;
 
         let signer = [
             FreezeEscrow::PREFIX_SEED,
@@ -504,6 +504,7 @@ pub fn thaw_nft<'info>(
 
     let token_program = try_get_account_info(ctx, 5)?;
     let token_metadata_program = try_get_account_info(ctx, 6)?;
+    assert_keys_equal(token_metadata_program.key, &mpl_token_metadata::ID)?;
 
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
@@ -540,7 +541,6 @@ pub fn thaw_nft<'info>(
                 nft_master_edition.to_account_info(),
                 nft_mint.to_account_info(),
                 token_program.to_account_info(),
-                token_metadata_program.to_account_info(),
             ],
             &[&signer],
         )?;

@@ -135,6 +135,11 @@ test('Token Payment', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -168,7 +173,7 @@ test('Token Payment', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -403,6 +408,11 @@ test('Token Payment (thaw)', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -436,7 +446,7 @@ test('Token Payment (thaw)', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -553,6 +563,11 @@ test('Token Payment (thaw)', async (t) => {
       },
       {
         pubkey: METAPLEX_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: destination.address,
         isSigner: false,
         isWritable: false,
       },
@@ -677,6 +692,11 @@ test('Token Payment (unlock not allowed)', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -710,7 +730,7 @@ test('Token Payment (unlock not allowed)', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );
@@ -944,6 +964,11 @@ test('Token Payment (unlock)', async (t) => {
         isSigner: false,
         isWritable: false,
       },
+      {
+        pubkey: destination.address,
+        isSigner: false,
+        isWritable: false,
+      },
     ],
   );
 
@@ -977,7 +1002,7 @@ test('Token Payment (unlock)', async (t) => {
     authority,
     tokenMint,
     minterAta.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );

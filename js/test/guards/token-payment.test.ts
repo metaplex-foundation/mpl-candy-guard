@@ -58,7 +58,7 @@ test('Token Payment', async (t) => {
     authority,
     tokenMint,
     minterATA.address,
-    authority.publicKey,
+    authority,
     // airdrop 10 tokens
     10,
   );

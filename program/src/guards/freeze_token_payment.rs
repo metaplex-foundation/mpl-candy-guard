@@ -4,6 +4,7 @@ use anchor_lang::AccountsClose;
 use solana_program::{
     program::{invoke, invoke_signed},
     program_pack::Pack,
+    system_program,
 };
 use spl_associated_token_account::{
     get_associated_token_address, instruction::create_associated_token_account,
@@ -15,8 +16,8 @@ use crate::{
     guards::freeze_sol_payment::{initialize_freeze, thaw_nft},
     state::GuardType,
     utils::{
-        assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys, spl_token_transfer,
-        TokenTransferParams,
+        assert_initialized, assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys,
+        spl_token_transfer, TokenTransferParams,
     },
 };
 
@@ -79,6 +80,8 @@ impl Guard for FreezeTokenPayment {
             //   4. `[]` Token mint account.
             //   5. `[]` Token program account.
             //   6. `[]` Associate token program account.
+            //   7. `[]` Address to receive the funds (must match the `destination_ata` address
+            //           of the guard configuration).
             FreezeInstruction::Initialize => {
                 msg!("Instruction: Initialize (FreezeTokenPayment guard)");
 
@@ -86,13 +89,9 @@ impl Guard for FreezeTokenPayment {
                     return err!(CandyGuardError::Uninitialized);
                 }
 
-                if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
-                    return err!(CandyGuardError::Uninitialized);
-                }
-
-                let destination = if let Some(guard_set) = &route_context.guard_set {
+                let (destination, mint) = if let Some(guard_set) = &route_context.guard_set {
                     if let Some(freeze_guard) = &guard_set.freeze_token_payment {
-                        freeze_guard.destination_ata
+                        (freeze_guard.destination_ata, freeze_guard.mint)
                     } else {
                         return err!(CandyGuardError::FreezeGuardNotEnabled);
                     }
@@ -107,12 +106,27 @@ impl Guard for FreezeTokenPayment {
                 // initializes the freeze ata
 
                 let freeze_pda = try_get_account_info(ctx, 0)?;
+
                 let system_program = try_get_account_info(ctx, 2)?;
+                assert_keys_equal(system_program.key, &system_program::ID)?;
+
                 let freeze_ata = try_get_account_info(ctx, 3)?;
                 let token_mint = try_get_account_info(ctx, 4)?;
-                // validate the remaining accounts
-                let _token_program = try_get_account_info(ctx, 5)?;
-                let _associate_token_program = try_get_account_info(ctx, 6)?;
+                assert_keys_equal(token_mint.key, &mint)?;
+                // spl token program
+                let token_program = try_get_account_info(ctx, 5)?;
+                assert_keys_equal(token_program.key, &spl_token::ID)?;
+                // spl associated token program
+                let associate_token_program = try_get_account_info(ctx, 6)?;
+                assert_keys_equal(
+                    associate_token_program.key,
+                    &spl_associated_token_account::ID,
+                )?;
+
+                let destination_ata = try_get_account_info(ctx, 7)?;
+                assert_keys_equal(destination_ata.key, &destination)?;
+                let ata_account: spl_token::state::Account = assert_initialized(destination_ata)?;
+                assert_keys_equal(&ata_account.mint, &mint)?;
 
                 assert_keys_equal(
                     &get_associated_token_address(freeze_pda.key, token_mint.key),
