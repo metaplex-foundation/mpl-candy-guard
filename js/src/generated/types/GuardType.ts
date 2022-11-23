@@ -30,6 +30,7 @@ export enum GuardType {
   FreezeSolPayment,
   FreezeTokenPayment,
   ProgramGate,
+  Allocation,
 }
 
 /**

@@ -94,4 +94,10 @@ pub enum CandyGuardError {
     UnauthorizedProgramFound,
     #[msg("Exceeded the maximum number of programs in the additional list")]
     ExceededProgramListSize,
+    #[msg("Allocation PDA not initialized")]
+    AllocationNotInitialized,
+    #[msg("Allocation limit was reached")]
+    AllocationLimitReached,
+    #[msg("Allocation guard must be enabled")]
+    AllocationGuardNotEnabled,
 }

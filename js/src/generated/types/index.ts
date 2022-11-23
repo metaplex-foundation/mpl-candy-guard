@@ -1,4 +1,5 @@
 export * from './AddressGate';
+export * from './Allocation';
 export * from './AllowList';
 export * from './AllowListProof';
 export * from './BotTax';
@@ -13,6 +14,7 @@ export * from './GuardSet';
 export * from './GuardType';
 export * from './MintCounter';
 export * from './MintLimit';
+export * from './MintTracker';
 export * from './NftBurn';
 export * from './NftGate';
 export * from './NftPayment';

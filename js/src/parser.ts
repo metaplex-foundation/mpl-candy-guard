@@ -2,6 +2,7 @@ import { BN } from 'bn.js';
 import * as beet from '@metaplex-foundation/beet';
 import { logDebug } from './utils/log';
 import {
+  allocationBeet,
   allowListBeet,
   botTaxBeet,
   CandyGuardData,
@@ -47,6 +48,7 @@ type Guards = {
   /* 17 */ freezeSolPaymentEnabled: boolean;
   /* 18 */ freezeTokenPaymentEnabled: boolean;
   /* 19 */ programGateEnabled: boolean;
+  /* 20 */ allocationEnabled: boolean;
 };
 
 const GUARDS_SIZE = {
@@ -69,6 +71,7 @@ const GUARDS_SIZE = {
   /* 17 */ freezeSolPayment: 40,
   /* 18 */ freezeTokenPayment: 72,
   /* 19 */ programGate: 164,
+  /* 20 */ allocation: 5,
 };
 
 const GUARDS_NAME = [
@@ -91,6 +94,7 @@ const GUARDS_NAME = [
   /* 17 */ 'freezeSolPayment',
   /* 18 */ 'freezeTokenPayment',
   /* 19 */ 'programGate',
+  /* 20 */ 'allocation',
 ];
 
 const GUARDS_COUNT = GUARDS_NAME.length;
@@ -132,6 +136,7 @@ function guardsFromData(buffer: Buffer): Guards {
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   ] = guards;
 
   return {
@@ -154,6 +159,7 @@ function guardsFromData(buffer: Buffer): Guards {
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   };
 }
 
@@ -298,6 +304,7 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
     freezeSolPaymentEnabled,
     freezeTokenPaymentEnabled,
     programGateEnabled,
+    allocationEnabled,
   } = guards;
   logDebug('Guards: %O', guards);
 
@@ -413,10 +420,17 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
     data.freezeTokenPayment = freezeTokenPayment;
     cursor += GUARDS_SIZE.freezeTokenPayment;
   }
+
   if (programGateEnabled) {
     const [programGate] = programGateBeet.deserialize(buffer, cursor);
     data.programGate = programGate;
     cursor += GUARDS_SIZE.programGate;
+  }
+
+  if (allocationEnabled) {
+    const [allocation] = allocationBeet.deserialize(buffer, cursor);
+    data.allocation = allocation;
+    cursor += GUARDS_SIZE.allocation;
   }
 
   return {
@@ -440,6 +454,7 @@ function deserializeGuardSet(buffer: Buffer): { guardSet: GuardSet; offset: numb
       freezeSolPayment: data.freezeSolPayment ?? null,
       freezeTokenPayment: data.freezeTokenPayment ?? null,
       programGate: data.programGate ?? null,
+      allocation: data.allocation ?? null,
     },
     offset: cursor,
   };
@@ -601,6 +616,13 @@ function serializeGuardSet(buffer: Buffer, offset: number, guardSet: GuardSet): 
     const [data] = programGateBeet.serialize(guardSet.programGate, GUARDS_SIZE.programGate);
     data.copy(buffer, offset);
     offset += GUARDS_SIZE.programGate;
+    features |= 1 << index;
+  }
+  index++;
+
+  if (guardSet.allocation) {
+    allocationBeet.write(buffer, offset, guardSet.allocation);
+    offset += GUARDS_SIZE.allocation;
     features |= 1 << index;
   }
   index++;

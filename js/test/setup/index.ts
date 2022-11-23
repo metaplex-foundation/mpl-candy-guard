@@ -33,6 +33,7 @@ export function newGuardSet(): GuardSet {
     freezeSolPayment: null,
     freezeTokenPayment: null,
     programGate: null,
+    allocation: null,
   };
 }
 
