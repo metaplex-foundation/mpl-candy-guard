@@ -769,7 +769,7 @@ dependencies = [
 
 [[package]]
 name = "mpl-candy-guard"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -784,7 +784,7 @@ dependencies = [
 
 [[package]]
 name = "mpl-candy-guard-derive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "quote",
  "syn",
