@@ -19,6 +19,8 @@ use crate::{
     utils::{assert_is_ata, assert_keys_equal, cmp_pubkeys},
 };
 
+const FREEZE_SOL_FEE: u64 = 10_000;
+
 /// Guard that charges an amount in SOL (lamports) for the mint with a freeze period.
 ///
 /// List of accounts required:
@@ -31,6 +33,12 @@ use crate::{
 pub struct FreezeSolPayment {
     pub lamports: u64,
     pub destination: Pubkey,
+}
+
+impl FreezeSolPayment {
+    const fn total_lamports(&self) -> u64 {
+        self.lamports + FREEZE_SOL_FEE
+    }
 }
 
 impl Guard for FreezeSolPayment {
@@ -162,10 +170,10 @@ impl Condition for FreezeSolPayment {
             .indices
             .insert("freeze_sol_payment", index);
 
-        if ctx.accounts.payer.lamports() < self.lamports {
+        if ctx.accounts.payer.lamports() < self.total_lamports() {
             msg!(
                 "Require {} lamports, accounts has {} lamports",
-                self.lamports,
+                self.total_lamports(),
                 ctx.accounts.payer.lamports(),
             );
             return err!(CandyGuardError::NotEnoughSOL);
@@ -188,7 +196,7 @@ impl Condition for FreezeSolPayment {
             &system_instruction::transfer(
                 &ctx.accounts.payer.key(),
                 &freeze_pda.key(),
-                self.lamports,
+                self.total_lamports(),
             ),
             &[
                 ctx.accounts.payer.to_account_info(),
@@ -526,7 +534,8 @@ pub fn thaw_nft<'info>(
         &[bump],
     ];
 
-    if nft_token_account.is_frozen() {
+    let is_frozen = nft_token_account.is_frozen();
+    if is_frozen {
         invoke_signed(
             &thaw_delegated_account(
                 mpl_token_metadata::ID,
@@ -557,6 +566,14 @@ pub fn thaw_nft<'info>(
         )?;
     } else {
         msg!("Token account owner is not signer, authority not revoked");
+    }
+
+    if is_frozen {
+        let payer_lamports = payer.lamports();
+        **payer.lamports.borrow_mut() = payer_lamports.checked_add(FREEZE_SOL_FEE).unwrap();
+        let freeze_pda_lamports = freeze_pda.lamports();
+        **freeze_pda.lamports.borrow_mut() =
+            freeze_pda_lamports.checked_sub(FREEZE_SOL_FEE).unwrap();
     }
     // save the account state
     freeze_escrow.exit(&crate::ID)?;
