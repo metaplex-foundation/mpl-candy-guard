@@ -1,8 +1,4 @@
 # Metaplex Candy Guard
-
-> ⚠️ **Candy Guard is currently experimental and has not been formally audited. Use in production
-> at your own risk.**
-
 ---
 ### 💡 Update:
 Candy Guard v0.2.0 will update the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the argument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
