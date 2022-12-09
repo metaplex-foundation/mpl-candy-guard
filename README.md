@@ -1,9 +1,6 @@
 # Metaplex Candy Guard
-
-> ⚠️ **Candy Guard is currently experimental and has not been formally audited. Use in production
-> at your own risk.**
-
 ---
+
 ### 💡 Update:
 Candy Guard v0.2.0 will update the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the argument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
 
@@ -70,6 +67,12 @@ The Candy Guard program contains a set of core access control guards that can be
 - `TokenBurn`: restricts the mint to holders of a specified spl-token, requiring a burn of the tokens
 - `TokenGate`: restricts the mint to holders of a specified spl-token
 - `TokenPayment`: set the price of the mint in spl-token amount
+
+Along with those guads, amazing teams in the community are making guard programs with new and cool checks. 
+Here are a few teams who have created guards.
+
+* Civic -> Civic Pass Guard [Integration Docs](https://docs.civic.com/integrations/adding-civic-pass-protection-to-candy-machine-v3)
+
 
 ## Account
 
