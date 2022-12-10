@@ -6,3 +6,6 @@ members = [
     "program",
     "macro"
 ]
+
+[patch.crates-io]
+anchor-lang = { git="https://github.com/metaplex-foundation/anchor" }
