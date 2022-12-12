@@ -9,3 +9,5 @@ members = [
 
 [patch.crates-io]
 anchor-lang = { git="https://github.com/metaplex-foundation/anchor" }
+mpl-token-metadata = { git="https://github.com/metaplex-foundation/metaplex-program-library", ref="update-deps"}
+mpl-candy-machine-core = { git="https://github.com/metaplex-foundation/metaplex-program-library", ref="update-deps"}
