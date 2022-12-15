@@ -164,7 +164,7 @@ impl Guard for FreezeTokenPayment {
             //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeTokenPayment guard)");
-                thaw_nft(ctx, route_context, data)
+                thaw_nft(ctx, route_context, data, false)
             }
             // Unlocks frozen funds.
             //

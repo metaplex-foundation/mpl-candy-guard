@@ -111,7 +111,7 @@ impl Guard for FreezeSolPayment {
             //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeSolPayment guard)");
-                thaw_nft(ctx, route_context, data)
+                thaw_nft(ctx, route_context, data, true)
             }
             // Unlocks frozen funds.
             //
@@ -484,6 +484,7 @@ pub fn thaw_nft<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
     route_context: RouteContext,
     _data: Vec<u8>,
+    with_crank_reward: bool,
 ) -> Result<()> {
     let current_timestamp = Clock::get()?.unix_timestamp;
 
@@ -568,7 +569,9 @@ pub fn thaw_nft<'info>(
         msg!("Token account owner is not signer, authority not revoked");
     }
 
-    if is_frozen {
+    // We put this block at the end of the instruction to avoid subtleties with runtime
+    // lamport balance checks
+    if is_frozen && with_crank_reward {
         let payer_lamports = payer.lamports();
         **payer.lamports.borrow_mut() = payer_lamports.checked_add(FREEZE_SOL_FEE).unwrap();
         let freeze_pda_lamports = freeze_pda.lamports();
