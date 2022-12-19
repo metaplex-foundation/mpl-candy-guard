@@ -86,12 +86,6 @@ fn process_error<'info>(
 
 /// Performs a validation of the transaction before executing the guards.
 fn validate<'info>(ctx: &Context<'_, '_, '_, 'info, Mint<'info>>) -> Result<()> {
-    let candy_machine = &ctx.accounts.candy_machine;
-    // are there items to be minted?
-    if candy_machine.items_redeemed >= candy_machine.data.items_available {
-        return err!(CandyGuardError::CandyMachineEmpty);
-    }
-
     if !cmp_pubkeys(
         &ctx.accounts.collection_mint.key(),
         &ctx.accounts.candy_machine.collection_mint,
