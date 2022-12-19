@@ -19,7 +19,7 @@ use crate::{
     utils::{assert_is_ata, assert_keys_equal, cmp_pubkeys},
 };
 
-const FREEZE_SOL_FEE: u64 = 10_000;
+pub const FREEZE_SOL_FEE: u64 = 10_000;
 
 /// Guard that charges an amount in SOL (lamports) for the mint with a freeze period.
 ///
@@ -111,7 +111,7 @@ impl Guard for FreezeSolPayment {
             //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeSolPayment guard)");
-                thaw_nft(ctx, route_context, data, true)
+                thaw_nft(ctx, route_context, data)
             }
             // Unlocks frozen funds.
             //
@@ -484,7 +484,6 @@ pub fn thaw_nft<'info>(
     ctx: &Context<'_, '_, '_, 'info, Route<'info>>,
     route_context: RouteContext,
     _data: Vec<u8>,
-    with_crank_reward: bool,
 ) -> Result<()> {
     let current_timestamp = Clock::get()?.unix_timestamp;
 
@@ -571,12 +570,18 @@ pub fn thaw_nft<'info>(
 
     // We put this block at the end of the instruction to avoid subtleties with runtime
     // lamport balance checks
-    if is_frozen && with_crank_reward {
-        let payer_lamports = payer.lamports();
-        **payer.lamports.borrow_mut() = payer_lamports.checked_add(FREEZE_SOL_FEE).unwrap();
-        let freeze_pda_lamports = freeze_pda.lamports();
-        **freeze_pda.lamports.borrow_mut() =
-            freeze_pda_lamports.checked_sub(FREEZE_SOL_FEE).unwrap();
+    if is_frozen {
+        let rent = Rent::get()?;
+        let rent_exempt_lamports = rent.minimum_balance(freeze_pda.data_len());
+        if freeze_pda.lamports() >= rent_exempt_lamports + FREEZE_SOL_FEE {
+            msg!("Paying FREEZE_SOL_FEE from FreezePda account as crank reward...");
+            **freeze_pda.try_borrow_mut_lamports()? =
+                freeze_pda.lamports().checked_sub(FREEZE_SOL_FEE).unwrap();
+            **payer.try_borrow_mut_lamports()? =
+                payer.lamports().checked_add(FREEZE_SOL_FEE).unwrap();
+        } else {
+            msg!("FreezePda account will not be rent-exempt. Skipping crank reward...");
+        }
     }
     // save the account state
     freeze_escrow.exit(&crate::ID)?;

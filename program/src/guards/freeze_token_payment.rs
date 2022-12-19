@@ -4,7 +4,7 @@ use anchor_lang::AccountsClose;
 use solana_program::{
     program::{invoke, invoke_signed},
     program_pack::Pack,
-    system_program,
+    system_instruction, system_program,
 };
 use spl_associated_token_account::{
     get_associated_token_address, instruction::create_associated_token_account,
@@ -13,7 +13,7 @@ use spl_token::{instruction::close_account, state::Account as TokenAccount};
 
 use crate::{
     errors::CandyGuardError,
-    guards::freeze_sol_payment::{initialize_freeze, thaw_nft},
+    guards::freeze_sol_payment::{initialize_freeze, thaw_nft, FREEZE_SOL_FEE},
     state::GuardType,
     utils::{
         assert_initialized, assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys,
@@ -164,7 +164,7 @@ impl Guard for FreezeTokenPayment {
             //   6. `[]` Metaplex Token Metadata program ID.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeTokenPayment guard)");
-                thaw_nft(ctx, route_context, data, false)
+                thaw_nft(ctx, route_context, data)
             }
             // Unlocks frozen funds.
             //
@@ -236,6 +236,15 @@ impl Condition for FreezeTokenPayment {
             return err!(CandyGuardError::NotEnoughTokens);
         }
 
+        if ctx.accounts.payer.lamports() < FREEZE_SOL_FEE {
+            msg!(
+                "Require {} lamports, accounts has {} lamports",
+                FREEZE_SOL_FEE,
+                ctx.accounts.payer.lamports(),
+            );
+            return err!(CandyGuardError::NotEnoughSOL);
+        }
+
         evaluation_context
             .indices
             .insert("freeze_token_payment", index);
@@ -252,6 +261,7 @@ impl Condition for FreezeTokenPayment {
     ) -> Result<()> {
         let index = evaluation_context.indices["freeze_token_payment"];
         // the accounts have already been validated
+        let freeze_pda = try_get_account_info(ctx, index)?;
         let token_account_info = try_get_account_info(ctx, index + 2)?;
         let destination_ata = try_get_account_info(ctx, index + 3)?;
 
@@ -263,6 +273,19 @@ impl Condition for FreezeTokenPayment {
             token_program: ctx.accounts.token_program.to_account_info(),
             amount: self.amount,
         })?;
+
+        invoke(
+            &system_instruction::transfer(
+                &ctx.accounts.payer.key(),
+                &freeze_pda.key(),
+                FREEZE_SOL_FEE,
+            ),
+            &[
+                ctx.accounts.payer.to_account_info(),
+                freeze_pda.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
 
         Ok(())
     }
