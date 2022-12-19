@@ -2,7 +2,7 @@
 ---
 
 ### 💡 Update:
-Candy Guard v0.2.0 will update the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the argument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
+Candy Guard v0.2.0 updated the serialization logic for the arguments of the `initialize` and `update` instructions. Instead of using a typed struct as the argument, these instructions expect a `[u8]` represeting the custom serialized struct. This is to ensure adding new guards in the future does not affect clients.
 
 If you are using the `mpl-candy-guard` npm package, you can serialize the `CandyMachineData` object using:
 ```typescript
@@ -68,10 +68,9 @@ The Candy Guard program contains a set of core access control guards that can be
 - `TokenGate`: restricts the mint to holders of a specified spl-token
 - `TokenPayment`: set the price of the mint in spl-token amount
 
-Along with those guads, amazing teams in the community are making guard programs with new and cool checks. 
-Here are a few teams who have created guards.
+Along with those guads, amazing teams in the community are making guard programs with new and cool checks. Here are a few teams who have created guards:
 
-* Civic -> Civic Pass Guard [Integration Docs](https://docs.civic.com/integrations/adding-civic-pass-protection-to-candy-machine-v3)
+- Civic: Civic Pass Guard ([Integration Docs](https://docs.civic.com/integrations/adding-civic-pass-protection-to-candy-machine-v3))
 
 
 ## Account
@@ -463,15 +462,15 @@ The `FreezeSolPayment` guard is used to charge an amount in SOL (lamports) for t
 <details>
   <summary>Accounts</summary>
 
-| Name                 | Writable | Signer | Description                                                                                                                      |
-| -------------------- | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
-| `freeze_pda`         |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`).     |
-| `nft_mint`           |          |        | Mint account for the NFT. |
-| `owner`              |          |        | Address of the owner of the NFT. |
-| `nft_ata`            |    ✅    |        | Associate token account of the NFT (seeds `[owner pubkey, token program pubkey, nft mint pubkey]`). |
-| `nft_master_edition` |          |        | Master Edition account of the NFT. |
-| `token_program`      |          |        | `spl-token` program ID.                                                                             |
-| `system_program`     |          |        | `SystemProgram` account.                                                                            |
+| Name                     | Writable | Signer | Description                                                                                                                      |
+| ------------------------ | :------: | :----: | -------------------------------------------------------------------------------------------------------------------------------- |
+| `freeze_pda`             |    ✅    |        | Freeze PDA to receive the funds (seeds `["freeze_escrow", destination pubkey, candy guard pubkey, candy machine pubkey]`).         |
+| `nft_mint`               |          |        | Mint account for the NFT. |
+| `owner`                  |          |        | Address of the owner of the NFT. |
+| `nft_ata`                |    ✅    |        | Associate token account of the NFT (seeds `[owner pubkey, token program pubkey, nft mint pubkey]`). |
+| `nft_master_edition`     |          |        | Master Edition account of the NFT. |
+| `token_program`          |          |        | `spl-token` program ID.                                                                             |
+| `token_metadata_program` |          |        | Metaplex `TokenMetadata` program ID.                                                                |
 
 </details>
 <details>
