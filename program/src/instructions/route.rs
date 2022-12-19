@@ -35,10 +35,8 @@ pub fn route<'info>(
     let candy_machine_account = if candy_machine.to_account_info().data_is_empty() {
         None
     } else {
+        // anchor verifies program ownership
         let account: Account<CandyMachine> = Account::try_from(&candy_machine.to_account_info())?;
-        // validates the mint authority
-        assert_keys_equal(&account.mint_authority, &candy_guard.key())?;
-
         Some(Box::new(account))
     };
 
