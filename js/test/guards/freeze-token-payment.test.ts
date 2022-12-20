@@ -8,7 +8,7 @@ import {
   mintTo,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { METAPLEX_PROGRAM_ID } from '../utils';
+import { assertIsNotNull, METAPLEX_PROGRAM_ID } from '../utils';
 import {
   createRouteInstruction,
   GuardType,
@@ -574,11 +574,18 @@ test('Token Payment (thaw)', async (t) => {
     ],
   );
 
+  const beforePayer = await minterConnection.getAccountInfo(minter.publicKey);
+  assertIsNotNull(t, beforePayer);
+
   const thawTx = new Transaction().add(thawRouteIx);
 
   const thawHandler = minterHandler.sendAndConfirmTransaction(thawTx, [minter], 'tx: Route (Thaw)');
 
   await thawHandler.assertSuccess(t);
+
+  const afterPayer = await minterConnection.getAccountInfo(minter.publicKey);
+  assertIsNotNull(t, afterPayer);
+  t.true(afterPayer.lamports > beforePayer.lamports);
 
   // refresh the nft ata
   nftAtaAccount = await getAccount(minterConnection, nftAta);
