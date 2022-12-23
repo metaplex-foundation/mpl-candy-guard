@@ -11,7 +11,7 @@ import { GuardType } from '../../src/generated/types/GuardType';
 import { i64 } from '@metaplex-foundation/beet';
 import { getAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { findAssociatedTokenAccountPda, findMasterEditionV2Pda } from '@metaplex-foundation/js';
-import { METAPLEX_PROGRAM_ID } from '../utils';
+import { assertIsNotNull, METAPLEX_PROGRAM_ID } from '../utils';
 import {
   FreezeInstruction,
   freezeInstructionBeet,
@@ -407,8 +407,10 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
     ],
   );
 
-  const thawTx = new Transaction().add(thawRouteIx);
+  const beforePayer = await minterConnection.getAccountInfo(minterPair.publicKey);
+  assertIsNotNull(t, beforePayer);
 
+  const thawTx = new Transaction().add(thawRouteIx);
   const thawHandler = minterHandler.sendAndConfirmTransaction(
     thawTx,
     [minterPair],
@@ -416,6 +418,10 @@ test('Freeze Sol Payment (thaw enabled)', async (t) => {
   );
 
   await thawHandler.assertSuccess(t);
+
+  const afterPayer = await minterConnection.getAccountInfo(minterPair.publicKey);
+  assertIsNotNull(t, afterPayer);
+  t.true(afterPayer.lamports > beforePayer.lamports);
 
   nftAtaAccount = await getAccount(minterConnection, nftAta);
   t.false(nftAtaAccount.isFrozen);
