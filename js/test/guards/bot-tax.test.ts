@@ -68,7 +68,7 @@ test('bot tax (invalid transaction)', async (t) => {
     lastInstruction: false,
   };
   data.default.startDate = {
-    date: 32503680000, /** 01/01/3000 **/
+    date: 32503680000 /** 01/01/3000 **/,
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
