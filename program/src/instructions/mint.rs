@@ -1,8 +1,10 @@
+
 use std::collections::BTreeMap;
 
 use anchor_lang::{prelude::*, solana_program::sysvar};
 
 use mpl_candy_machine_core::CandyMachine;
+
 
 use crate::{
     guards::{CandyGuardError, EvaluationContext},
@@ -66,6 +68,9 @@ pub fn mint<'info>(
     for condition in &conditions {
         condition.post_actions(&ctx, &mint_args, &guard_set, &mut evaluation_context)?;
     }
+    if let Some(hydra) = &guard_set.hydra {
+            hydra.add_nft(&ctx, &mut ctx.remaining_accounts.iter())?;
+    } 
 
     Ok(())
 }
@@ -201,4 +206,5 @@ pub struct Mint<'info> {
     /// CHECK: account constraints checked in account trait
     #[account(address = sysvar::instructions::id())]
     pub instruction_sysvar_account: UncheckedAccount<'info>,
+  
 }

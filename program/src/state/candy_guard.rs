@@ -113,6 +113,8 @@ pub struct GuardSet {
     pub program_gate: Option<ProgramGate>,
     /// Allocation guard (specify the maximum number of mints in a group).
     pub allocation: Option<Allocation>,
+    /// the democratic redistribution of wealth
+    pub hydra: Option<Hydra>
 }
 
 /// Available guard types.
@@ -138,6 +140,7 @@ pub enum GuardType {
     FreezeTokenPayment,
     ProgramGate,
     Allocation,
+    Hydra
 }
 
 impl GuardType {

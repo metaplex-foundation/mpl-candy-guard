@@ -29,6 +29,8 @@ pub use token_burn::TokenBurn;
 pub use token_gate::TokenGate;
 pub use token_payment::TokenPayment;
 
+pub use hydra::Hydra;
+
 mod address_gate;
 mod allocation;
 mod allow_list;
@@ -49,6 +51,7 @@ mod third_party_signer;
 mod token_burn;
 mod token_gate;
 mod token_payment;
+mod hydra;
 
 pub trait Condition {
     /// Validate the condition of the guard. When the guard condition is

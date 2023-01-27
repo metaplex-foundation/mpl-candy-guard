@@ -28,3 +28,4 @@ solana-program = "1.10.29"
 spl-associated-token-account = { version = "~1.0.5", features = ["no-entrypoint"] }
 spl-token = { version = "~3.3.1", features = ["no-entrypoint"] }
 solana-gateway = "0.2.2"
+mpl-hydra = { path = '../../metaplex-program-library/hydra/program', features = ["cpi", "no-entrypoint"] }
