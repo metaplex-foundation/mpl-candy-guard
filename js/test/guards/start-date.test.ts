@@ -60,7 +60,7 @@ test('start date (in the future)', async (t) => {
 
   const data = newCandyGuardData();
   data.default.startDate = {
-    date: 1671926400,
+    date: 32503680000, /** 01/01/3000 **/
   };
 
   const { candyGuard, candyMachine } = await API.deploy(
