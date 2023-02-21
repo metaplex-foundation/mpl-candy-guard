@@ -138,6 +138,7 @@ impl Guard for FreezeTokenPayment {
                         ctx.accounts.payer.key,
                         freeze_pda.key,
                         token_mint.key,
+                        &spl_token::ID
                     ),
                     &[
                         ctx.accounts.payer.to_account_info(),
