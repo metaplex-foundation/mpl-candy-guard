@@ -1,11 +1,12 @@
+import spok from 'spok';
 import test from 'tape';
 import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
 import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount, getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
 import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
-import { METAPLEX_PROGRAM_ID } from 'test/utils';
+import { METAPLEX_PROGRAM_ID, spokSameBignum } from 'test/utils';
 
 const API = new InitTransactions();
 
@@ -142,9 +143,23 @@ test('nft payment: NonFungible', async (t) => {
     paymentGuardAccounts,
   );
   await minterMintTx3.assertSuccess(t);
+
+  // check the transfer result
+
+  const sourceAccount = await getAccount(connection, tokenAccount);
+  
+  spok(t, sourceAccount, {
+    amount: spokSameBignum(0),
+  });
+
+  const destinationAccount = await getAccount(connection, destinationAta);
+  
+  spok(t, destinationAccount, {
+    amount: spokSameBignum(1),
+  });
 });
 
-test.only('nft payment: Programmable NonFungible', async (t) => {
+test('nft payment: Programmable NonFungible', async (t) => {
   const { fstTxHandler, payerPair, connection } = await API.payer();
 
   const data = newCandyGuardData();
@@ -311,4 +326,18 @@ test.only('nft payment: Programmable NonFungible', async (t) => {
     paymentGuardAccounts,
   );
   await minterMintTx3.assertSuccess(t);
+
+  // check the transfer result
+
+  const sourceAccount = await getAccount(connection, tokenAccount);
+  
+  spok(t, sourceAccount, {
+    amount: spokSameBignum(0),
+  });
+
+  const destinationAccount = await getAccount(connection, destinationAta);
+  
+  spok(t, destinationAccount, {
+    amount: spokSameBignum(1),
+  });
 });
