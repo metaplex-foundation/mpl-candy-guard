@@ -34,6 +34,7 @@ export type WrapInstructionAccounts = {
   candyMachine: web3.PublicKey;
   candyMachineProgram: web3.PublicKey;
   candyMachineAuthority: web3.PublicKey;
+  anchorRemainingAccounts?: web3.AccountMeta[];
 };
 
 export const wrapInstructionDiscriminator = [178, 40, 10, 189, 228, 129, 186, 140];
@@ -80,6 +81,12 @@ export function createWrapInstruction(
       isSigner: true,
     },
   ];
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc);
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

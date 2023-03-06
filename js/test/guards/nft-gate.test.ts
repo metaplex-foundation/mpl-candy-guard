@@ -76,7 +76,7 @@ test('nft gate (authority)', async (t) => {
   await minterMintTx.assertError(t, /Missing expected remaining account/i);
 
   const metaplex = Metaplex.make(connection).use(keypairIdentity(payerPair));
-  const nft = await metaplex.nfts().findByMint({ mintAddress: mintForAuthority.publicKey }).run();
+  const nft = await metaplex.nfts().findByMint({ mintAddress: mintForAuthority.publicKey });
   const nftGateAccounts: AccountMeta[] = [];
 
   // token account
@@ -176,7 +176,7 @@ test('nft gate (minter)', async (t) => {
   // mint from the second (gated) candy machine
 
   const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
-  const nft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey }).run();
+  const nft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey });
 
   spok(t, nft.collection?.address, spokSamePubkey(candyMachineObject.collectionMint));
 
@@ -216,10 +216,7 @@ test('nft gate (minter)', async (t) => {
     payerConnection,
     secondCandyMachine,
   );
-  const secondNft = await metaplex
-    .nfts()
-    .findByMint({ mintAddress: mintForMinter2.publicKey })
-    .run();
+  const secondNft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter2.publicKey });
 
   spok(t, secondNft.collection, {
     address: spokSamePubkey(secondCandyMachineObject.collectionMint),

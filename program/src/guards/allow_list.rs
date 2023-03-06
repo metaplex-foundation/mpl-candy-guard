@@ -3,7 +3,7 @@ use solana_program::{program::invoke_signed, system_instruction};
 use crate::{
     instructions::Route,
     state::GuardType,
-    utils::{assert_keys_equal, assert_owned_by},
+    utils::{assert_keys_equal, assert_owned_by, cmp_pubkeys},
 };
 
 use super::*;
@@ -64,8 +64,19 @@ impl Guard for AllowList {
     ) -> Result<()> {
         msg!("AllowList: validate proof instruction");
 
-        if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
-            return err!(CandyGuardError::Uninitialized);
+        let candy_guard = route_context
+            .candy_guard
+            .as_ref()
+            .ok_or(CandyGuardError::Uninitialized)?;
+
+        let candy_machine = route_context
+            .candy_machine
+            .as_ref()
+            .ok_or(CandyGuardError::Uninitialized)?;
+
+        // and the candy guard and candy machine must be linked
+        if !cmp_pubkeys(&candy_machine.mint_authority, &candy_guard.key()) {
+            return err!(CandyGuardError::InvalidMintAuthority);
         }
 
         // validates the proof
@@ -100,7 +111,7 @@ impl Guard for AllowList {
         let candy_guard_key = &ctx.accounts.candy_guard.key();
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
-        let proof_pda = try_get_account_info(ctx, 0)?;
+        let proof_pda = try_get_account_info(ctx.remaining_accounts, 0)?;
         let seeds = [
             AllowListProof::PREFIX_SEED,
             &merkle_root[..],
@@ -156,13 +167,12 @@ impl Guard for AllowList {
 impl Condition for AllowList {
     fn validate<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
-        let proof_pda = try_get_account_info(ctx, evaluation_context.account_cursor)?;
-        evaluation_context.account_cursor += 1;
+        let proof_pda = try_get_account_info(ctx.accounts.remaining, ctx.account_cursor)?;
+        ctx.account_cursor += 1;
         let user = ctx.accounts.payer.key();
 
         // validates the pda

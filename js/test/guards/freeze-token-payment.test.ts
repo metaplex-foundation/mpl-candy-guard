@@ -22,7 +22,7 @@ import {
 } from '../../src/generated/types/FreezeInstruction';
 import { i64 } from '@metaplex-foundation/beet';
 import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-import { findAssociatedTokenAccountPda, findMasterEditionV2Pda } from '@metaplex-foundation/js';
+import { keypairIdentity, Metaplex } from '@metaplex-foundation/js';
 
 const API = new InitTransactions();
 
@@ -187,7 +187,11 @@ test('Token Payment', async (t) => {
   );
 
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftAta = findAssociatedTokenAccountPda(mintForMinter.publicKey, minter.publicKey);
+  const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
+  const nftAta = metaplex
+    .tokens()
+    .pdas()
+    .associatedTokenAccount({ mint: mintForMinter.publicKey, owner: minter.publicKey });
 
   const { tx: minterMintTx } = await API.mint(
     t,
@@ -277,7 +281,7 @@ test('Token Payment', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: findMasterEditionV2Pda(mintForMinter.publicKey),
+        pubkey: metaplex.nfts().pdas().masterEdition({ mint: mintForMinter.publicKey }),
         isSigner: false,
         isWritable: false,
       },
@@ -460,7 +464,11 @@ test('Token Payment (thaw)', async (t) => {
   );
 
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftAta = findAssociatedTokenAccountPda(mintForMinter.publicKey, minter.publicKey);
+  const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
+  const nftAta = metaplex
+    .tokens()
+    .pdas()
+    .associatedTokenAccount({ mint: mintForMinter.publicKey, owner: minter.publicKey });
 
   const { tx: minterMintTx } = await API.mint(
     t,
@@ -552,7 +560,7 @@ test('Token Payment (thaw)', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: findMasterEditionV2Pda(mintForMinter.publicKey),
+        pubkey: metaplex.nfts().pdas().masterEdition({ mint: mintForMinter.publicKey }),
         isSigner: false,
         isWritable: false,
       },
@@ -751,7 +759,11 @@ test('Token Payment (unlock not allowed)', async (t) => {
   );
 
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftAta = findAssociatedTokenAccountPda(mintForMinter.publicKey, minter.publicKey);
+  const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
+  const nftAta = metaplex
+    .tokens()
+    .pdas()
+    .associatedTokenAccount({ mint: mintForMinter.publicKey, owner: minter.publicKey });
 
   const { tx: minterMintTx } = await API.mint(
     t,
@@ -1023,7 +1035,11 @@ test('Token Payment (unlock)', async (t) => {
   );
 
   const [, mintForMinter] = await amman.genLabeledKeypair('Mint Account (minter)');
-  const nftAta = findAssociatedTokenAccountPda(mintForMinter.publicKey, minter.publicKey);
+  const metaplex = Metaplex.make(minterConnection).use(keypairIdentity(minter));
+  const nftAta = metaplex
+    .tokens()
+    .pdas()
+    .associatedTokenAccount({ mint: mintForMinter.publicKey, owner: minter.publicKey });
 
   const { tx: minterMintTx } = await API.mint(
     t,
@@ -1115,7 +1131,7 @@ test('Token Payment (unlock)', async (t) => {
         isWritable: true,
       },
       {
-        pubkey: findMasterEditionV2Pda(mintForMinter.publicKey),
+        pubkey: metaplex.nfts().pdas().masterEdition({ mint: mintForMinter.publicKey }),
         isSigner: false,
         isWritable: false,
       },

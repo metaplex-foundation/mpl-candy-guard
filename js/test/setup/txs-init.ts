@@ -17,6 +17,7 @@ import {
   AccountMeta,
   StakeProgram,
   Authorized,
+  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import { Test } from 'tape';
 import { amman } from '.';
@@ -30,6 +31,7 @@ import {
   CandyGuardData,
   createInitializeInstruction,
   createMintInstruction,
+  createMintV2Instruction,
   createSetAuthorityInstruction,
   createUnwrapInstruction,
   createUpdateInstruction,
@@ -39,6 +41,8 @@ import {
   InitializeInstructionArgs,
   MintInstructionAccounts,
   MintInstructionArgs,
+  MintV2InstructionAccounts,
+  MintV2InstructionArgs,
   PROGRAM_ID,
   SetAuthorityInstructionAccounts,
   SetAuthorityInstructionArgs,
@@ -48,24 +52,19 @@ import {
   WithdrawInstructionAccounts,
   WrapInstructionAccounts,
 } from '../../src/generated';
-import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
+import { AccountVersion, CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createInitializeMintInstruction,
   createMintToInstruction,
   MintLayout,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import {
-  findAssociatedTokenAccountPda,
-  findCandyMachineCreatorPda,
-  findCollectionAuthorityRecordPda,
-  findMasterEditionV2Pda,
-  findMetadataPda,
-  keypairIdentity,
-  Metaplex,
-} from '@metaplex-foundation/js';
+import { keypairIdentity, Metaplex } from '@metaplex-foundation/js';
+import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
 import { serialize } from '../../src';
+import { BN } from 'bn.js';
 
 export class InitTransactions {
   readonly HELPER: CandyMachineHelper;
@@ -262,12 +261,10 @@ export class InitTransactions {
     label?: string | null,
   ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
     const { instructions } = await this.mintInstruction(
-      t,
       candyGuard,
       candyMachine,
       payer,
       mint,
-      handler,
       connection,
       remainingAccounts,
       mintArgs,
@@ -277,6 +274,33 @@ export class InitTransactions {
     const tx = new Transaction().add(...instructions);
 
     return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard Mint') };
+  }
+
+  async mintV2(
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
+    const { instructions } = await this.mintV2Instruction(
+      candyGuard,
+      candyMachine,
+      payer,
+      mint,
+      connection,
+      remainingAccounts,
+      mintArgs,
+      label,
+    );
+
+    const tx = new Transaction().add(...instructions);
+
+    return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard MintV2') };
   }
 
   async withdraw(
@@ -310,12 +334,10 @@ export class InitTransactions {
     label?: string | null,
   ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
     const { instructions } = await this.mintInstruction(
-      t,
       candyGuard,
       candyMachine,
       payer,
       mint,
-      handler,
       connection,
       remainingAccounts,
       mintArgs,
@@ -353,12 +375,10 @@ export class InitTransactions {
     label?: string | null,
   ): Promise<{ tx: ConfirmedTransactionAssertablePromise }> {
     const { instructions } = await this.mintInstruction(
-      t,
       candyGuard,
       candyMachine,
       payer,
       mint,
-      handler,
       connection,
       remainingAccounts,
       mintArgs,
@@ -470,13 +490,95 @@ export class InitTransactions {
     return { candyGuard: address, candyMachine: candyMachine.publicKey };
   }
 
-  async mintInstruction(
+  async deployV2(
     t: Test,
+    guards: CandyGuardData,
+    payer: Keypair,
+    handler: PayerTransactionHandler,
+    connection: Connection,
+    tokenStandard: TokenStandard = TokenStandard.NonFungible,
+  ): Promise<{ candyGuard: PublicKey; candyMachine: PublicKey }> {
+    // candy machine
+
+    const [, candyMachine] = await amman.genLabeledKeypair('Candy Machine Account');
+
+    const items = 10;
+
+    const candyMachineData = {
+      itemsAvailable: items,
+      symbol: 'CORE',
+      sellerFeeBasisPoints: 500,
+      maxSupply: 0,
+      isMutable: true,
+      retainAuthority: true,
+      creators: [
+        {
+          address: payer.publicKey,
+          verified: false,
+          percentageShare: 100,
+        },
+      ],
+      configLineSettings: {
+        prefixName: 'TEST ',
+        nameLength: 10,
+        prefixUri: 'https://arweave.net/',
+        uriLength: 50,
+        isSequential: false,
+      },
+      hiddenSettings: null,
+    };
+
+    const { tx: createTxCM } = await this.HELPER.initializeV2(
+      t,
+      payer,
+      candyMachine,
+      candyMachineData,
+      tokenStandard,
+      handler,
+      connection,
+    );
+    // executes the transaction
+    await createTxCM.assertSuccess(t);
+
+    const lines: { name: string; uri: string }[] = [];
+
+    for (let i = 0; i < items; i++) {
+      const line = {
+        name: `NFT #${i + 1}`,
+        uri: 'uJSdJIsz_tYTcjUEWdeVSj0aR90K-hjDauATWZSi-tQ',
+      };
+
+      lines.push(line);
+    }
+    const { txs } = await this.HELPER.addConfigLines(t, candyMachine.publicKey, payer, lines);
+    // confirms that all lines have been written
+    for (const tx of txs) {
+      await handler.sendAndConfirmTransaction(tx, [payer], 'tx: AddConfigLines').assertNone();
+    }
+
+    // candy guard
+
+    const { tx: initializeTxCG, candyGuard: address } = await this.initialize(
+      t,
+      guards,
+      payer,
+      handler,
+    );
+    // executes the transaction
+    await initializeTxCG.assertSuccess(t);
+
+    const { tx: wrapTx } = await this.wrap(t, address, candyMachine.publicKey, payer, handler);
+
+    await wrapTx.assertSuccess(t, [/SetMintAuthority/i]);
+
+    return { candyGuard: address, candyMachine: candyMachine.publicKey };
+  }
+
+  async mintInstruction(
     candyGuard: PublicKey,
     candyMachine: PublicKey,
     payer: Keypair,
     mint: Keypair,
-    handler: PayerTransactionHandler,
     connection: Connection,
     remainingAccounts?: AccountMeta[] | null,
     mintArgs?: Uint8Array | null,
@@ -486,22 +588,28 @@ export class InitTransactions {
     const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
 
     // PDAs required for the mint
-    const nftMetadata = findMetadataPda(mint.publicKey);
-    const nftMasterEdition = findMasterEditionV2Pda(mint.publicKey);
-    const nftTokenAccount = findAssociatedTokenAccountPda(mint.publicKey, payer.publicKey);
+
+    const metaplex = Metaplex.make(connection).use(keypairIdentity(payer));
+
+    const nftMetadata = metaplex.nfts().pdas().metadata({ mint: mint.publicKey });
+    const nftMasterEdition = metaplex.nfts().pdas().masterEdition({ mint: mint.publicKey });
+    const nftTokenAccount = metaplex
+      .tokens()
+      .pdas()
+      .associatedTokenAccount({ mint: mint.publicKey, owner: payer.publicKey });
 
     const collectionMint = candyMachineObject.collectionMint;
     // retrieves the collection nft
-    const metaplex = Metaplex.make(connection).use(keypairIdentity(payer));
-    const collection = await metaplex.nfts().findByMint({ mintAddress: collectionMint }).run();
+    const collection = await metaplex.nfts().findByMint({ mintAddress: collectionMint });
     // collection PDAs
-    const authorityPda = findCandyMachineCreatorPda(candyMachine, CANDY_MACHINE_PROGRAM);
-    const collectionAuthorityRecord = findCollectionAuthorityRecordPda(
-      collectionMint,
-      authorityPda,
-    );
-    const collectionMetadata = findMetadataPda(collectionMint);
-    const collectionMasterEdition = findMasterEditionV2Pda(collectionMint);
+    const authorityPda = metaplex.candyMachines().pdas().authority({ candyMachine });
+    const collectionAuthorityRecord = metaplex.nfts().pdas().collectionAuthorityRecord({
+      mint: collectionMint,
+      collectionAuthority: authorityPda,
+    });
+
+    const collectionMetadata = metaplex.nfts().pdas().metadata({ mint: collectionMint });
+    const collectionMasterEdition = metaplex.nfts().pdas().masterEdition({ mint: collectionMint });
 
     const accounts: MintInstructionAccounts = {
       candyGuard,
@@ -559,6 +667,119 @@ export class InitTransactions {
     if (remainingAccounts) {
       mintIx.keys.push(...remainingAccounts);
     }
+    ixs.push(mintIx);
+
+    return { instructions: ixs };
+  }
+
+  async mintV2Instruction(
+    candyGuard: PublicKey,
+    candyMachine: PublicKey,
+    payer: Keypair,
+    mint: Keypair,
+    connection: Connection,
+    remainingAccounts?: AccountMeta[] | null,
+    mintArgs?: Uint8Array | null,
+    label?: string | null,
+  ): Promise<{ instructions: TransactionInstruction[] }> {
+    // candy machine object
+    const candyMachineObject = await CandyMachine.fromAccountAddress(connection, candyMachine);
+
+    // PDAs required for the mint
+
+    const metaplex = Metaplex.make(connection).use(keypairIdentity(payer));
+
+    const nftMetadata = metaplex.nfts().pdas().metadata({ mint: mint.publicKey });
+    const nftMasterEdition = metaplex.nfts().pdas().masterEdition({ mint: mint.publicKey });
+    const nftTokenAccount = metaplex
+      .tokens()
+      .pdas()
+      .associatedTokenAccount({ mint: mint.publicKey, owner: payer.publicKey });
+
+    const authorityPda = metaplex.candyMachines().pdas().authority({ candyMachine });
+
+    const collectionMint = candyMachineObject.collectionMint;
+    // retrieves the collection nft
+    const collection = await metaplex.nfts().findByMint({ mintAddress: collectionMint });
+    // collection PDAs
+    const collectionMetadata = metaplex.nfts().pdas().metadata({ mint: collectionMint });
+    const collectionMasterEdition = metaplex.nfts().pdas().masterEdition({ mint: collectionMint });
+
+    const collectionDelegateRecord = metaplex.nfts().pdas().metadataDelegateRecord({
+      mint: collectionMint,
+      type: 'CollectionV1',
+      updateAuthority: collection.updateAuthorityAddress,
+      delegate: authorityPda,
+    });
+    await amman.addr.addLabel('Metadata Delegate Record', collectionDelegateRecord);
+
+    const accounts: MintV2InstructionAccounts = {
+      candyGuard,
+      candyMachineProgram: CANDY_MACHINE_PROGRAM,
+      candyMachine,
+      payer: payer.publicKey,
+      candyMachineAuthorityPda: authorityPda,
+      nftMasterEdition: nftMasterEdition,
+      nftMetadata,
+      nftMint: mint.publicKey,
+      nftMintAuthority: payer.publicKey,
+      token: nftTokenAccount,
+      collectionUpdateAuthority: collection.updateAuthorityAddress,
+      collectionDelegateRecord,
+      collectionMasterEdition,
+      collectionMetadata,
+      collectionMint,
+      tokenMetadataProgram: METAPLEX_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+      sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+      splTokenProgram: TOKEN_PROGRAM_ID,
+      splAtaProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      recentSlothashes: SYSVAR_SLOT_HASHES_PUBKEY,
+    };
+
+    if (candyMachineObject.version == AccountVersion.V2) {
+      accounts.tokenRecord = metaplex
+        .nfts()
+        .pdas()
+        .tokenRecord({ mint: mint.publicKey, token: nftTokenAccount });
+    }
+
+    if (!mintArgs) {
+      mintArgs = new Uint8Array();
+    }
+
+    const args: MintV2InstructionArgs = {
+      mintArgs,
+      label: label ?? null,
+    };
+
+    const ixs: TransactionInstruction[] = [];
+
+    const mintIx = createMintV2Instruction(accounts, args);
+    // this test always initializes the mint, we we need to set the
+    // account to be writable and a signer to avoid warnings
+    for (let i = 0; i < mintIx.keys.length; i++) {
+      if (mintIx.keys[i].pubkey.toBase58() === mint.publicKey.toBase58()) {
+        mintIx.keys[i].isSigner = true;
+        mintIx.keys[i].isWritable = true;
+      }
+    }
+
+    if (remainingAccounts) {
+      mintIx.keys.push(...remainingAccounts);
+    }
+
+    const data = Buffer.from(
+      Uint8Array.of(0, ...new BN(600000).toArray('le', 4), ...new BN(0).toArray('le', 4)),
+    );
+
+    const additionalComputeIx: TransactionInstruction = new TransactionInstruction({
+      keys: [],
+      programId: ComputeBudgetProgram.programId,
+      data,
+    });
+
+    ixs.push(additionalComputeIx);
     ixs.push(mintIx);
 
     return { instructions: ixs };

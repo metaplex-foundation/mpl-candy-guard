@@ -49,6 +49,7 @@ export type InitializeInstructionAccounts = {
   authority: web3.PublicKey;
   payer: web3.PublicKey;
   systemProgram?: web3.PublicKey;
+  anchorRemainingAccounts?: web3.AccountMeta[];
 };
 
 export const initializeInstructionDiscriminator = [175, 175, 109, 31, 13, 152, 155, 237];
@@ -99,6 +100,12 @@ export function createInitializeInstruction(
       isSigner: false,
     },
   ];
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc);
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

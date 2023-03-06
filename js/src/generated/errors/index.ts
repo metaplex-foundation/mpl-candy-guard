@@ -1028,6 +1028,49 @@ createErrorFromNameLookup.set(
 );
 
 /**
+ * InvalidMintAuthority: 'Candy machine has an invalid mint authority'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InvalidMintAuthorityError extends Error {
+  readonly code: number = 0x17a1;
+  readonly name: string = 'InvalidMintAuthority';
+  constructor() {
+    super('Candy machine has an invalid mint authority');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InvalidMintAuthorityError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x17a1, () => new InvalidMintAuthorityError());
+createErrorFromNameLookup.set('InvalidMintAuthority', () => new InvalidMintAuthorityError());
+
+/**
+ * InstructionBuilderFailed: 'Instruction could not be created'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InstructionBuilderFailedError extends Error {
+  readonly code: number = 0x17a2;
+  readonly name: string = 'InstructionBuilderFailed';
+  constructor() {
+    super('Instruction could not be created');
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InstructionBuilderFailedError);
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x17a2, () => new InstructionBuilderFailedError());
+createErrorFromNameLookup.set(
+  'InstructionBuilderFailed',
+  () => new InstructionBuilderFailedError(),
+);
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated
