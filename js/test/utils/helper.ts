@@ -324,6 +324,7 @@ export class CandyMachineHelper {
   async mintV2(
     t: Test,
     candyMachine: PublicKey,
+    minter: Keypair,
     payer: Keypair,
     mint: Keypair,
     handler: PayerTransactionHandler,
@@ -364,6 +365,7 @@ export class CandyMachineHelper {
       authorityPda,
       mintAuthority: candyMachineObject.mintAuthority,
       payer: payer.publicKey,
+      nftOwner: minter.publicKey,
       nftMint: mint.publicKey,
       nftMintAuthority: payer.publicKey,
       nftMetadata,

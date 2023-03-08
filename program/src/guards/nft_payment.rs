@@ -1,13 +1,17 @@
-use mpl_candy_machine_core::assert_edition_from_mint;
+use mpl_candy_machine_core::{assert_edition_from_mint, AccountVersion};
 use mpl_token_metadata::{
     instruction::{builders::TransferBuilder, InstructionBuilder, TransferArgs},
     pda::find_token_record_account,
     state::{Metadata, ProgrammableConfig, TokenMetadataAccount, TokenStandard},
 };
 use solana_program::program::invoke;
+use spl_associated_token_account::instruction::create_associated_token_account;
 
 use super::*;
-use crate::{state::GuardType, utils::assert_keys_equal};
+use crate::{
+    state::GuardType,
+    utils::{assert_keys_equal, spl_token_transfer, TokenTransferParams},
+};
 
 /// Guard that charges another NFT (token) from a specific collection as payment
 /// for the mint.
@@ -62,7 +66,7 @@ impl Condition for NftPayment {
             nft_account,
             nft_metadata,
             &self.required_collection,
-            ctx.accounts.payer.key,
+            ctx.accounts.minter.key,
         )?;
 
         let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
@@ -141,72 +145,108 @@ impl Condition for NftPayment {
         let destination_ata = try_get_account_info(ctx.accounts.remaining, index + 4)?;
         let spl_ata_program = try_get_account_info(ctx.accounts.remaining, index + 5)?;
 
-        let mut transfer_builder = TransferBuilder::new();
-
-        transfer_builder
-            .token(nft_account.key())
-            .token_owner(ctx.accounts.payer.key())
-            .destination(destination_ata.key())
-            .destination_owner(destination.key())
-            .mint(nft_mint.key())
-            .metadata(nft_metadata.key())
-            .authority(ctx.accounts.payer.key())
-            .payer(ctx.accounts.payer.key());
-
-        let mut transfer_infos = vec![
-            nft_account.to_account_info(),
-            ctx.accounts.payer.to_account_info(),
-            destination_ata.to_account_info(),
-            destination.to_account_info(),
-            nft_mint.to_account_info(),
-            nft_metadata.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
-            ctx.accounts.sysvar_instructions.to_account_info(),
-            ctx.accounts.spl_token_program.to_account_info(),
-            spl_ata_program.to_account_info(),
-        ];
-
-        let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
-
-        if matches!(
-            metadata.token_standard,
-            Some(TokenStandard::ProgrammableNonFungible)
-        ) {
-            let nft_master_edition = try_get_account_info(ctx.accounts.remaining, index + 6)?;
-            let owner_token_record = try_get_account_info(ctx.accounts.remaining, index + 7)?;
-            let destination_token_record = try_get_account_info(ctx.accounts.remaining, index + 8)?;
+        if matches!(ctx.accounts.candy_machine.version, AccountVersion::V2) {
+            let mut transfer_builder = TransferBuilder::new();
 
             transfer_builder
-                .edition(nft_master_edition.key())
-                .owner_token_record(owner_token_record.key())
-                .destination_token_record(destination_token_record.key());
+                .token(nft_account.key())
+                .token_owner(ctx.accounts.minter.key())
+                .destination(destination_ata.key())
+                .destination_owner(destination.key())
+                .mint(nft_mint.key())
+                .metadata(nft_metadata.key())
+                .authority(ctx.accounts.minter.key())
+                .payer(ctx.accounts.payer.key());
 
-            transfer_infos.push(nft_master_edition.to_account_info());
-            transfer_infos.push(owner_token_record.to_account_info());
-            transfer_infos.push(destination_token_record.to_account_info());
+            let mut transfer_infos = vec![
+                nft_account.to_account_info(),
+                ctx.accounts.minter.to_account_info(),
+                ctx.accounts.payer.to_account_info(),
+                destination_ata.to_account_info(),
+                destination.to_account_info(),
+                nft_mint.to_account_info(),
+                nft_metadata.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.sysvar_instructions.to_account_info(),
+                ctx.accounts.spl_token_program.to_account_info(),
+                spl_ata_program.to_account_info(),
+            ];
 
-            if let Some(ProgrammableConfig::V1 { rule_set: Some(_) }) = metadata.programmable_config
-            {
-                let auth_rules_program = try_get_account_info(ctx.accounts.remaining, index + 9)?;
-                let auth_rules = try_get_account_info(ctx.accounts.remaining, index + 10)?;
+            let metadata: Metadata = Metadata::from_account_info(nft_metadata)?;
+
+            if matches!(
+                metadata.token_standard,
+                Some(TokenStandard::ProgrammableNonFungible)
+            ) {
+                let nft_master_edition = try_get_account_info(ctx.accounts.remaining, index + 6)?;
+                let owner_token_record = try_get_account_info(ctx.accounts.remaining, index + 7)?;
+                let destination_token_record =
+                    try_get_account_info(ctx.accounts.remaining, index + 8)?;
 
                 transfer_builder
-                    .authorization_rules_program(auth_rules_program.key())
-                    .authorization_rules(auth_rules.key());
-                transfer_infos.push(auth_rules_program.to_account_info());
-                transfer_infos.push(auth_rules.to_account_info());
+                    .edition(nft_master_edition.key())
+                    .owner_token_record(owner_token_record.key())
+                    .destination_token_record(destination_token_record.key());
+
+                transfer_infos.push(nft_master_edition.to_account_info());
+                transfer_infos.push(owner_token_record.to_account_info());
+                transfer_infos.push(destination_token_record.to_account_info());
+
+                if let Some(ProgrammableConfig::V1 { rule_set: Some(_) }) =
+                    metadata.programmable_config
+                {
+                    let auth_rules_program =
+                        try_get_account_info(ctx.accounts.remaining, index + 9)?;
+                    let auth_rules = try_get_account_info(ctx.accounts.remaining, index + 10)?;
+
+                    transfer_builder
+                        .authorization_rules_program(auth_rules_program.key())
+                        .authorization_rules(auth_rules.key());
+                    transfer_infos.push(auth_rules_program.to_account_info());
+                    transfer_infos.push(auth_rules.to_account_info());
+                }
             }
-        }
 
-        let transfer_ix = transfer_builder
-            .build(TransferArgs::V1 {
+            let transfer_ix = transfer_builder
+                .build(TransferArgs::V1 {
+                    amount: 1,
+                    authorization_data: None,
+                })
+                .map_err(|_| CandyGuardError::InstructionBuilderFailed)?
+                .instruction();
+
+            invoke(&transfer_ix, &transfer_infos)?;
+        } else {
+            // creates the ATA to receive the NFT
+
+            invoke(
+                &create_associated_token_account(
+                    ctx.accounts.payer.key,
+                    &self.destination,
+                    nft_mint.key,
+                    &spl_token::ID,
+                ),
+                &[
+                    ctx.accounts.payer.to_account_info(),
+                    destination_ata.to_account_info(),
+                    destination.to_account_info(),
+                    nft_mint.to_account_info(),
+                    ctx.accounts.system_program.to_account_info(),
+                ],
+            )?;
+
+            // transfers the NFT
+
+            spl_token_transfer(TokenTransferParams {
+                source: nft_account.to_account_info(),
+                destination: destination_ata.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                authority_signer_seeds: &[],
+                token_program: ctx.accounts.spl_token_program.to_account_info(),
+                // fixed to always require 1 NFT
                 amount: 1,
-                authorization_data: None,
-            })
-            .map_err(|_| CandyGuardError::InstructionBuilderFailed)?
-            .instruction();
-
-        invoke(&transfer_ix, &transfer_infos)?;
+            })?;
+        }
 
         Ok(())
     }

@@ -279,6 +279,7 @@ export class InitTransactions {
   async mintV2(
     candyGuard: PublicKey,
     candyMachine: PublicKey,
+    minter: Keypair,
     payer: Keypair,
     mint: Keypair,
     handler: PayerTransactionHandler,
@@ -290,6 +291,7 @@ export class InitTransactions {
     const { instructions } = await this.mintV2Instruction(
       candyGuard,
       candyMachine,
+      minter,
       payer,
       mint,
       connection,
@@ -300,7 +302,9 @@ export class InitTransactions {
 
     const tx = new Transaction().add(...instructions);
 
-    return { tx: handler.sendAndConfirmTransaction(tx, [payer, mint], 'tx: Candy Guard MintV2') };
+    return {
+      tx: handler.sendAndConfirmTransaction(tx, [payer, mint, minter], 'tx: Candy Guard MintV2'),
+    };
   }
 
   async withdraw(
@@ -675,6 +679,7 @@ export class InitTransactions {
   async mintV2Instruction(
     candyGuard: PublicKey,
     candyMachine: PublicKey,
+    minter: Keypair,
     payer: Keypair,
     mint: Keypair,
     connection: Connection,
@@ -694,7 +699,7 @@ export class InitTransactions {
     const nftTokenAccount = metaplex
       .tokens()
       .pdas()
-      .associatedTokenAccount({ mint: mint.publicKey, owner: payer.publicKey });
+      .associatedTokenAccount({ mint: mint.publicKey, owner: minter.publicKey });
 
     const authorityPda = metaplex.candyMachines().pdas().authority({ candyMachine });
 
@@ -718,6 +723,7 @@ export class InitTransactions {
       candyMachineProgram: CANDY_MACHINE_PROGRAM,
       candyMachine,
       payer: payer.publicKey,
+      minter: minter.publicKey,
       candyMachineAuthorityPda: authorityPda,
       nftMasterEdition: nftMasterEdition,
       nftMetadata,

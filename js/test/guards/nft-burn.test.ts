@@ -7,7 +7,7 @@ import { METAPLEX_PROGRAM_ID, spokSamePubkey } from '../utils';
 import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
 import spok from 'spok';
-import { addAddressesToTable, createAndSendV0Tx, createLookupTable } from 'test/setup/lut';
+import { addAddressesToTable, createAndSendV0Tx, createLookupTable } from '../setup/lut';
 
 const API = new InitTransactions();
 
@@ -339,6 +339,7 @@ test('nft burn: Programmable NonFungible', async (t) => {
     candyGuard,
     candyMachine,
     minter,
+    minter,
     mintForMinter,
     minterHandler,
     minterConnection,
@@ -484,6 +485,7 @@ test('nft burn: Programmable NonFungible', async (t) => {
   const { instructions } = await API.mintV2Instruction(
     secondCandyGuard,
     secondCandyMachine,
+    minter,
     minter,
     mintForMinter2,
     minterConnection,

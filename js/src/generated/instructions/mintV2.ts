@@ -42,6 +42,7 @@ export const mintV2Struct = new beet.FixableBeetArgsStruct<
  * @property [_writable_] candyMachine
  * @property [_writable_] candyMachineAuthorityPda
  * @property [_writable_, **signer**] payer
+ * @property [**signer**] minter
  * @property [_writable_] nftMint
  * @property [**signer**] nftMintAuthority
  * @property [_writable_] nftMetadata
@@ -70,6 +71,7 @@ export type MintV2InstructionAccounts = {
   candyMachine: web3.PublicKey;
   candyMachineAuthorityPda: web3.PublicKey;
   payer: web3.PublicKey;
+  minter: web3.PublicKey;
   nftMint: web3.PublicKey;
   nftMintAuthority: web3.PublicKey;
   nftMetadata: web3.PublicKey;
@@ -140,6 +142,11 @@ export function createMintV2Instruction(
     {
       pubkey: accounts.payer,
       isWritable: true,
+      isSigner: true,
+    },
+    {
+      pubkey: accounts.minter,
+      isWritable: false,
       isSigner: true,
     },
     {

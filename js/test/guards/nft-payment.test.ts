@@ -1,12 +1,13 @@
 import spok from 'spok';
 import test from 'tape';
 import { amman, InitTransactions, killStuckProcess, newCandyGuardData } from '../setup';
-import { Metaplex, keypairIdentity } from '@metaplex-foundation/js';
+import { Metaplex, keypairIdentity, Nft } from '@metaplex-foundation/js';
 import { AccountMeta, PublicKey } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount, getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAccount } from '@solana/spl-token';
 import { CandyMachine } from '@metaplex-foundation/mpl-candy-machine-core';
 import { TokenStandard } from '@metaplex-foundation/mpl-token-metadata';
-import { METAPLEX_PROGRAM_ID, spokSameBignum } from 'test/utils';
+import { METAPLEX_PROGRAM_ID, spokSameBigint } from '../utils';
+import { BN } from 'bn.js';
 
 const API = new InitTransactions();
 
@@ -147,15 +148,15 @@ test('nft payment: NonFungible', async (t) => {
   // check the transfer result
 
   const sourceAccount = await getAccount(connection, tokenAccount);
-  
+
   spok(t, sourceAccount, {
-    amount: spokSameBignum(0),
+    amount: spokSameBigint(new BN(0)),
   });
 
   const destinationAccount = await getAccount(connection, destinationAta);
-  
+
   spok(t, destinationAccount, {
-    amount: spokSameBignum(1),
+    amount: spokSameBigint(new BN(1)),
   });
 });
 
@@ -187,6 +188,7 @@ test('nft payment: Programmable NonFungible', async (t) => {
   const { tx: minterMintTx } = await API.mintV2(
     candyGuard,
     candyMachine,
+    minter,
     minter,
     mintForMinter,
     minterHandler,
@@ -222,6 +224,7 @@ test('nft payment: Programmable NonFungible', async (t) => {
     candyGuard,
     candyMachine,
     minter,
+    minter,
     mintForMinter2,
     minterHandler,
     minterConnection,
@@ -229,7 +232,7 @@ test('nft payment: Programmable NonFungible', async (t) => {
   await minterMintTx2.assertError(t, /Missing expected remaining account/i);
 
   const metaplex = Metaplex.make(connection).use(keypairIdentity(payerPair));
-  const nft = await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey });
+  const nft = (await metaplex.nfts().findByMint({ mintAddress: mintForMinter.publicKey })) as Nft;
   const paymentGuardAccounts: AccountMeta[] = [];
 
   // nft account
@@ -320,6 +323,7 @@ test('nft payment: Programmable NonFungible', async (t) => {
     candyGuard,
     candyMachine,
     minter,
+    minter,
     mintForMinter3,
     minterHandler,
     minterConnection,
@@ -330,14 +334,14 @@ test('nft payment: Programmable NonFungible', async (t) => {
   // check the transfer result
 
   const sourceAccount = await getAccount(connection, tokenAccount);
-  
+
   spok(t, sourceAccount, {
-    amount: spokSameBignum(0),
+    amount: spokSameBigint(new BN(0)),
   });
 
   const destinationAccount = await getAccount(connection, destinationAta);
-  
+
   spok(t, destinationAccount, {
-    amount: spokSameBignum(1),
+    amount: spokSameBigint(new BN(1)),
   });
 });

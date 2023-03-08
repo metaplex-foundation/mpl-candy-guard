@@ -44,3 +44,20 @@ export function spokSameBignum(a?: BN | bignum): Specification<bignum> {
 export function assertIsNotNull<T>(t: Test, x: T | null | undefined): asserts x is T {
   t.ok(x, 'should be non null');
 }
+
+export function spokSameBigint(a?: BN | bigint): Specification<bigint> {
+  const same = (b?: BN | bigint) => {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null) {
+      return false;
+    }
+
+    return b != null && new BN(a.toString()).eq(new BN(b.toString()));
+  };
+
+  same.$spec = `spokSameBigint(${a})`;
+  same.$description = `${a} equal`;
+  return same;
+}

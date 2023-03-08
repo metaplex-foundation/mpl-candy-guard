@@ -22,9 +22,9 @@ default = []
 anchor-lang = "0.26.0"
 arrayref = "0.3.6"
 mpl-candy-guard-derive = { path = "../macro", version = "0.2.0" }
-mpl-candy-machine-core = { path = "../../metaplex-program-library/candy-machine-core/program", version = "0.1.4", features = ["cpi"] }
-mpl-token-metadata = { path = "../../metaplex-program-library/token-metadata/program", version = "1.8.4", features = ["no-entrypoint"] }
-mpl-token-auth-rules = { version = "1.1", features = ["no-entrypoint"] }
+mpl-candy-machine-core = { version = "0.2.0", features = ["cpi"] }
+mpl-token-metadata = { version = "1.9.0", features = ["no-entrypoint"] }
+mpl-token-auth-rules = { version = "1.2.0", features = ["no-entrypoint"] }
 solana-program = "~1.14.14"
 spl-associated-token-account = { version = "1.1.1", features = ["no-entrypoint"] }
 spl-token = { version = "3.3.1", features = ["no-entrypoint"] }

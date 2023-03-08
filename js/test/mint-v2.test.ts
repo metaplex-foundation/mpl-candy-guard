@@ -102,6 +102,7 @@ test('mint: Programmable NFT', async (t) => {
     address,
     candyMachine.publicKey,
     minter,
+    minter,
     mintKeypair5,
     minterHandler,
     minterConnection,
@@ -177,6 +178,7 @@ test('mint: Programmable NFT from Candy Machine and Candy Guard', async (t) => {
   const { tx: mintTx1 } = await HELPER.mintV2(
     t,
     candyMachine.publicKey,
+    payerPair,
     payerPair,
     mintKeypair1,
     fstTxHandler,
@@ -255,6 +257,7 @@ test('mint: Programmable NFT from Candy Machine and Candy Guard', async (t) => {
     address,
     candyMachine.publicKey,
     payerPair,
+    payerPair,
     mintKeypair4,
     fstTxHandler,
     connection,
@@ -274,6 +277,7 @@ test('mint: Programmable NFT from Candy Machine and Candy Guard', async (t) => {
     address,
     candyMachine.publicKey,
     minter,
+    minter,
     mintKeypair5,
     minterHandler,
     minterConnection,
@@ -284,6 +288,7 @@ test('mint: Programmable NFT from Candy Machine and Candy Guard', async (t) => {
   const { tx: mintTx6 } = await API.mintV2(
     address,
     candyMachine.publicKey,
+    minter,
     minter,
     mintKeypair6,
     minterHandler,
@@ -313,6 +318,7 @@ test('mint: Programmable NFT from Candy Machine and Candy Guard', async (t) => {
   const { tx: mintTx7 } = await HELPER.mintV2(
     t,
     candyMachine.publicKey,
+    minter,
     payerPair,
     mintKeypair7,
     fstTxHandler,

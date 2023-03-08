@@ -102,7 +102,7 @@ test('Program Gate: authorized program', async (t) => {
   // important because we are testing whether the Stake program is "authorized" to be
   // the mint transaction
   minterMintTx.then((x) =>
-    x.assertLogs(t, [/Stake11111111111111111111111111111111111111/i, /Invalid account owner/i]),
+    x.assertLogs(t, [/Stake11111111111111111111111111111111111111/i, /Invalid account owner/i], {}),
   );
   await minterMintTx.assertError(t);
 });

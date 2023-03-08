@@ -39,6 +39,7 @@ pub fn mint<'info>(
         token: None,
         token_metadata_program: ctx.accounts.token_metadata_program.to_account_info(),
         token_record: None,
+        minter: ctx.accounts.payer.to_account_info(),
         remaining: ctx.remaining_accounts,
     };
 

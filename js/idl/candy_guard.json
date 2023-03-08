@@ -203,7 +203,15 @@
           "isMut": true,
           "isSigner": true,
           "docs": [
-            "Payer for the transaction and account allocation (rent)."
+            "Payer for the mint (SOL) fees."
+          ]
+        },
+        {
+          "name": "minter",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "Minter account for validation and non-SOL fees."
           ]
         },
         {
@@ -212,6 +220,9 @@
           "isSigner": false,
           "docs": [
             "Mint account of the NFT. The account will be initialized if necessary.",
+            "",
+            "Must be a signer if:",
+            "* the nft_mint account does not exist.",
             ""
           ]
         },
@@ -220,7 +231,10 @@
           "isMut": false,
           "isSigner": true,
           "docs": [
-            "Mint authority of the NFT. In most cases this will be the owner of the NFT."
+            "Mint authority of the NFT before the authority gets transfer to the master edition account.",
+            "",
+            "If nft_mint account exists:",
+            "* it must match the mint authority of nft_mint."
           ]
         },
         {
