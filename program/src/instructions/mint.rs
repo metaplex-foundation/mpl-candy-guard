@@ -16,6 +16,8 @@ pub fn mint<'info>(
     mint_args: Vec<u8>,
     label: Option<String>,
 ) -> Result<()> {
+    msg!("(Deprecated as of 0.4.0) Use MintV2 instead");
+
     let accounts = MintAccounts {
         candy_guard: &ctx.accounts.candy_guard,
         candy_machine: &ctx.accounts.candy_machine,
