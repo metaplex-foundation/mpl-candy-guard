@@ -350,9 +350,7 @@ test('allowlist (large)', async (t) => {
     addresses.push(address.toString());
   }
 
-  const {
-    minterPair: minterKeypair,
-  } = await API.minter();
+  const { minterPair: minterKeypair } = await API.minter();
   addresses.push(minterKeypair.publicKey.toString());
 
   // creates the merkle tree
@@ -468,9 +466,7 @@ test('allowlist: minter different than payer', async (t) => {
     addresses.push(address.toString());
   }
 
-  const {
-    minterPair: minterKeypair,
-  } = await API.minter();
+  const { minterPair: minterKeypair } = await API.minter();
   addresses.push(minterKeypair.publicKey.toString());
 
   // creates the merkle tree
