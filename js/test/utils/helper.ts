@@ -341,7 +341,7 @@ export class CandyMachineHelper {
     const nftTokenAccount = metaplex
       .tokens()
       .pdas()
-      .associatedTokenAccount({ mint: mint.publicKey, owner: payer.publicKey });
+      .associatedTokenAccount({ mint: mint.publicKey, owner: minter.publicKey });
 
     const authorityPda = metaplex.candyMachines().pdas().authority({ candyMachine });
 
