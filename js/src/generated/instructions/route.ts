@@ -49,6 +49,7 @@ export type RouteInstructionAccounts = {
   candyGuard: web3.PublicKey;
   candyMachine: web3.PublicKey;
   payer: web3.PublicKey;
+  anchorRemainingAccounts?: web3.AccountMeta[];
 };
 
 export const routeInstructionDiscriminator = [229, 23, 203, 151, 122, 227, 173, 42];
@@ -89,6 +90,12 @@ export function createRouteInstruction(
       isSigner: true,
     },
   ];
+
+  if (accounts.anchorRemainingAccounts != null) {
+    for (const acc of accounts.anchorRemainingAccounts) {
+      keys.push(acc);
+    }
+  }
 
   const ix = new web3.TransactionInstruction({
     programId,

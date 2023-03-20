@@ -1,6 +1,7 @@
 use super::{freeze_sol_payment::freeze_nft, *};
 
 use anchor_lang::AccountsClose;
+use mpl_token_metadata::state::{Metadata, TokenMetadataAccount};
 use solana_program::{
     program::{invoke, invoke_signed},
     program_pack::Pack,
@@ -14,10 +15,11 @@ use spl_token::{instruction::close_account, state::Account as TokenAccount};
 use crate::{
     errors::CandyGuardError,
     guards::freeze_sol_payment::{initialize_freeze, thaw_nft, FREEZE_SOL_FEE},
+    instructions::Token,
     state::GuardType,
     utils::{
-        assert_initialized, assert_is_ata, assert_keys_equal, assert_owned_by, cmp_pubkeys,
-        spl_token_transfer, TokenTransferParams,
+        assert_initialized, assert_is_ata, assert_is_token_account, assert_keys_equal,
+        assert_owned_by, cmp_pubkeys, spl_token_transfer, TokenTransferParams,
     },
 };
 
@@ -32,6 +34,7 @@ use crate::{
 ///   2. `[writable]` Token account holding the required amount.
 ///   3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA
 ///                   pubkey, token program pubkey, nft mint pubkey]`).
+///   4. `[optional]` Authorization rule set for the minted pNFT.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FreezeTokenPayment {
     pub amount: u64,
@@ -105,25 +108,25 @@ impl Guard for FreezeTokenPayment {
 
                 // initializes the freeze ata
 
-                let freeze_pda = try_get_account_info(ctx, 0)?;
+                let freeze_pda = try_get_account_info(ctx.remaining_accounts, 0)?;
 
-                let system_program = try_get_account_info(ctx, 2)?;
+                let system_program = try_get_account_info(ctx.remaining_accounts, 2)?;
                 assert_keys_equal(system_program.key, &system_program::ID)?;
 
-                let freeze_ata = try_get_account_info(ctx, 3)?;
-                let token_mint = try_get_account_info(ctx, 4)?;
+                let freeze_ata = try_get_account_info(ctx.remaining_accounts, 3)?;
+                let token_mint = try_get_account_info(ctx.remaining_accounts, 4)?;
                 assert_keys_equal(token_mint.key, &mint)?;
                 // spl token program
-                let token_program = try_get_account_info(ctx, 5)?;
+                let token_program = try_get_account_info(ctx.remaining_accounts, 5)?;
                 assert_keys_equal(token_program.key, &spl_token::ID)?;
                 // spl associated token program
-                let associate_token_program = try_get_account_info(ctx, 6)?;
+                let associate_token_program = try_get_account_info(ctx.remaining_accounts, 6)?;
                 assert_keys_equal(
                     associate_token_program.key,
                     &spl_associated_token_account::ID,
                 )?;
 
-                let destination_ata = try_get_account_info(ctx, 7)?;
+                let destination_ata = try_get_account_info(ctx.remaining_accounts, 7)?;
                 assert_keys_equal(destination_ata.key, &destination)?;
                 let ata_account: spl_token::state::Account = assert_initialized(destination_ata)?;
                 assert_keys_equal(&ata_account.mint, &mint)?;
@@ -138,7 +141,7 @@ impl Guard for FreezeTokenPayment {
                         ctx.accounts.payer.key,
                         freeze_pda.key,
                         token_mint.key,
-                        &spl_token::ID
+                        &spl_token::ID,
                     ),
                     &[
                         ctx.accounts.payer.to_account_info(),
@@ -162,7 +165,19 @@ impl Guard for FreezeTokenPayment {
             //   3. `[writable]` Associate token account of the NFT.
             //   4. `[]` Master Edition account of the NFT.
             //   5. `[]` spl-token program ID.
-            //   6. `[]` Metaplex Token Metadata program ID.
+            //   6. `[]` Metaplex Token Metadata program.
+            //
+            // Remaining accounts required for Programmable NFTs:
+            //
+            //   7. `[writable]` Metadata account of the NFT.
+            //   8. `[writable]` Freeze PDA associated token account of the NFT.
+            //   9. `[]` System program.
+            //   10. `[]` Sysvar instructions account.
+            //   11. `[]` SPL Associated Token Account program.
+            //   12. `[optional, writable]` Owner token record account.
+            //   13. `[optional, writable]` Freeze PDA token record account.
+            //   14. `[optional]` Token Authorization Rules program.
+            //   15. `[optional]` Token Authorization Rules account.
             FreezeInstruction::Thaw => {
                 msg!("Instruction: Thaw (FreezeTokenPayment guard)");
                 thaw_nft(ctx, route_context, data)
@@ -191,19 +206,18 @@ impl Guard for FreezeTokenPayment {
 impl Condition for FreezeTokenPayment {
     fn validate<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
         let candy_guard_key = &ctx.accounts.candy_guard.key();
         let candy_machine_key = &ctx.accounts.candy_machine.key();
 
         // validates the additional accounts
 
-        let index = evaluation_context.account_cursor;
-        let freeze_pda = try_get_account_info(ctx, index)?;
-        evaluation_context.account_cursor += 1;
+        let index = ctx.account_cursor;
+        let freeze_pda = try_get_account_info(ctx.accounts.remaining, index)?;
+        ctx.account_cursor += 1;
 
         let seeds = [
             FreezeEscrow::PREFIX_SEED,
@@ -219,22 +233,62 @@ impl Condition for FreezeTokenPayment {
             return err!(CandyGuardError::FreezeNotInitialized);
         }
 
-        let nft_ata = try_get_account_info(ctx, index + 1)?;
-        evaluation_context.account_cursor += 1;
-        assert_is_ata(nft_ata, ctx.accounts.payer.key, ctx.accounts.nft_mint.key)?;
+        let nft_ata = try_get_account_info(ctx.accounts.remaining, index + 1)?;
+        ctx.account_cursor += 1;
 
-        let token_account_info = try_get_account_info(ctx, index + 2)?;
+        if nft_ata.data_is_empty() {
+            // for unitialized accounts, we need to check the derivation since the
+            // account will be created during mint only if it is an ATA
+
+            let (derivation, _) = Pubkey::find_program_address(
+                &[
+                    ctx.accounts.minter.key.as_ref(),
+                    spl_token::id().as_ref(),
+                    ctx.accounts.nft_mint.key.as_ref(),
+                ],
+                &spl_associated_token_account::id(),
+            );
+
+            assert_keys_equal(&derivation, nft_ata.key)?;
+        } else {
+            // validates if the existing account is a token account
+            assert_is_token_account(nft_ata, ctx.accounts.minter.key, ctx.accounts.nft_mint.key)?;
+        }
+
+        // it has to match the 'token' account (if present)
+        if let Some(token_info) = &ctx.accounts.token {
+            assert_keys_equal(nft_ata.key, token_info.key)?;
+        }
+
+        let token_account_info = try_get_account_info(ctx.accounts.remaining, index + 2)?;
         // validate freeze_pda ata
-        let destination_ata = try_get_account_info(ctx, index + 3)?;
+        let destination_ata = try_get_account_info(ctx.accounts.remaining, index + 3)?;
         assert_is_ata(destination_ata, &freeze_pda.key(), &self.mint)?;
 
-        evaluation_context.account_cursor += 2;
+        ctx.account_cursor += 2;
 
         let token_account =
-            assert_is_ata(token_account_info, &ctx.accounts.payer.key(), &self.mint)?;
+            assert_is_ata(token_account_info, &ctx.accounts.minter.key(), &self.mint)?;
 
         if token_account.amount < self.amount {
             return err!(CandyGuardError::NotEnoughTokens);
+        }
+
+        let candy_machine_info = ctx.accounts.candy_machine.to_account_info();
+        let account_data = candy_machine_info.data.borrow_mut();
+
+        let collection_metadata =
+            Metadata::from_account_info(&ctx.accounts.collection_metadata.to_account_info())?;
+
+        let rule_set = ctx
+            .accounts
+            .candy_machine
+            .get_rule_set(&account_data, &collection_metadata)?;
+
+        if let Some(rule_set) = rule_set {
+            let mint_rule_set = try_get_account_info(ctx.accounts.remaining, index + 4)?;
+            assert_keys_equal(mint_rule_set.key, &rule_set)?;
+            ctx.account_cursor += 1;
         }
 
         if ctx.accounts.payer.lamports() < FREEZE_SOL_FEE {
@@ -246,32 +300,29 @@ impl Condition for FreezeTokenPayment {
             return err!(CandyGuardError::NotEnoughSOL);
         }
 
-        evaluation_context
-            .indices
-            .insert("freeze_token_payment", index);
+        ctx.indices.insert("freeze_token_payment", index);
 
         Ok(())
     }
 
     fn pre_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
-        let index = evaluation_context.indices["freeze_token_payment"];
+        let index = ctx.indices["freeze_token_payment"];
         // the accounts have already been validated
-        let freeze_pda = try_get_account_info(ctx, index)?;
-        let token_account_info = try_get_account_info(ctx, index + 2)?;
-        let destination_ata = try_get_account_info(ctx, index + 3)?;
+        let freeze_pda = try_get_account_info(ctx.accounts.remaining, index)?;
+        let token_account_info = try_get_account_info(ctx.accounts.remaining, index + 2)?;
+        let destination_ata = try_get_account_info(ctx.accounts.remaining, index + 3)?;
 
         spl_token_transfer(TokenTransferParams {
             source: token_account_info.to_account_info(),
             destination: destination_ata.to_account_info(),
-            authority: ctx.accounts.payer.to_account_info(),
+            authority: ctx.accounts.minter.to_account_info(),
             authority_signer_seeds: &[],
-            token_program: ctx.accounts.token_program.to_account_info(),
+            token_program: ctx.accounts.spl_token_program.to_account_info(),
             amount: self.amount,
         })?;
 
@@ -293,16 +344,16 @@ impl Condition for FreezeTokenPayment {
 
     fn post_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
         // freezes the nft
         freeze_nft(
             ctx,
-            evaluation_context.indices["freeze_token_payment"],
+            ctx.indices["freeze_token_payment"],
             &self.destination_ata,
+            4,
         )
     }
 }
@@ -315,7 +366,7 @@ fn unlock_funds<'info>(
     let candy_guard_key = &ctx.accounts.candy_guard.key();
     let candy_machine_key = &ctx.accounts.candy_machine.key();
 
-    let freeze_pda = try_get_account_info(ctx, 0)?;
+    let freeze_pda = try_get_account_info(ctx.remaining_accounts, 0)?;
     let freeze_escrow: Account<FreezeEscrow> = Account::try_from(freeze_pda)?;
 
     let seeds = [
@@ -328,7 +379,7 @@ fn unlock_funds<'info>(
     assert_keys_equal(freeze_pda.key, &pda)?;
 
     // authority must the a signer
-    let authority = try_get_account_info(ctx, 1)?;
+    let authority = try_get_account_info(ctx.remaining_accounts, 1)?;
 
     // if the candy guard account is present, we check the authority against
     // the candy guard authority; otherwise we use the freeze escrow authority
@@ -347,15 +398,15 @@ fn unlock_funds<'info>(
         return err!(CandyGuardError::UnlockNotEnabled);
     }
 
-    let freeze_ata = try_get_account_info(ctx, 2)?;
+    let freeze_ata = try_get_account_info(ctx.remaining_accounts, 2)?;
     assert_owned_by(freeze_ata, &spl_token::ID)?;
     let freeze_ata_account = TokenAccount::unpack(&freeze_ata.try_borrow_data()?)?;
     assert_keys_equal(&freeze_ata_account.owner, freeze_pda.key)?;
 
-    let destination_ata_account = try_get_account_info(ctx, 3)?;
+    let destination_ata_account = try_get_account_info(ctx.remaining_accounts, 3)?;
     assert_keys_equal(&freeze_escrow.destination, destination_ata_account.key)?;
 
-    let token_program = try_get_account_info(ctx, 4)?;
+    let token_program = try_get_account_info(ctx.remaining_accounts, 4)?;
     assert_keys_equal(token_program.key, &Token::id())?;
 
     // transfer the tokens

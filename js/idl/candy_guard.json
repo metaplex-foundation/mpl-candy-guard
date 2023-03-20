@@ -1,5 +1,5 @@
 {
-  "version": "0.2.2",
+  "version": "0.4.0",
   "name": "candy_guard",
   "instructions": [
     {
@@ -39,7 +39,8 @@
           "name": "data",
           "type": "bytes"
         }
-      ]
+      ],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "mint",
@@ -154,7 +155,257 @@
             "option": "string"
           }
         }
-      ]
+      ],
+      "defaultOptionalAccounts": true
+    },
+    {
+      "name": "mintV2",
+      "docs": [
+        "Mint an NFT from a candy machine wrapped in the candy guard."
+      ],
+      "accounts": [
+        {
+          "name": "candyGuard",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Candy Guard account."
+          ]
+        },
+        {
+          "name": "candyMachineProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Candy Machine program account.",
+            ""
+          ]
+        },
+        {
+          "name": "candyMachine",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Candy machine account."
+          ]
+        },
+        {
+          "name": "candyMachineAuthorityPda",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Candy Machine authority account.",
+            ""
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Payer for the mint (SOL) fees."
+          ]
+        },
+        {
+          "name": "minter",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "Minter account for validation and non-SOL fees."
+          ]
+        },
+        {
+          "name": "nftMint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Mint account of the NFT. The account will be initialized if necessary.",
+            "",
+            "Must be a signer if:",
+            "* the nft_mint account does not exist.",
+            ""
+          ]
+        },
+        {
+          "name": "nftMintAuthority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "Mint authority of the NFT before the authority gets transfer to the master edition account.",
+            "",
+            "If nft_mint account exists:",
+            "* it must match the mint authority of nft_mint."
+          ]
+        },
+        {
+          "name": "nftMetadata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Metadata account of the NFT. This account must be uninitialized.",
+            ""
+          ]
+        },
+        {
+          "name": "nftMasterEdition",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Master edition account of the NFT. The account will be initialized if necessary.",
+            ""
+          ]
+        },
+        {
+          "name": "token",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Destination token account (required for pNFT).",
+            ""
+          ]
+        },
+        {
+          "name": "tokenRecord",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Token record (required for pNFT).",
+            ""
+          ]
+        },
+        {
+          "name": "collectionDelegateRecord",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Collection authority or metadata delegate record.",
+            ""
+          ]
+        },
+        {
+          "name": "collectionMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Mint account of the collection NFT.",
+            ""
+          ]
+        },
+        {
+          "name": "collectionMetadata",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "Metadata account of the collection NFT.",
+            ""
+          ]
+        },
+        {
+          "name": "collectionMasterEdition",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Master edition account of the collection NFT.",
+            ""
+          ]
+        },
+        {
+          "name": "collectionUpdateAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Update authority of the collection NFT.",
+            ""
+          ]
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Token Metadata program.",
+            ""
+          ]
+        },
+        {
+          "name": "splTokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SPL Token program."
+          ]
+        },
+        {
+          "name": "splAtaProgram",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "SPL Associated Token program."
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "System program."
+          ]
+        },
+        {
+          "name": "sysvarInstructions",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Instructions sysvar account.",
+            ""
+          ]
+        },
+        {
+          "name": "recentSlothashes",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "SlotHashes sysvar cluster data.",
+            ""
+          ]
+        },
+        {
+          "name": "authorizationRulesProgram",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Token Authorization Rules program.",
+            ""
+          ]
+        },
+        {
+          "name": "authorizationRules",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": true,
+          "docs": [
+            "Token Authorization rules account for the collection metadata (if any).",
+            ""
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "mintArgs",
+          "type": "bytes"
+        },
+        {
+          "name": "label",
+          "type": {
+            "option": "string"
+          }
+        }
+      ],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "route",
@@ -191,7 +442,8 @@
             "option": "string"
           }
         }
-      ]
+      ],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "setAuthority",
@@ -215,7 +467,8 @@
           "name": "newAuthority",
           "type": "publicKey"
         }
-      ]
+      ],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "unwrap",
@@ -250,7 +503,8 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "update",
@@ -284,7 +538,8 @@
           "name": "data",
           "type": "bytes"
         }
-      ]
+      ],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "withdraw",
@@ -303,7 +558,8 @@
           "isSigner": true
         }
       ],
-      "args": []
+      "args": [],
+      "defaultOptionalAccounts": true
     },
     {
       "name": "wrap",
@@ -338,7 +594,8 @@
           "isSigner": true
         }
       ],
-      "args": []
+      "args": [],
+      "defaultOptionalAccounts": true
     }
   ],
   "accounts": [
@@ -392,7 +649,7 @@
           {
             "name": "destination",
             "docs": [
-              "The destination address for the frozed fund to go to."
+              "The destination address for the frozen fund to go to."
             ],
             "type": "publicKey"
           },
@@ -584,7 +841,8 @@
         "0. `[writable]` Freeze PDA to receive the funds (seeds `[\"freeze_escrow\",",
         "destination pubkey, candy guard pubkey, candy machine pubkey]`).",
         "1. `[]` Associate token account of the NFT (seeds `[payer pubkey, token",
-        "program pubkey, nft mint pubkey]`)."
+        "program pubkey, nft mint pubkey]`).",
+        "2. `[optional]` Authorization rule set for the minted pNFT."
       ],
       "type": {
         "kind": "struct",
@@ -613,7 +871,8 @@
         "program pubkey, nft mint pubkey]`).",
         "2. `[writable]` Token account holding the required amount.",
         "3. `[writable]` Associate token account of the Freeze PDA (seeds `[freeze PDA",
-        "pubkey, token program pubkey, nft mint pubkey]`)."
+        "pubkey, token program pubkey, nft mint pubkey]`).",
+        "4. `[optional]` Authorization rule set for the minted pNFT."
       ],
       "type": {
         "kind": "struct",
@@ -723,7 +982,8 @@
         "1. `[writeable]` Metadata account of the NFT.",
         "2. `[writeable]` Master Edition account of the NFT.",
         "3. `[writeable]` Mint account of the NFT.",
-        "4. `[writeable]` Collection metadata account of the NFT."
+        "4. `[writeable]` Collection metadata account of the NFT.",
+        "5. `[writeable]` Token Record of the NFT (pNFT)."
       ],
       "type": {
         "kind": "struct",
@@ -768,7 +1028,12 @@
         "2. `[]` Mint account of the NFT.",
         "3. `[]` Account to receive the NFT.",
         "4. `[writeable]` Destination PDA key (seeds [destination pubkey, token program id, nft mint pubkey]).",
-        "5. `[]` spl-associate-token program ID."
+        "5. `[]` spl-associate-token program ID.",
+        "6. `[]` Master edition (pNFT)",
+        "7. `[writable]` Owner token record (pNFT)",
+        "8. `[writable]` Destination token record (pNFT)",
+        "9. `[]` Token Authorization Rules program (pNFT)",
+        "10. `[]` Token Authorization Rules account (pNFT)"
       ],
       "type": {
         "kind": "struct",
@@ -1589,12 +1854,22 @@
       "code": 6048,
       "name": "AllocationGuardNotEnabled",
       "msg": "Allocation guard must be enabled"
+    },
+    {
+      "code": 6049,
+      "name": "InvalidMintAuthority",
+      "msg": "Candy machine has an invalid mint authority"
+    },
+    {
+      "code": 6050,
+      "name": "InstructionBuilderFailed",
+      "msg": "Instruction could not be created"
     }
   ],
   "metadata": {
     "address": "Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g",
     "origin": "anchor",
-    "binaryVersion": "0.25.0",
-    "libVersion": "0.25.0"
+    "binaryVersion": "0.26.0",
+    "libVersion": "0.26.0"
   }
 }

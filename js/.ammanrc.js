@@ -14,7 +14,7 @@ const programs = {
     label: "Candy Guard",
     programId: 'Guard1JwRhJkVH6XZhzoYxeBVQe872VH6QggF4BWmS9g',
     deployPath: localDeployPath('mpl_candy_guard'),
-  },
+  }
 };
 
 const validator = {

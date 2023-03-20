@@ -2,6 +2,7 @@ import test from 'tape';
 import { CandyGuardData, GuardSet } from '../../src';
 
 export * from './amman';
+export * from './lut';
 export * from './txs-init';
 export * from './log';
 

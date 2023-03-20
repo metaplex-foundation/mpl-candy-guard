@@ -52,17 +52,28 @@ impl Guard for Allocation {
     ) -> Result<()> {
         msg!("Instruction: Initialize (Allocation guard)");
 
-        let allocation = try_get_account_info(ctx, 0)?;
-        let authority = try_get_account_info(ctx, 1)?;
-        let _system_program = try_get_account_info(ctx, 2)?;
+        let allocation = try_get_account_info(ctx.remaining_accounts, 0)?;
+        let authority = try_get_account_info(ctx.remaining_accounts, 1)?;
+        let _system_program = try_get_account_info(ctx.remaining_accounts, 2)?;
 
-        if route_context.candy_guard.is_none() || route_context.candy_machine.is_none() {
-            return err!(CandyGuardError::Uninitialized);
-        } else if let Some(candy_guard) = &route_context.candy_guard {
-            // only the authority can initialize the allocation
-            if !(cmp_pubkeys(authority.key, &candy_guard.authority) && authority.is_signer) {
-                return err!(CandyGuardError::MissingRequiredSignature);
-            }
+        let candy_guard = route_context
+            .candy_guard
+            .as_ref()
+            .ok_or(CandyGuardError::Uninitialized)?;
+
+        let candy_machine = route_context
+            .candy_machine
+            .as_ref()
+            .ok_or(CandyGuardError::Uninitialized)?;
+
+        // only the authority can initialize the allocation
+        if !(cmp_pubkeys(authority.key, &candy_guard.authority) && authority.is_signer) {
+            return err!(CandyGuardError::MissingRequiredSignature);
+        }
+
+        // and the candy guard and candy machine must be linked
+        if !cmp_pubkeys(&candy_machine.mint_authority, &candy_guard.key()) {
+            return err!(CandyGuardError::InvalidMintAuthority);
         }
 
         let allocation_id = if let Some(guard_set) = &route_context.guard_set {
@@ -132,16 +143,13 @@ impl Guard for Allocation {
 impl Condition for Allocation {
     fn validate<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
-        let allocation = try_get_account_info(ctx, evaluation_context.account_cursor)?;
-        evaluation_context
-            .indices
-            .insert("allocation_index", evaluation_context.account_cursor);
-        evaluation_context.account_cursor += 1;
+        let allocation = try_get_account_info(ctx.accounts.remaining, ctx.account_cursor)?;
+        ctx.indices.insert("allocation_index", ctx.account_cursor);
+        ctx.account_cursor += 1;
 
         let candy_guard_key = &ctx.accounts.candy_guard.key();
         let candy_machine_key = &ctx.accounts.candy_machine.key();
@@ -176,12 +184,12 @@ impl Condition for Allocation {
 
     fn pre_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
-        let allocation = try_get_account_info(ctx, evaluation_context.indices["allocation_index"])?;
+        let allocation =
+            try_get_account_info(ctx.accounts.remaining, ctx.indices["allocation_index"])?;
         let mut account_data = allocation.try_borrow_mut_data()?;
         let mut mint_tracker = MintTracker::try_from_slice(&account_data)?;
 

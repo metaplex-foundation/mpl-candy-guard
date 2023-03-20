@@ -37,7 +37,7 @@ export async function multiple(
     await mintTransaction.assertNone();
 
     const metaplex = Metaplex.make(connection).use(keypairIdentity(payer));
-    const nft = await metaplex.nfts().findByMint({ mintAddress: mint.publicKey }).run();
+    const nft = await metaplex.nfts().findByMint({ mintAddress: mint.publicKey });
     indices.push(parseInt(nft.name));
   }
 

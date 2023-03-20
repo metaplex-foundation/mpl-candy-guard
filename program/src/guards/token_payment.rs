@@ -4,7 +4,7 @@ use crate::{
     errors::CandyGuardError,
     state::GuardType,
     utils::{
-        assert_initialized, assert_is_ata, assert_keys_equal, spl_token_transfer,
+        assert_initialized, assert_is_token_account, assert_keys_equal, spl_token_transfer,
         TokenTransferParams,
     },
 };
@@ -37,30 +37,29 @@ impl Guard for TokenPayment {
 impl Condition for TokenPayment {
     fn validate<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
         // token
-        let token_account_index = evaluation_context.account_cursor;
-        let token_account_info = try_get_account_info(ctx, token_account_index)?;
-        let destination_ata = try_get_account_info(ctx, token_account_index + 1)?;
-        evaluation_context.account_cursor += 2;
+        let token_account_index = ctx.account_cursor;
+        let token_account_info = try_get_account_info(ctx.accounts.remaining, token_account_index)?;
+        let destination_ata =
+            try_get_account_info(ctx.accounts.remaining, token_account_index + 1)?;
+        ctx.account_cursor += 2;
 
         assert_keys_equal(destination_ata.key, &self.destination_ata)?;
         let ata_account: spl_token::state::Account = assert_initialized(destination_ata)?;
         assert_keys_equal(&ata_account.mint, &self.mint)?;
 
         let token_account =
-            assert_is_ata(token_account_info, &ctx.accounts.payer.key(), &self.mint)?;
+            assert_is_token_account(token_account_info, ctx.accounts.minter.key, &self.mint)?;
 
         if token_account.amount < self.amount {
             return err!(CandyGuardError::NotEnoughTokens);
         }
 
-        evaluation_context
-            .indices
+        ctx.indices
             .insert("token_payment_index", token_account_index);
 
         Ok(())
@@ -68,22 +67,21 @@ impl Condition for TokenPayment {
 
     fn pre_actions<'info>(
         &self,
-        ctx: &Context<'_, '_, '_, 'info, Mint<'info>>,
-        _mint_args: &[u8],
+        ctx: &mut EvaluationContext,
         _guard_set: &GuardSet,
-        evaluation_context: &mut EvaluationContext,
+        _mint_args: &[u8],
     ) -> Result<()> {
-        let index = evaluation_context.indices["token_payment_index"];
+        let index = ctx.indices["token_payment_index"];
         // the accounts have already been validated
-        let token_account_info = try_get_account_info(ctx, index)?;
-        let destination_ata = try_get_account_info(ctx, index + 1)?;
+        let token_account_info = try_get_account_info(ctx.accounts.remaining, index)?;
+        let destination_ata = try_get_account_info(ctx.accounts.remaining, index + 1)?;
 
         spl_token_transfer(TokenTransferParams {
             source: token_account_info.to_account_info(),
             destination: destination_ata.to_account_info(),
-            authority: ctx.accounts.payer.to_account_info(),
+            authority: ctx.accounts.minter.to_account_info(),
             authority_signer_seeds: &[],
-            token_program: ctx.accounts.token_program.to_account_info(),
+            token_program: ctx.accounts.spl_token_program.to_account_info(),
             amount: self.amount,
         })?;
 
